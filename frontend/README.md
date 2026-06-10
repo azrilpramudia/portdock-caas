@@ -1,36 +1,108 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🎨 Portdock CaaS — Frontend
 
-## Getting Started
+> Next.js web application for the Portdock CaaS platform. Provides an intuitive user interface for managing and deploying Docker containers through the Portdock backend API.
 
-First, run the development server:
+---
+
+## 📖 Table of Contents
+
+- [Tech Stack](#tech-stack)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Running the App](#running-the-app)
+- [Project Structure](#project-structure)
+- [Environment Variables](#environment-variables)
+- [Building for Production](#building-for-production)
+- [License](#license)
+
+---
+
+## Tech Stack
+
+| Technology | Version | Purpose |
+|---|---|---|
+| **Next.js** | 16.x | React framework (App Router) |
+| **React** | 19.x | UI library |
+| **TypeScript** | ^5.x | Type-safe development |
+| **Tailwind CSS** | ^4.x | Utility-first CSS framework |
+| **Bun** | >= 1.0 | Package manager & runner |
+
+---
+
+## Prerequisites
+
+- **[Bun](https://bun.sh/)** `>= 1.0`
+- **[Node.js](https://nodejs.org/)** `>= 20.x`
+- Portdock **backend** running (see [backend README](../backend/README.md))
+
+---
+
+## Installation
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# From the frontend directory
+bun install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Running the App
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+# Development mode (with hot-reload)
+bun run dev
+```
 
-## Learn More
+Open [http://localhost:3001](http://localhost:3001) in your browser to view the app.
 
-To learn more about Next.js, take a look at the following resources:
+> **Tip:** The page auto-updates as you edit source files. Start with `app/page.tsx`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Project Structure
 
-## Deploy on Vercel
+```
+frontend/
+├── app/
+│   ├── layout.tsx        # Root layout (fonts, global metadata)
+│   ├── page.tsx          # Home page
+│   └── globals.css       # Global styles
+├── public/               # Static assets (images, icons, etc.)
+├── next.config.ts        # Next.js configuration
+├── postcss.config.mjs    # PostCSS configuration (Tailwind CSS)
+├── tsconfig.json         # TypeScript configuration
+└── package.json
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Environment Variables
+
+Create a `.env.local` file in the `frontend/` directory:
+
+```env
+# Backend API base URL
+NEXT_PUBLIC_API_URL=http://localhost:3000
+```
+
+> Environment variables prefixed with `NEXT_PUBLIC_` are exposed to the browser.
+
+---
+
+## Building for Production
+
+```bash
+# Build the production bundle
+bun run build
+
+# Start the production server
+bun run start
+```
+
+The production build output will be in the `.next/` directory.
+
+---
+
+## License
+
+This project is licensed under the **MIT License** — see the root [LICENSE](../LICENSE) file for details.
