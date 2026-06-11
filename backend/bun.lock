@@ -23,12 +23,14 @@
         "extract-zip": "^2.0.1",
         "helmet": "^8.2.0",
         "multer": "^2.1.1",
+        "nestjs-zod": "^5.4.0",
         "passport": "^0.7.0",
         "passport-jwt": "^4.0.1",
         "passport-local": "^1.0.0",
         "reflect-metadata": "^0.2.2",
         "rxjs": "^7.8.1",
         "socket.io": "^4.8.3",
+        "zod": "^4.4.3",
       },
       "devDependencies": {
         "@eslint/eslintrc": "^3.2.0",
@@ -1149,6 +1151,8 @@
 
     "neo-async": ["neo-async@2.6.2", "", {}, "sha512-Yd3UES5mWCSqR+qNT93S3UoYUkqAZ9lLg8a7g9rimsWmYGK8cVToA4/sF3RrshdyV3sAGMXVUmpMYOw+dLpOuw=="],
 
+    "nestjs-zod": ["nestjs-zod@5.4.0", "", { "dependencies": { "deepmerge": "^4.3.1" }, "peerDependencies": { "@nestjs/common": "^10.0.0 || ^11.0.0", "@nestjs/swagger": "^7.4.2 || ^8.0.0 || ^11.0.0", "rxjs": "^7.0.0", "zod": "^3.25.0 || ^4.0.0" }, "optionalPeers": ["@nestjs/swagger"] }, "sha512-dxVpy1fjfK4kp+ztK+7xQP46fpvZxkeR/jcEdIvEGh/2o71iwXuy/hrKOWSPhJ1nQXV4iBdHqMizndn2GTaXDg=="],
+
     "node-abort-controller": ["node-abort-controller@3.1.1", "", {}, "sha512-AGK2yQKIjRuqnc6VkX2Xj5d+QW8xZ87pa1UK6yA6ouUyuxfHuMP6umE5QK7UmTeOAymo+Zx1Fxiuw9rVx8taHQ=="],
 
     "node-addon-api": ["node-addon-api@8.8.0", "", {}, "sha512-c5Ko1fZJIJmzhFIkhRN76WTq+fC6tWnGy9CXA0fA+XygsWZmEwG8vmbkNqxMyoaa0Tin4djul49NzdVcJJcjeA=="],
@@ -1488,6 +1492,8 @@
     "yocto-queue": ["yocto-queue@0.1.0", "", {}, "sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q=="],
 
     "yoctocolors-cjs": ["yoctocolors-cjs@2.1.3", "", {}, "sha512-U/PBtDf35ff0D8X8D0jfdzHYEPFxAI7jJlxZXwCSez5M3190m+QobIfh+sWDWSHMCWWJN2AWamkegn6vr6YBTw=="],
+
+    "zod": ["zod@4.4.3", "", {}, "sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ=="],
 
     "@angular-devkit/core/ajv": ["ajv@8.18.0", "", { "dependencies": { "fast-deep-equal": "^3.1.3", "fast-uri": "^3.0.1", "json-schema-traverse": "^1.0.0", "require-from-string": "^2.0.2" } }, "sha512-PlXPeEWMXMZ7sPYOHqmDyCJzcfNrUr3fGNKtezX14ykXOEIvyK81d+qydx89KY5O71FKMPaQ2vBfBFI5NHR63A=="],
 

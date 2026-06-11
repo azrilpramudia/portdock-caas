@@ -171,7 +171,7 @@ export default function LoginPage() {
         </Card>
 
         <p className="text-center text-slate-600 text-xs mt-6">
-          © 2024 Portdock. All rights reserved.
+          © 2026 Portdock. All rights reserved.
         </p>
       </div>
     </div>

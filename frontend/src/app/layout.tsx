@@ -11,12 +11,13 @@ const poppins = Poppins({
   display: "swap",
 });
 
+import { APP_CONFIG } from "@/constants/config";
+
 export const metadata: Metadata = {
-  title: "Portdock — Docker Deployment Platform",
-  description:
-    "Platform deployment aplikasi berbasis Docker. Deploy aplikasi Anda secara cepat dan otomatis melalui antarmuka web tanpa perlu memahami konfigurasi Docker secara mendalam.",
+  title: `${APP_CONFIG.name} — Docker Deployment Platform`,
+  description: APP_CONFIG.description,
   keywords: ["docker", "deployment", "container", "hosting", "devops"],
-  authors: [{ name: "Azril Pramudia" }],
+  authors: [{ name: APP_CONFIG.author }],
 };
 
 export default function RootLayout({

@@ -1,44 +1,13 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import {
-  IsNotEmpty,
-  IsNumber,
-  IsOptional,
-  IsString,
-  Max,
-  Min,
-} from 'class-validator';
+import { createZodDto } from 'nestjs-zod/dto';
+import { z } from 'zod';
 
-export class CreateContainerDto {
-  @ApiProperty({ example: 'my-app-container' })
-  @IsNotEmpty()
-  @IsString()
-  name: string;
+export const CreateContainerSchema = z.object({
+  name: z.string().min(1).describe('Container name'),
+  imageName: z.string().min(1).describe('Docker image name'),
+  imageTag: z.string().optional().describe('Docker image tag'),
+  internalPort: z.number().min(1).max(65535).describe('Internal port exposed by image'),
+  hostPort: z.number().min(1024).max(65535).optional().describe('Host port to map to'),
+  subdomain: z.string().optional().describe('Subdomain for routing'),
+});
 
-  @ApiProperty({ example: 'myapp' })
-  @IsNotEmpty()
-  @IsString()
-  imageName: string;
-
-  @ApiPropertyOptional({ example: 'latest' })
-  @IsOptional()
-  @IsString()
-  imageTag?: string;
-
-  @ApiProperty({ example: 3000 })
-  @IsNumber()
-  @Min(1)
-  @Max(65535)
-  internalPort: number;
-
-  @ApiPropertyOptional({ example: 8080 })
-  @IsOptional()
-  @IsNumber()
-  @Min(1024)
-  @Max(65535)
-  hostPort?: number;
-
-  @ApiPropertyOptional({ example: 'myapp' })
-  @IsOptional()
-  @IsString()
-  subdomain?: string;
-}
+export class CreateContainerDto extends createZodDto(CreateContainerSchema) {}

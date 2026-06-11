@@ -1,12 +1,10 @@
-import { PartialType } from '@nestjs/swagger';
-import { CreateProjectDto } from './create-project.dto';
-import { IsEnum, IsOptional } from 'class-validator';
+import { createZodDto } from 'nestjs-zod/dto';
+import { z } from 'zod';
 import { ProjectStatus } from '@prisma/client';
-import { ApiPropertyOptional } from '@nestjs/swagger';
+import { CreateProjectSchema } from './create-project.dto';
 
-export class UpdateProjectDto extends PartialType(CreateProjectDto) {
-  @ApiPropertyOptional({ enum: ProjectStatus })
-  @IsOptional()
-  @IsEnum(ProjectStatus)
-  status?: ProjectStatus;
-}
+export const UpdateProjectSchema = CreateProjectSchema.partial().extend({
+  status: z.nativeEnum(ProjectStatus).optional(),
+});
+
+export class UpdateProjectDto extends createZodDto(UpdateProjectSchema) {}

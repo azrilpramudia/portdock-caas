@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import { ZodValidationPipe } from 'nestjs-zod';
 import helmet from 'helmet';
 import * as fs from 'fs';
 
@@ -20,17 +20,13 @@ async function bootstrap() {
     credentials: true,
   });
 
-  // Global validation pipe
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-    }),
-  );
+  // Global Zod validation pipe
+  app.useGlobalPipes(new ZodValidationPipe());
 
   // API prefix
   app.setGlobalPrefix('api');
+
+
 
   // Swagger docs
   const config = new DocumentBuilder()
@@ -44,7 +40,7 @@ async function bootstrap() {
 
   const port = process.env.PORT ?? 3001;
   await app.listen(port);
-  console.log(`🚀 Portdock API running on http://localhost:${port}/api`);
-  console.log(`📖 Swagger docs at http://localhost:${port}/api/docs`);
+  console.log(`Server is running at http://localhost:${port}`);
+  console.log(`Swagger docs at http://localhost:${port}/api/docs`);
 }
 bootstrap();

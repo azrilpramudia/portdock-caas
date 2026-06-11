@@ -1,26 +1,10 @@
-import {
-  IsEmail,
-  IsNotEmpty,
-  IsString,
-  MinLength,
-  MaxLength,
-} from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import { createZodDto } from 'nestjs-zod/dto';
+import { z } from 'zod';
 
-export class RegisterDto {
-  @ApiProperty({ example: 'John Doe' })
-  @IsNotEmpty()
-  @IsString()
-  @MaxLength(100)
-  name: string;
+export const RegisterSchema = z.object({
+  name: z.string().min(1).max(100).describe('User name'),
+  email: z.string().email().describe('Email address'),
+  password: z.string().min(8).describe('Password (min 8 chars)'),
+});
 
-  @ApiProperty({ example: 'john@example.com' })
-  @IsEmail()
-  email: string;
-
-  @ApiProperty({ example: 'password123', minLength: 8 })
-  @IsNotEmpty()
-  @IsString()
-  @MinLength(8)
-  password: string;
-}
+export class RegisterDto extends createZodDto(RegisterSchema) {}

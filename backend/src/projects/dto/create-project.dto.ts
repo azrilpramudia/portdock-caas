@@ -1,38 +1,13 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import {
-  IsEnum,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  IsUrl,
-  MaxLength,
-} from 'class-validator';
+import { createZodDto } from 'nestjs-zod/dto';
+import { z } from 'zod';
 import { DeploymentType } from '@prisma/client';
 
-export class CreateProjectDto {
-  @ApiProperty({ example: 'My Awesome App' })
-  @IsNotEmpty()
-  @IsString()
-  @MaxLength(100)
-  name: string;
+export const CreateProjectSchema = z.object({
+  name: z.string().min(1).max(100).describe('Project name'),
+  description: z.string().max(500).optional().describe('Project description'),
+  deploymentType: z.nativeEnum(DeploymentType).describe('Deployment type'),
+  repositoryUrl: z.string().url().optional().describe('GitHub repository URL'),
+  domain: z.string().optional().describe('Custom domain'),
+});
 
-  @ApiPropertyOptional({ example: 'A cool web application' })
-  @IsOptional()
-  @IsString()
-  @MaxLength(500)
-  description?: string;
-
-  @ApiProperty({ enum: DeploymentType })
-  @IsEnum(DeploymentType)
-  deploymentType: DeploymentType;
-
-  @ApiPropertyOptional({ example: 'https://github.com/user/repo' })
-  @IsOptional()
-  @IsString()
-  repositoryUrl?: string;
-
-  @ApiPropertyOptional({ example: 'myapp.portdock.io' })
-  @IsOptional()
-  @IsString()
-  domain?: string;
-}
+export class CreateProjectDto extends createZodDto(CreateProjectSchema) {}

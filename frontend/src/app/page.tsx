@@ -1,73 +1,15 @@
 "use client";
 
 import Link from "next/link";
+import { LANDING_FEATURES, LANDING_STEPS } from "@/constants/landing";
+import { APP_CONFIG } from "@/constants/config";
 import {
   Container,
-  Rocket,
-  BarChart3,
-  Shield,
-  Zap,
-  Globe,
   ArrowRight,
   CheckCircle2,
-  GitBranch,
-  Terminal,
-  Cpu,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-
-const features = [
-  {
-    icon: Rocket,
-    title: "Deploy Instan",
-    description: "Deploy aplikasi dari ZIP atau GitHub dalam hitungan klik tanpa konfigurasi rumit.",
-    color: "text-blue-600",
-    bg: "bg-blue-50",
-  },
-  {
-    icon: Container,
-    title: "Docker Native",
-    description: "Terintegrasi langsung dengan Docker Engine untuk manajemen container yang powerful.",
-    color: "text-purple-600",
-    bg: "bg-purple-50",
-  },
-  {
-    icon: BarChart3,
-    title: "Real-time Monitoring",
-    description: "Pantau CPU, RAM, dan Network usage container Anda secara real-time dengan grafik interaktif.",
-    color: "text-green-600",
-    bg: "bg-green-50",
-  },
-  {
-    icon: Shield,
-    title: "Keamanan JWT",
-    description: "Autentikasi aman dengan JWT dan enkripsi password menggunakan bcrypt.",
-    color: "text-orange-600",
-    bg: "bg-orange-50",
-  },
-  {
-    icon: Globe,
-    title: "Manajemen Domain",
-    description: "Konfigurasi domain kustom dan subdomain untuk setiap aplikasi Anda.",
-    color: "text-cyan-600",
-    bg: "bg-cyan-50",
-  },
-  {
-    icon: Zap,
-    title: "Auto Dockerfile",
-    description: "Portdock otomatis mendeteksi runtime dan membuat Dockerfile yang optimal.",
-    color: "text-yellow-600",
-    bg: "bg-yellow-50",
-  },
-];
-
-const steps = [
-  { step: "01", title: "Buat Project", description: "Pilih nama dan metode deployment" },
-  { step: "02", title: "Upload / GitHub", description: "Upload ZIP atau connect ke repositori" },
-  { step: "03", title: "Build Otomatis", description: "Docker image dibangun secara otomatis" },
-  { step: "04", title: "Aplikasi Online", description: "Akses aplikasi melalui URL yang digenerate" },
-];
 
 export default function LandingPage() {
   return (
@@ -168,7 +110,7 @@ export default function LandingPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {features.map((feature) => (
+            {LANDING_FEATURES.map((feature) => (
               <div
                 key={feature.title}
                 className="p-6 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/[0.07] hover:border-white/20 transition-all duration-200"
@@ -193,7 +135,7 @@ export default function LandingPage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {steps.map((step, i) => (
+            {LANDING_STEPS.map((step, i) => (
               <div key={step.step} className="flex items-start gap-4 p-6 rounded-2xl bg-white/5 border border-white/10">
                 <div className="w-12 h-12 portdock-gradient rounded-xl flex items-center justify-center flex-shrink-0 text-white font-bold text-lg">
                   {step.step}
@@ -238,7 +180,7 @@ export default function LandingPage() {
           </div>
           <span className="font-semibold text-white">Portdock</span>
         </div>
-        <p>© 2024 Portdock by Azril Pramudia. All rights reserved.</p>
+        <p>© {APP_CONFIG.year} {APP_CONFIG.name} by {APP_CONFIG.author}. All rights reserved.</p>
       </footer>
     </div>
   );
