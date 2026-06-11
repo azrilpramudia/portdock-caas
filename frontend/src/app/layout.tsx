@@ -14,7 +14,7 @@ const poppins = Poppins({
 import { APP_CONFIG } from "@/constants/config";
 
 export const metadata: Metadata = {
-  title: `${APP_CONFIG.name} — Docker Deployment Platform`,
+  title: `${APP_CONFIG.name}`,
   description: APP_CONFIG.description,
   keywords: ["docker", "deployment", "container", "hosting", "devops"],
   authors: [{ name: APP_CONFIG.author }],
