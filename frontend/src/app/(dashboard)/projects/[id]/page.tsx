@@ -201,7 +201,15 @@ export default function ProjectDetailPage() {
               {project.domain && (
                 <div>
                   <p className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-1">Domain</p>
-                  <p className="text-sm text-slate-700">{project.domain}</p>
+                  <a
+                    href={`http://${project.domain}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                  >
+                    <ExternalLink className="w-3 h-3" />
+                    <span className="truncate">{project.domain}</span>
+                  </a>
                 </div>
               )}
               <Separator />

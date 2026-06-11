@@ -16,6 +16,8 @@ import { ProjectStatus } from '@prisma/client';
 import { execSync } from 'child_process';
 import { ConfigService } from '@nestjs/config';
 
+import { NginxService } from '../nginx/nginx.service';
+
 @Injectable()
 export class DeploymentsService {
   private readonly logger = new Logger(DeploymentsService.name);
@@ -25,6 +27,7 @@ export class DeploymentsService {
     private docker: DockerService,
     private activityLogs: ActivityLogsService,
     private config: ConfigService,
+    private nginx: NginxService,
   ) {}
 
   async deployZip(
@@ -34,7 +37,7 @@ export class DeploymentsService {
   ) {
     const project = await this.verifyProject(projectId, userId);
 
-    const uploadDir = this.config.get<string>('UPLOAD_DIR', './uploads');
+    const uploadDir = path.resolve(process.cwd(), this.config.get<string>('UPLOAD_DIR', './uploads'));
     const extractDir = path.join(uploadDir, projectId, Date.now().toString());
 
     fs.mkdirSync(extractDir, { recursive: true });
@@ -54,6 +57,9 @@ export class DeploymentsService {
     try {
       // Extract ZIP
       await extractZip(file.path, { dir: extractDir });
+
+      // Flatten directory if ZIP contains a single root folder
+      this.flattenDirectory(extractDir);
 
       // Check for Dockerfile
       const dockerfilePath = path.join(extractDir, 'Dockerfile');
@@ -116,6 +122,11 @@ export class DeploymentsService {
         description: `Deployment succeeded for "${project.name}"`,
       });
 
+      // Generate Nginx config if domain exists
+      if (project.domain) {
+        await this.nginx.generateConfig(project.domain, hostPort);
+      }
+
       // Cleanup
       fs.rmSync(extractDir, { recursive: true, force: true });
       fs.unlinkSync(file.path);
@@ -153,7 +164,7 @@ export class DeploymentsService {
   ) {
     const project = await this.verifyProject(projectId, userId);
 
-    const uploadDir = this.config.get<string>('UPLOAD_DIR', './uploads');
+    const uploadDir = path.resolve(process.cwd(), this.config.get<string>('UPLOAD_DIR', './uploads'));
     const cloneDir = path.join(uploadDir, projectId, `github-${Date.now()}`);
 
     fs.mkdirSync(path.dirname(cloneDir), { recursive: true });
@@ -232,6 +243,11 @@ export class DeploymentsService {
         description: `GitHub deployment succeeded for "${project.name}"`,
       });
 
+      // Generate Nginx config if domain exists
+      if (project.domain) {
+        await this.nginx.generateConfig(project.domain, hostPort);
+      }
+
       fs.rmSync(cloneDir, { recursive: true, force: true });
 
       return { message: 'GitHub deployment successful', container };
@@ -267,11 +283,26 @@ export class DeploymentsService {
     return project;
   }
 
+  private flattenDirectory(dir: string) {
+    const items = fs.readdirSync(dir);
+    if (items.length === 1) {
+      const singleItemPath = path.join(dir, items[0]);
+      if (fs.statSync(singleItemPath).isDirectory()) {
+        const innerItems = fs.readdirSync(singleItemPath);
+        for (const item of innerItems) {
+          fs.renameSync(path.join(singleItemPath, item), path.join(dir, item));
+        }
+        fs.rmSync(singleItemPath, { recursive: true, force: true });
+      }
+    }
+  }
+
   private detectRuntime(dir: string): string {
     if (fs.existsSync(path.join(dir, 'package.json'))) return 'node';
     if (fs.existsSync(path.join(dir, 'requirements.txt'))) return 'python';
     if (fs.existsSync(path.join(dir, 'go.mod'))) return 'go';
     if (fs.existsSync(path.join(dir, 'pom.xml'))) return 'java';
+    if (fs.existsSync(path.join(dir, 'index.html'))) return 'static';
     return 'node';
   }
 
@@ -282,6 +313,7 @@ export class DeploymentsService {
       );
       if (pkg.scripts?.start?.includes('3000')) return 3000;
     } catch {}
+    if (fs.existsSync(path.join(dir, 'index.html'))) return 80;
     return 3000;
   }
 
@@ -303,6 +335,12 @@ FROM alpine:latest
 WORKDIR /app
 COPY --from=builder /app/main .
 CMD ["./main"]`;
+      case 'static':
+        return `FROM nginx:alpine
+WORKDIR /usr/share/nginx/html
+COPY . .
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]`;
       default:
         return `FROM node:20-alpine
 WORKDIR /app

@@ -1,13 +1,65 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import Dockerode from 'dockerode';
+import * as path from 'path';
+import * as fs from 'fs';
 
 @Injectable()
-export class DockerService {
+export class DockerService implements OnModuleInit {
   private docker: Dockerode;
   private readonly logger = new Logger(DockerService.name);
+  private nginxContainerId: string | null = null;
 
   constructor() {
     this.docker = new Dockerode({ socketPath: '/var/run/docker.sock' });
+  }
+
+  async onModuleInit() {
+    await this.ensureSystemContainers();
+  }
+
+  private async ensureSystemContainers() {
+    this.logger.log('Ensuring system containers are running...');
+    const containers = await this.listContainers(true);
+    const nginxContainer = containers.find((c) => c.Names.includes('/portdock-nginx'));
+
+    if (nginxContainer) {
+      this.nginxContainerId = nginxContainer.Id;
+      if (nginxContainer.State !== 'running') {
+        this.logger.log('Starting portdock-nginx container...');
+        await this.startContainer(this.nginxContainerId);
+      }
+    } else {
+      this.logger.log('Creating portdock-nginx container...');
+      const confDir = path.resolve(process.cwd(), 'nginx-conf.d');
+      if (!fs.existsSync(confDir)) {
+        fs.mkdirSync(confDir, { recursive: true });
+      }
+
+      const hasImage = await this.imageExists('nginx:alpine');
+      if (!hasImage) {
+        this.logger.log('Pulling nginx:alpine image...');
+        await this.pullImage('nginx:alpine');
+      }
+
+      const container = await this.createContainer({
+        name: 'portdock-nginx',
+        Image: 'nginx:alpine',
+        ExposedPorts: { '80/tcp': {} },
+        HostConfig: {
+          PortBindings: { '80/tcp': [{ HostPort: '80' }] },
+          Binds: [`${confDir}:/etc/nginx/conf.d`],
+          RestartPolicy: { Name: 'always' },
+          NetworkMode: 'host', // For easier localhost routing, or bridge mapping
+        },
+      });
+      this.nginxContainerId = container.id;
+      await container.start();
+      this.logger.log('portdock-nginx container started.');
+    }
+  }
+
+  async getSystemNginxContainerId(): Promise<string | null> {
+    return this.nginxContainerId;
   }
 
   getDocker(): Dockerode {
@@ -74,10 +126,25 @@ export class DockerService {
             reject(err);
             return;
           }
-          this.docker.modem.followProgress(stream!, (err2) => {
-            if (err2) reject(err2);
-            else resolve();
-          });
+          this.docker.modem.followProgress(
+            stream!,
+            (err2, output) => {
+              if (err2) {
+                this.logger.error('Docker Build Error', err2);
+                reject(err2);
+              } else {
+                resolve();
+              }
+            },
+            (event) => {
+              if (event.stream) {
+                process.stdout.write(event.stream);
+              } else if (event.errorDetail) {
+                this.logger.error(`Docker Build Event Error: ${event.errorDetail.message}`);
+                reject(new Error(event.errorDetail.message));
+              }
+            }
+          );
         },
       );
     });
