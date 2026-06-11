@@ -1,0 +1,114 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  projects     Project[]
+  activityLogs ActivityLog[]
+  terminalLogs TerminalLog[]
+
+  @@map("users")
+}
+
+model Project {
+  id             String         @id @default(cuid())
+  userId         String         @map("user_id")
+  name           String
+  description    String?
+  deploymentType DeploymentType @map("deployment_type")
+  repositoryUrl  String?        @map("repository_url")
+  domain         String?
+  status         ProjectStatus  @default(INACTIVE)
+  createdAt      DateTime       @default(now()) @map("created_at")
+  updatedAt      DateTime       @updatedAt @map("updated_at")
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  containers   Container[]
+  activityLogs ActivityLog[]
+  terminalLogs TerminalLog[]
+
+  @@map("projects")
+}
+
+model Container {
+  id                String          @id @default(cuid())
+  projectId         String          @map("project_id")
+  dockerContainerId String?         @unique @map("docker_container_id")
+  name              String
+  imageName         String          @map("image_name")
+  imageTag          String          @default("latest") @map("image_tag")
+  subdomain         String?
+  internalPort      Int             @map("internal_port")
+  hostPort          Int?            @map("host_port")
+  status            ContainerStatus @default(STOPPED)
+  createdAt         DateTime        @default(now()) @map("created_at")
+  updatedAt         DateTime        @updatedAt @map("updated_at")
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("containers")
+}
+
+model ActivityLog {
+  id          String   @id @default(cuid())
+  userId      String   @map("user_id")
+  projectId   String?  @map("project_id")
+  action      String
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@map("activity_logs")
+}
+
+model TerminalLog {
+  id         String   @id @default(cuid())
+  userId     String   @map("user_id")
+  projectId  String?  @map("project_id")
+  command    String
+  output     String?
+  executedAt DateTime @default(now()) @map("executed_at")
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@map("terminal_logs")
+}
+
+enum DeploymentType {
+  ZIP
+  GITHUB
+  DOCKERFILE
+}
+
+enum ProjectStatus {
+  ACTIVE
+  INACTIVE
+  BUILDING
+  FAILED
+}
+
+enum ContainerStatus {
+  RUNNING
+  STOPPED
+  BUILDING
+  ERROR
+  REMOVING
+}

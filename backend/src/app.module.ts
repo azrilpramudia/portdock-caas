@@ -10,6 +10,8 @@ import { DeploymentsModule } from './deployments/deployments.module';
 import { MonitoringModule } from './monitoring/monitoring.module';
 import { ActivityLogsModule } from './activity-logs/activity-logs.module';
 import { NginxModule } from './nginx/nginx.module';
+import { GitModule } from './git/git.module';
+import { ArchiveModule } from './archive/archive.module';
 
 @Module({
   imports: [
@@ -24,6 +26,8 @@ import { NginxModule } from './nginx/nginx.module';
     MonitoringModule,
     ActivityLogsModule,
     NginxModule,
+    GitModule,
+    ArchiveModule,
   ],
 })
 export class AppModule {}

@@ -159,7 +159,7 @@ export default function ProjectDetailPage() {
                 <div className="divide-y divide-slate-100">
                   {project.activityLogs.map((log: any) => (
                     <div key={log.id} className="flex items-start gap-3 px-6 py-3.5">
-                      <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 flex-shrink-0" />
+                      <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 shrink-0" />
                       <div className="flex-1">
                         <p className="text-sm text-slate-700">{log.description || log.action}</p>
                         <p className="text-xs text-slate-400 mt-0.5">

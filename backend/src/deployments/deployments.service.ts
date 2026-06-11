@@ -7,16 +7,16 @@ import {
 } from '@nestjs/common';
 import * as fs from 'fs';
 import * as path from 'path';
-import extractZip from 'extract-zip';
 import * as tar from 'tar-fs';
 import { PrismaService } from '../prisma/prisma.service';
 import { DockerService } from '../docker/docker.service';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
-import { ProjectStatus } from '@prisma/client';
-import { execSync } from 'child_process';
+import { ProjectStatus } from '@generated/prisma';
 import { ConfigService } from '@nestjs/config';
 
 import { NginxService } from '../nginx/nginx.service';
+import { ArchiveService } from '../archive/archive.service';
+import { GitService } from '../git/git.service';
 
 @Injectable()
 export class DeploymentsService {
@@ -28,6 +28,8 @@ export class DeploymentsService {
     private activityLogs: ActivityLogsService,
     private config: ConfigService,
     private nginx: NginxService,
+    private archive: ArchiveService,
+    private git: GitService,
   ) {}
 
   async deployZip(
@@ -55,30 +57,22 @@ export class DeploymentsService {
     });
 
     try {
-      // Extract ZIP
-      await extractZip(file.path, { dir: extractDir });
-
-      // Flatten directory if ZIP contains a single root folder
-      this.flattenDirectory(extractDir);
-
-      // Check for Dockerfile
-      const dockerfilePath = path.join(extractDir, 'Dockerfile');
-      if (!fs.existsSync(dockerfilePath)) {
-        // Generate a simple Dockerfile if not present
-        const detectedRuntime = this.detectRuntime(extractDir);
-        fs.writeFileSync(dockerfilePath, this.generateDockerfile(detectedRuntime));
-      }
+      await this.archive.extractAndFlatten(file.path, extractDir);
 
       const imageName = `portdock-${projectId}`.toLowerCase();
       const imageTag = `v${Date.now()}`;
+      const dockerfilePath = path.join(extractDir, 'Dockerfile');
 
-      // Create tar stream for Docker build
-      const tarStream = tar.pack(extractDir);
-      await this.docker.buildImage(tarStream, imageName, imageTag);
+      if (fs.existsSync(dockerfilePath)) {
+        const tarStream = tar.pack(extractDir);
+        await this.docker.buildImage(tarStream, imageName, imageTag);
+      } else {
+        await this.docker.buildWithNixpacks(extractDir, imageName, imageTag);
+      }
 
       // Find available port
       const hostPort = await this.getAvailablePort();
-      const internalPort = this.detectPort(extractDir);
+      const internalPort = await this.docker.getExposedPort(`${imageName}:${imageTag}`);
 
       // Create Docker container
       const dockerContainer = await this.docker.createContainer({
@@ -128,8 +122,7 @@ export class DeploymentsService {
       }
 
       // Cleanup
-      fs.rmSync(extractDir, { recursive: true, force: true });
-      fs.unlinkSync(file.path);
+      this.archive.cleanup(extractDir, file.path);
 
       return { message: 'Deployment successful', container };
     } catch (err) {
@@ -147,10 +140,7 @@ export class DeploymentsService {
         description: `Deployment failed: ${err.message}`,
       });
 
-      try {
-        fs.rmSync(extractDir, { recursive: true, force: true });
-        fs.unlinkSync(file.path);
-      } catch {}
+      this.archive.cleanup(extractDir, file.path);
 
       throw new BadRequestException(`Deployment failed: ${err.message}`);
     }
@@ -183,24 +173,21 @@ export class DeploymentsService {
 
     try {
       // Clone repository
-      execSync(`git clone --depth 1 --branch ${branch} ${repositoryUrl} ${cloneDir}`, {
-        timeout: 120000,
-        stdio: 'pipe',
-      });
+      this.git.cloneRepository(repositoryUrl, branch, cloneDir);
 
       const dockerfilePath = path.join(cloneDir, 'Dockerfile');
-      if (!fs.existsSync(dockerfilePath)) {
-        const detectedRuntime = this.detectRuntime(cloneDir);
-        fs.writeFileSync(dockerfilePath, this.generateDockerfile(detectedRuntime));
-      }
-
       const imageName = `portdock-${projectId}`.toLowerCase();
       const imageTag = `v${Date.now()}`;
-      const tarStream = tar.pack(cloneDir);
-      await this.docker.buildImage(tarStream, imageName, imageTag);
+
+      if (fs.existsSync(dockerfilePath)) {
+        const tarStream = tar.pack(cloneDir);
+        await this.docker.buildImage(tarStream, imageName, imageTag);
+      } else {
+        await this.docker.buildWithNixpacks(cloneDir, imageName, imageTag);
+      }
 
       const hostPort = await this.getAvailablePort();
-      const internalPort = this.detectPort(cloneDir);
+      const internalPort = await this.docker.getExposedPort(`${imageName}:${imageTag}`);
 
       const containerName = `${project.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${Date.now()}`;
       const dockerContainer = await this.docker.createContainer({
@@ -248,7 +235,7 @@ export class DeploymentsService {
         await this.nginx.generateConfig(project.domain, hostPort);
       }
 
-      fs.rmSync(cloneDir, { recursive: true, force: true });
+      this.archive.cleanup(cloneDir);
 
       return { message: 'GitHub deployment successful', container };
     } catch (err) {
@@ -266,9 +253,7 @@ export class DeploymentsService {
         description: `GitHub deployment failed: ${err.message}`,
       });
 
-      try {
-        fs.rmSync(cloneDir, { recursive: true, force: true });
-      } catch {}
+      this.archive.cleanup(cloneDir);
 
       throw new BadRequestException(`Deployment failed: ${err.message}`);
     }
@@ -281,75 +266,6 @@ export class DeploymentsService {
     if (!project) throw new NotFoundException('Project not found');
     if (project.userId !== userId) throw new ForbiddenException();
     return project;
-  }
-
-  private flattenDirectory(dir: string) {
-    const items = fs.readdirSync(dir);
-    if (items.length === 1) {
-      const singleItemPath = path.join(dir, items[0]);
-      if (fs.statSync(singleItemPath).isDirectory()) {
-        const innerItems = fs.readdirSync(singleItemPath);
-        for (const item of innerItems) {
-          fs.renameSync(path.join(singleItemPath, item), path.join(dir, item));
-        }
-        fs.rmSync(singleItemPath, { recursive: true, force: true });
-      }
-    }
-  }
-
-  private detectRuntime(dir: string): string {
-    if (fs.existsSync(path.join(dir, 'package.json'))) return 'node';
-    if (fs.existsSync(path.join(dir, 'requirements.txt'))) return 'python';
-    if (fs.existsSync(path.join(dir, 'go.mod'))) return 'go';
-    if (fs.existsSync(path.join(dir, 'pom.xml'))) return 'java';
-    if (fs.existsSync(path.join(dir, 'index.html'))) return 'static';
-    return 'node';
-  }
-
-  private detectPort(dir: string): number {
-    try {
-      const pkg = JSON.parse(
-        fs.readFileSync(path.join(dir, 'package.json'), 'utf-8'),
-      );
-      if (pkg.scripts?.start?.includes('3000')) return 3000;
-    } catch {}
-    if (fs.existsSync(path.join(dir, 'index.html'))) return 80;
-    return 3000;
-  }
-
-  private generateDockerfile(runtime: string): string {
-    switch (runtime) {
-      case 'python':
-        return `FROM python:3.11-slim
-WORKDIR /app
-COPY requirements.txt .
-RUN pip install -r requirements.txt
-COPY . .
-CMD ["python", "app.py"]`;
-      case 'go':
-        return `FROM golang:1.21-alpine AS builder
-WORKDIR /app
-COPY . .
-RUN go build -o main .
-FROM alpine:latest
-WORKDIR /app
-COPY --from=builder /app/main .
-CMD ["./main"]`;
-      case 'static':
-        return `FROM nginx:alpine
-WORKDIR /usr/share/nginx/html
-COPY . .
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]`;
-      default:
-        return `FROM node:20-alpine
-WORKDIR /app
-COPY package*.json ./
-RUN npm install --production
-COPY . .
-EXPOSE 3000
-CMD ["node", "index.js"]`;
-    }
   }
 
   private async getAvailablePort(): Promise<number> {

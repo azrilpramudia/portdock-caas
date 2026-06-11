@@ -1,6 +1,6 @@
 import { createZodDto } from 'nestjs-zod/dto';
 import { z } from 'zod';
-import { ProjectStatus } from '@prisma/client';
+import { ProjectStatus } from '@generated/prisma';
 import { CreateProjectSchema } from './create-project.dto';
 
 export const UpdateProjectSchema = CreateProjectSchema.partial().extend({

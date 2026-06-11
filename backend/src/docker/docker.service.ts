@@ -2,6 +2,7 @@ import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import Dockerode from 'dockerode';
 import * as path from 'path';
 import * as fs from 'fs';
+import { spawn } from 'child_process';
 
 @Injectable()
 export class DockerService implements OnModuleInit {
@@ -148,6 +149,52 @@ export class DockerService implements OnModuleInit {
         },
       );
     });
+  }
+
+  async buildWithNixpacks(dir: string, imageName: string, imageTag = 'latest'): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const tag = `${imageName}:${imageTag}`;
+      this.logger.log(`Starting Nixpacks build for ${tag}`);
+      const child = spawn('nixpacks', ['build', dir, '--name', tag]);
+
+      child.stdout.on('data', (data) => {
+        process.stdout.write(data);
+      });
+
+      child.stderr.on('data', (data) => {
+        process.stdout.write(data);
+      });
+
+      child.on('close', (code) => {
+        if (code === 0) {
+          this.logger.log(`Nixpacks build successful for ${tag}`);
+          resolve();
+        } else {
+          reject(new Error(`Nixpacks build failed with exit code ${code}`));
+        }
+      });
+      
+      child.on('error', (err) => {
+        this.logger.error(`Failed to start Nixpacks. Is it installed? Error: ${err.message}`);
+        reject(err);
+      });
+    });
+  }
+
+  async getExposedPort(imageName: string): Promise<number> {
+    try {
+      const image = await this.docker.getImage(imageName).inspect();
+      const exposedPorts = image.Config.ExposedPorts;
+      if (exposedPorts) {
+        const ports = Object.keys(exposedPorts);
+        if (ports.length > 0) {
+          return parseInt(ports[0].split('/')[0], 10);
+        }
+      }
+    } catch (e) {
+      this.logger.warn(`Failed to inspect image port: ${e.message}`);
+    }
+    return 3000;
   }
 
   async pullImage(imageName: string): Promise<void> {

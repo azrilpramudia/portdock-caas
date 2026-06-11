@@ -1,6 +1,6 @@
 import { createZodDto } from 'nestjs-zod/dto';
 import { z } from 'zod';
-import { DeploymentType } from '@prisma/client';
+import { DeploymentType } from '@generated/prisma';
 
 export const CreateProjectSchema = z.object({
   name: z.string().min(1).max(100).describe('Project name'),
