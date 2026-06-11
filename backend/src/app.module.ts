@@ -1,10 +1,27 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { ConfigModule } from '@nestjs/config';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { PrismaModule } from './prisma/prisma.module';
+import { DockerModule } from './docker/docker.module';
+import { AuthModule } from './auth/auth.module';
+import { ProjectsModule } from './projects/projects.module';
+import { ContainersModule } from './containers/containers.module';
+import { DeploymentsModule } from './deployments/deployments.module';
+import { MonitoringModule } from './monitoring/monitoring.module';
+import { ActivityLogsModule } from './activity-logs/activity-logs.module';
 
 @Module({
-  imports: [],
-  controllers: [AppController],
-  providers: [AppService],
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    ThrottlerModule.forRoot([{ ttl: 60000, limit: 100 }]),
+    PrismaModule,
+    DockerModule,
+    AuthModule,
+    ProjectsModule,
+    ContainersModule,
+    DeploymentsModule,
+    MonitoringModule,
+    ActivityLogsModule,
+  ],
 })
 export class AppModule {}
