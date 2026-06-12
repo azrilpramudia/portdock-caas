@@ -10,31 +10,13 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import Navbar from "@/components/shared/Navbar";
 
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-[#020617] text-white overflow-hidden">
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 bg-[#020617]/80 backdrop-blur-xl border-b border-white/5">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 portdock-gradient rounded-xl flex items-center justify-center">
-            <Container className="w-5 h-5 text-white" />
-          </div>
-          <span className="text-xl font-bold">Portdock</span>
-        </div>
-        <div className="flex items-center gap-3">
-          <Link href="/login">
-            <Button variant="ghost" className="text-slate-400 hover:text-white">
-              Masuk
-            </Button>
-          </Link>
-          <Link href="/register">
-            <Button id="btn-get-started-nav" className="portdock-gradient text-white hover:opacity-90 shadow-lg shadow-blue-500/25">
-              Mulai Gratis
-            </Button>
-          </Link>
-        </div>
-      </nav>
+      <Navbar />
 
       {/* Hero */}
       <section className="relative pt-32 pb-20 px-6 text-center overflow-hidden">
