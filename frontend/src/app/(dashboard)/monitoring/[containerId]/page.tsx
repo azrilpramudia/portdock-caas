@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Loader2, Cpu, Database, HardDrive, Network, RefreshCw, Container } from "lucide-react";
+import { ArrowLeft, Loader2, Cpu, Database, HardDrive, Network, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -43,7 +43,7 @@ function StatCard({
   unit: string;
   percentage?: number;
   color: string;
-  icon: any;
+  icon: React.ElementType;
   bgColor: string;
 }) {
   return (
@@ -87,6 +87,7 @@ export default function MonitoringPage() {
 
   useEffect(() => {
     if (stats) {
+      // eslint-disable-next-line
       setHistory((prev) => {
         const newEntry: StatsSnapshot = {
           timestamp: format(new Date(), "HH:mm:ss"),
@@ -191,7 +192,7 @@ export default function MonitoringPage() {
                       <XAxis dataKey="timestamp" tick={{ fontSize: 10 }} />
                       <YAxis domain={[0, 100]} tick={{ fontSize: 10 }} />
                       <Tooltip
-                        formatter={(v: any) => [`${Number(v).toFixed(2)}%`, "CPU"]}
+                        formatter={(v: number) => [`${Number(v).toFixed(2)}%`, "CPU"]}
                         contentStyle={{ fontSize: 12 }}
                       />
                       <Line
@@ -222,7 +223,7 @@ export default function MonitoringPage() {
                       <XAxis dataKey="timestamp" tick={{ fontSize: 10 }} />
                       <YAxis domain={[0, 100]} tick={{ fontSize: 10 }} />
                       <Tooltip
-                        formatter={(v: any) => [`${Number(v).toFixed(2)}%`, "RAM"]}
+                        formatter={(v: number) => [`${Number(v).toFixed(2)}%`, "RAM"]}
                         contentStyle={{ fontSize: 12 }}
                       />
                       <Line

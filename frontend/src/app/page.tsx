@@ -58,7 +58,7 @@ export default function LandingPage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {LANDING_STEPS.map((step, i) => (
+            {LANDING_STEPS.map((step) => (
               <div key={step.step} className="flex items-start gap-4 p-6 rounded-2xl bg-gray-50 border border-gray-100">
                 <div className="w-12 h-12 portdock-gradient rounded-xl flex items-center justify-center flex-shrink-0 text-white font-bold text-lg">
                   {step.step}

@@ -7,7 +7,6 @@ import {
   LayoutDashboard,
   FolderOpen,
   Container,
-  Activity,
   BarChart3,
   ScrollText,
   Settings,
@@ -15,12 +14,10 @@ import {
   Container as ContainerIcon,
   ChevronRight,
   Menu,
-  X,
 } from "lucide-react";
 import { useState } from "react";
 import { useAuthStore } from "@/store/auth";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
@@ -35,25 +32,10 @@ const navItems = [
   { href: "/settings", icon: Settings, label: "Settings" },
 ];
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const router = useRouter();
+function Sidebar({ mobile = false, onClose }: { mobile?: boolean; onClose?: () => void }) {
   const pathname = usePathname();
-  const { user, isAuthenticated, logout, initialize } = useAuthStore();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  useEffect(() => {
-    initialize();
-  }, [initialize]);
-
-  useEffect(() => {
-    if (!isAuthenticated) {
-      router.replace("/login");
-    }
-  }, [isAuthenticated, router]);
+  const router = useRouter();
+  const { user, logout } = useAuthStore();
 
   const handleLogout = () => {
     logout();
@@ -70,9 +52,7 @@ export default function DashboardLayout({
         .slice(0, 2)
     : "U";
 
-  if (!isAuthenticated) return null;
-
-  const Sidebar = ({ mobile = false }: { mobile?: boolean }) => (
+  return (
     <aside
       className={cn(
         "flex flex-col h-full bg-[#0f172a] border-r border-[#1e293b]",
@@ -81,7 +61,7 @@ export default function DashboardLayout({
     >
       {/* Logo */}
       <div className="p-6 border-b border-[#1e293b]">
-        <Link href="/dashboard" className="flex items-center gap-3 group">
+        <Link href="/dashboard" className="flex items-center gap-3 group" onClick={onClose}>
           <div className="w-10 h-10 portdock-gradient rounded-xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
             <ContainerIcon className="w-6 h-6 text-white" />
           </div>
@@ -103,7 +83,7 @@ export default function DashboardLayout({
             <Link
               key={item.href}
               href={item.href}
-              onClick={() => setSidebarOpen(false)}
+              onClick={onClose}
               className={cn(
                 "flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group",
                 isActive
@@ -152,6 +132,37 @@ export default function DashboardLayout({
       </div>
     </aside>
   );
+}
+
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const router = useRouter();
+  const { user, isAuthenticated, initialize } = useAuthStore();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    initialize();
+  }, [initialize]);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.replace("/login");
+    }
+  }, [isAuthenticated, router]);
+
+  const initials = user?.name
+    ? user.name
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2)
+    : "U";
+
+  if (!isAuthenticated) return null;
 
   return (
     <div className="flex h-screen bg-[#f8fafc] overflow-hidden">
@@ -168,7 +179,7 @@ export default function DashboardLayout({
             onClick={() => setSidebarOpen(false)}
           />
           <div className="absolute left-0 top-0 bottom-0 w-72">
-            <Sidebar mobile />
+            <Sidebar mobile onClose={() => setSidebarOpen(false)} />
           </div>
         </div>
       )}
