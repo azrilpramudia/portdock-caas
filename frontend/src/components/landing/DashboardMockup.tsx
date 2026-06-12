@@ -34,7 +34,7 @@ function Cloud({ className }: { className?: string }) {
 /* ── Sidebar ── */
 function Sidebar() {
   return (
-    <div className="w-[140px] bg-[#0f172a] flex flex-col py-4 px-3 shrink-0">
+    <div className="w-[140px] bg-portdock-navy flex flex-col py-4 px-3 shrink-0">
       {/* Logo */}
       <div className="flex items-center gap-1.5 px-1 mb-6">
         <div className="w-5 h-5 bg-blue-500 rounded flex items-center justify-center">
@@ -119,7 +119,7 @@ function ContainerTable() {
 /* ── Floating Terminal Mockup ── */
 function FloatingTerminal() {
   return (
-    <div className="hidden sm:block absolute -bottom-8 -right-8 w-72 bg-[#0f172a] rounded-xl shadow-2xl shadow-blue-900/20 border border-slate-700/50 overflow-hidden z-20 animate-[float_8s_ease-in-out_infinite_reverse]">
+    <div className="hidden sm:block absolute -bottom-8 -right-8 w-72 bg-portdock-navy rounded-xl shadow-2xl shadow-blue-900/20 border border-slate-700/50 overflow-hidden z-20 animate-[float_8s_ease-in-out_infinite_reverse]">
       {/* Terminal Header */}
       <div className="flex items-center px-4 py-3 bg-[#1e293b]/50 border-b border-slate-700/50">
         <span className="text-slate-400 text-xs font-mono">$ docker ps</span>
@@ -184,7 +184,7 @@ export default function DashboardMockup() {
       </div>
 
       {/* Dashboard Card */}
-      <div className="relative bg-white dark:bg-[#020617] rounded-2xl shadow-2xl shadow-gray-200/60 dark:shadow-none border border-gray-100 dark:border-slate-800 overflow-hidden flex transition-colors duration-300">
+      <div className="relative bg-white dark:bg-background rounded-2xl shadow-2xl shadow-gray-200/60 dark:shadow-none border border-gray-100 dark:border-slate-800 overflow-hidden flex transition-colors duration-300">
         {/* Sidebar */}
         <Sidebar />
 

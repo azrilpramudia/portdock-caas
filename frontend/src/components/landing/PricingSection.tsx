@@ -4,13 +4,13 @@ import { Button } from "@/components/ui/button";
 
 export default function PricingSection() {
   return (
-    <section className="py-24 px-6 bg-slate-50/50 dark:bg-[#020617] transition-colors duration-300" id="pricing">
+    <section className="py-24 px-6 bg-slate-50/50 dark:bg-background transition-colors duration-300" id="pricing">
       <div className="max-w-5xl mx-auto">
         <div className="text-center mb-16 flex flex-col items-center">
           <span className="text-blue-600 font-bold text-xs tracking-wider uppercase mb-3">
             Pricing
           </span>
-          <h2 className="text-3xl md:text-[2.5rem] font-bold text-[#0f172a] dark:text-white mb-6 tracking-tight transition-colors">
+          <h2 className="text-3xl md:text-[2.5rem] font-bold text-foreground mb-6 tracking-tight transition-colors">
             Paket Harga yang Transparan
           </h2>
           <div className="w-12 h-0.5 bg-blue-500/80 rounded-full mb-8"></div>
@@ -20,8 +20,8 @@ export default function PricingSection() {
           {LANDING_PRICING.map((plan, index) => (
             <div 
               key={plan.name} 
-              className={`relative bg-white dark:bg-[#0f172a] rounded-3xl p-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none transition-transform duration-300 hover:-translate-y-1 flex flex-col ${
-                plan.highlight ? 'border-2 border-blue-500' : 'border border-slate-100 dark:border-slate-800'
+              className={`relative bg-white dark:bg-card rounded-3xl p-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none transition-transform duration-300 hover:-translate-y-1 flex flex-col ${
+                plan.highlight ? 'border-2 border-blue-500 shadow-blue-500/10' : 'border border-slate-100 dark:border-slate-800'
               }`}
             >
               {plan.highlight && (
@@ -33,10 +33,10 @@ export default function PricingSection() {
               )}
               
               <div className="mb-8">
-                <h3 className="text-lg font-bold text-[#0f172a] dark:text-white mb-2 transition-colors">{plan.name}</h3>
+                <h3 className="text-lg font-bold text-foreground mb-2 transition-colors">{plan.name}</h3>
                 <p className="text-slate-500 dark:text-slate-400 text-sm mb-6 h-10 transition-colors">{plan.description}</p>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-extrabold text-[#0f172a] dark:text-white tracking-tight transition-colors">{plan.price}</span>
+                  <span className="text-4xl font-extrabold text-foreground tracking-tight transition-colors">{plan.price}</span>
                   {plan.period && <span className="text-slate-500 dark:text-slate-400 font-medium transition-colors">{plan.period}</span>}
                 </div>
               </div>

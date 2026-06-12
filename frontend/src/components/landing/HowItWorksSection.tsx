@@ -9,7 +9,7 @@ export default function HowItWorksSection() {
           <span className="text-blue-600 font-bold text-xs tracking-wider uppercase mb-3">
             Workflow
           </span>
-          <h2 className="text-3xl md:text-[2.5rem] font-bold text-[#0f172a] dark:text-white mb-6 tracking-tight transition-colors">
+          <h2 className="text-3xl md:text-[2.5rem] font-bold text-foreground mb-6 tracking-tight transition-colors">
             Alur Deployment yang Mudah dan Otomatis
           </h2>
           <div className="w-12 h-0.5 bg-blue-500/80 rounded-full mb-8"></div>
@@ -20,12 +20,12 @@ export default function HowItWorksSection() {
           {LANDING_STEPS.map((step, index) => (
             <div key={step.step} className="flex flex-col items-center text-center relative w-full md:w-[15%] group z-10">
               {/* Circular Icon Container */}
-              <div className="w-20 h-20 rounded-full bg-white dark:bg-[#0f172a] border border-blue-50 dark:border-slate-800 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none flex items-center justify-center mb-5 group-hover:-translate-y-2 transition-all duration-300 relative z-20">
+              <div className="w-20 h-20 rounded-full bg-white dark:bg-card border border-blue-50 dark:border-slate-800 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none flex items-center justify-center mb-5 group-hover:-translate-y-2 transition-all duration-300 relative z-20">
                 <step.icon className={`w-8 h-8 ${step.color}`} strokeWidth={2} />
               </div>
               
               {/* Text */}
-              <h3 className="font-bold text-[#0f172a] dark:text-white text-[15px] mb-2 leading-tight transition-colors">
+              <h3 className="font-bold text-foreground text-[15px] mb-2 leading-tight transition-colors">
                 {step.step}. {step.title}
               </h3>
               <p className="text-slate-500 dark:text-slate-400 text-[12px] leading-relaxed max-w-[150px] transition-colors">

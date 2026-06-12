@@ -5,7 +5,7 @@ import { FaGithub, FaDiscord, FaTwitter } from "react-icons/fa";
 
 export default function Footer() {
   return (
-    <footer className="bg-[#0b1120] dark:bg-[#020617] text-slate-300 py-16 px-6 border-t border-slate-800 dark:border-slate-800/80 transition-colors duration-300">
+    <footer className="bg-[#0b1120] dark:bg-background text-slate-300 py-16 px-6 border-t border-slate-800 dark:border-slate-800/80 transition-colors duration-300">
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 lg:gap-8 mb-16">
           {/* Brand Column */}

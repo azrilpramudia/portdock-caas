@@ -2,13 +2,13 @@ import { LANDING_FEATURES } from "@/constants/landing";
 
 export default function FeaturesSection() {
   return (
-    <section className="py-24 px-6 bg-white dark:bg-[#020617] transition-colors duration-300" id="features">
+    <section className="py-24 px-6 bg-white dark:bg-background transition-colors duration-300" id="features">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16 flex flex-col items-center">
           <span className="text-blue-600 font-bold text-xs tracking-wider uppercase mb-3">
             Features
           </span>
-          <h2 className="text-3xl md:text-[2.5rem] font-bold text-[#0f172a] dark:text-white mb-6 tracking-tight transition-colors">
+          <h2 className="text-3xl md:text-[2.5rem] font-bold text-foreground mb-6 tracking-tight transition-colors">
             Semua yang Anda Butuhkan untuk Deployment
           </h2>
           <div className="w-12 h-0.5 bg-blue-500/80 rounded-full"></div>
@@ -18,7 +18,7 @@ export default function FeaturesSection() {
           {LANDING_FEATURES.map((feature) => (
             <div
               key={feature.title}
-              className="p-8 rounded-2xl bg-white dark:bg-[#0f172a] border border-slate-100/80 dark:border-slate-800 shadow-[0_2px_20px_-8px_rgba(0,0,0,0.05)] dark:shadow-none hover:shadow-[0_8px_30px_-8px_rgba(0,0,0,0.08)] dark:hover:border-slate-700 hover:border-slate-200/60 transition-all duration-300 flex items-start gap-5 group"
+              className="p-8 rounded-2xl bg-white dark:bg-card border border-slate-100/80 dark:border-slate-800 shadow-[0_2px_20px_-8px_rgba(0,0,0,0.05)] dark:shadow-none hover:shadow-[0_8px_30px_-8px_rgba(0,0,0,0.08)] dark:hover:border-slate-700 hover:border-slate-200/60 transition-all duration-300 flex items-start gap-5 group"
             >
               <div
                 className={`w-[52px] h-[52px] ${feature.bg} rounded-full flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300 shadow-sm`}
@@ -26,7 +26,7 @@ export default function FeaturesSection() {
                 <feature.icon className={`w-6 h-6 ${feature.color}`} strokeWidth={2.5} />
               </div>
               <div className="pt-1">
-                <h3 className="text-base font-bold mb-1.5 text-slate-800 dark:text-slate-200 transition-colors">{feature.title}</h3>
+                <h3 className="text-base font-bold mb-1.5 text-foreground transition-colors">{feature.title}</h3>
                 <p className="text-slate-500 dark:text-slate-400 text-[13px] leading-relaxed transition-colors">
                   {feature.description}
                 </p>

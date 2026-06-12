@@ -10,7 +10,7 @@ const BADGE_ICONS = { shield: Shield, zap: Zap, lock: Lock } as const;
 
 export default function HeroSection() {
   return (
-    <section className="relative min-h-[100dvh] flex items-center pt-24 pb-16 overflow-hidden bg-linear-to-br from-white via-blue-50/40 to-white dark:from-[#020617] dark:via-blue-950/20 dark:to-[#020617] transition-colors duration-300">
+    <section className="relative min-h-[100dvh] flex items-center pt-24 pb-16 overflow-hidden bg-gradient-to-br from-white via-blue-50/40 to-white dark:from-background dark:via-blue-950/20 dark:to-background transition-colors duration-300">
       {/* Background decoration */}
       <BackgroundDecor />
 
@@ -70,7 +70,7 @@ function HeroBadge() {
 
 function HeroHeading() {
   return (
-    <h1 className="text-4xl sm:text-5xl lg:text-[3.25rem] font-bold leading-[1.15] text-gray-900 dark:text-white tracking-tight transition-colors">
+    <h1 className="text-4xl sm:text-5xl lg:text-[3.25rem] font-bold leading-[1.15] text-foreground tracking-tight transition-colors">
       Deploy Applications
       <br />
       in{" "}
@@ -83,7 +83,7 @@ function HeroHeading() {
 
 function HeroDescription() {
   return (
-    <p className="text-base sm:text-lg text-gray-500 dark:text-slate-400 leading-relaxed max-w-lg transition-colors">
+    <p className="text-base sm:text-lg text-muted-foreground leading-relaxed max-w-lg transition-colors">
       Platform otomatisasi deployment berbasis Docker dengan dukungan ZIP Upload,
       GitHub Integration, Monitoring, Web Terminal, dan SSL Otomatis.
     </p>
@@ -103,7 +103,7 @@ function HeroButtons() {
         </button>
       </Link>
       <Link href="#docs">
-        <button className="inline-flex items-center gap-2 border border-gray-200 dark:border-slate-700 bg-white dark:bg-[#0f172a] hover:bg-gray-50 dark:hover:bg-[#1e293b] text-gray-700 dark:text-slate-300 font-semibold px-7 py-3 rounded-xl transition-all duration-200 hover:-translate-y-0.5 text-sm shadow-sm">
+        <button className="inline-flex items-center gap-2 border border-gray-200 dark:border-slate-700 bg-white dark:bg-card hover:bg-gray-50 dark:hover:bg-[#1e293b] text-gray-700 dark:text-slate-300 font-semibold px-7 py-3 rounded-xl transition-all duration-200 hover:-translate-y-0.5 text-sm shadow-sm">
           <BookOpen className="w-4 h-4" />
           Documentation
         </button>

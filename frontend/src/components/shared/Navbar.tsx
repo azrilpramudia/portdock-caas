@@ -22,7 +22,7 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-[#020617]/80 backdrop-blur-md border-b border-gray-200/80 dark:border-slate-800/80 shadow-sm transition-colors duration-300">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-background/80 backdrop-blur-md border-b border-gray-200/80 dark:border-slate-800/80 shadow-sm transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between gap-8">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5 shrink-0">
@@ -98,7 +98,7 @@ export default function Navbar() {
 
       {/* Mobile Dropdown */}
       {mobileOpen && (
-        <div className="md:hidden border-t border-gray-200 dark:border-slate-800 bg-white dark:bg-[#020617] transition-colors duration-300">
+        <div className="md:hidden border-t border-gray-200 dark:border-slate-800 bg-white dark:bg-background transition-colors duration-300">
           <div className="flex flex-col px-6 py-4 gap-1">
             {NAV_LINKS.map((link) => (
               <Link

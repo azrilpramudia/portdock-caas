@@ -12,13 +12,13 @@ export default function FAQSection() {
   };
 
   return (
-    <section className="py-24 px-6 bg-white dark:bg-[#020617] transition-colors duration-300" id="faq">
+    <section className="py-24 px-6 bg-white dark:bg-background transition-colors duration-300" id="faq">
       <div className="max-w-3xl mx-auto">
         <div className="text-center mb-16 flex flex-col items-center">
           <span className="text-blue-600 font-bold text-xs tracking-wider uppercase mb-3">
             FAQ
           </span>
-          <h2 className="text-3xl md:text-[2.5rem] font-bold text-[#0f172a] dark:text-white mb-6 tracking-tight transition-colors">
+          <h2 className="text-3xl md:text-[2.5rem] font-bold text-foreground mb-6 tracking-tight transition-colors">
             Pertanyaan yang Sering Diajukan
           </h2>
           <div className="w-12 h-0.5 bg-blue-500/80 rounded-full mb-8"></div>
@@ -32,14 +32,14 @@ export default function FAQSection() {
               <div 
                 key={index}
                 className={`border rounded-2xl overflow-hidden transition-all duration-300 ${
-                  isOpen ? 'border-blue-100 dark:border-blue-900/50 bg-blue-50/30 dark:bg-blue-900/20' : 'border-slate-100 dark:border-slate-800 bg-white dark:bg-[#0f172a] hover:border-slate-200 dark:hover:border-slate-700'
+                  isOpen ? 'border-blue-100 dark:border-blue-900/50 bg-blue-50/30 dark:bg-blue-900/20' : 'border-slate-100 dark:border-slate-800 bg-white dark:bg-card hover:border-slate-200 dark:hover:border-slate-700'
                 }`}
               >
                 <button
                   className="w-full px-6 py-5 flex items-center justify-between text-left focus:outline-none"
                   onClick={() => toggleFAQ(index)}
                 >
-                  <span className="font-semibold text-[15px] text-[#0f172a] dark:text-white pr-8 transition-colors">
+                  <span className="font-semibold text-[15px] text-foreground pr-8 transition-colors">
                     {faq.question}
                   </span>
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-all duration-300 ${
