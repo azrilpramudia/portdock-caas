@@ -10,7 +10,7 @@ const BADGE_ICONS = { shield: Shield, zap: Zap, lock: Lock } as const;
 
 export default function HeroSection() {
   return (
-    <section className="relative min-h-[100dvh] flex items-center pt-24 pb-16 overflow-hidden bg-gradient-to-br from-white via-blue-50/40 to-white dark:from-background dark:via-blue-950/20 dark:to-background transition-colors duration-300">
+    <section className="relative min-h-[100dvh] flex items-center pt-24 pb-16 overflow-hidden bg-gradient-to-b from-white via-blue-50/40 to-white dark:from-background dark:via-blue-950/20 dark:to-background transition-colors duration-300">
       {/* Background decoration */}
       <BackgroundDecor />
 

@@ -2,19 +2,21 @@ import { LANDING_PRICING } from "@/constants/landing";
 import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export default function PricingSection() {
+export default function PricingSection({ hideHeader = false, className }: { hideHeader?: boolean; className?: string }) {
   return (
-    <section className="py-24 px-6 bg-slate-50/50 dark:bg-background transition-colors duration-300" id="pricing">
+    <section className={className || "py-24 px-6 bg-slate-50/50 dark:bg-background transition-colors duration-300"} id="pricing">
       <div className="max-w-5xl mx-auto">
-        <div className="text-center mb-16 flex flex-col items-center">
-          <span className="text-blue-600 font-bold text-xs tracking-wider uppercase mb-3">
-            Pricing
-          </span>
-          <h2 className="text-3xl md:text-[2.5rem] font-bold text-foreground mb-6 tracking-tight transition-colors">
-            Paket Harga yang Transparan
-          </h2>
-          <div className="w-12 h-0.5 bg-blue-500/80 rounded-full mb-8"></div>
-        </div>
+        {!hideHeader && (
+          <div className="text-center mb-16 flex flex-col items-center">
+            <span className="text-blue-600 font-bold text-xs tracking-wider uppercase mb-3">
+              Pricing
+            </span>
+            <h2 className="text-3xl md:text-[2.5rem] font-bold text-foreground mb-6 tracking-tight transition-colors">
+              Paket Harga yang Transparan
+            </h2>
+            <div className="w-12 h-0.5 bg-blue-500/80 rounded-full mb-8"></div>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
           {LANDING_PRICING.map((plan, index) => (

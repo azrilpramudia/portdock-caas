@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Container } from "lucide-react";
+import { ArrowLeft, Sparkles, Package } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuthStore } from "@/store/auth";
 import { LoginForm } from "@/components/forms/LoginForm";
@@ -23,52 +23,46 @@ export default function LoginPage() {
   }, [isAuthenticated, router]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#020617] via-[#0f172a] to-[#1e293b] flex items-center justify-center p-4">
-      {/* Background decoration */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-700/5 rounded-full blur-3xl" />
-      </div>
+    <div className="min-h-screen bg-[#f8fafc] dark:bg-background text-slate-900 dark:text-foreground flex flex-col relative overflow-hidden transition-colors duration-300">
+      {/* Dot Pattern Background */}
+      <div 
+        className="absolute inset-0 z-0 opacity-40 dark:opacity-20 pointer-events-none"
+        style={{
+          backgroundImage: "radial-gradient(#94a3b8 1px, transparent 1px)",
+          backgroundSize: "24px 24px"
+        }}
+      />
 
-      <div className="w-full max-w-md relative z-10 animate-fade-in">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 portdock-gradient rounded-xl flex items-center justify-center shadow-lg">
-              <Container className="w-7 h-7 text-white" />
-            </div>
-            <span className="text-3xl font-bold text-white">Portdock</span>
-          </div>
-          <p className="text-slate-400 text-sm">
-            Platform deployment aplikasi berbasis Docker
-          </p>
-        </div>
+      {/* Top Header */}
+      <header className="relative z-10 w-full px-6 py-6 flex items-center justify-end max-w-7xl mx-auto">
+        <Link 
+          href="/" 
+          className="flex items-center gap-1.5 text-sm font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-500 dark:hover:text-blue-400 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to Home
+        </Link>
+      </header>
 
-        <Card className="bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl">
-          <CardContent className="p-8">
-            <div className="mb-6">
-              <h1 className="text-2xl font-semibold text-white mb-1">
-                Masuk ke akun Anda
+      {/* Main Content */}
+      <main className="flex-1 flex items-center justify-center p-4 relative z-10">
+        <Card className="w-full max-w-[500px] bg-white dark:bg-card border-white/20 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] dark:shadow-none rounded-2xl overflow-hidden animate-fade-in">
+          <CardContent className="px-8 py-6">
+            {/* Header Area */}
+            <div className="mb-5">
+              <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
+                Welcome Back!
               </h1>
-              <p className="text-slate-400 text-sm">
-                Belum punya akun?{" "}
-                <Link
-                  href="/register"
-                  className="text-blue-400 hover:text-blue-300 font-medium transition-colors"
-                >
-                  Daftar sekarang
-                </Link>
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                Sign in to manage your deployments.
               </p>
             </div>
-
+              
             <LoginForm />
+
           </CardContent>
         </Card>
-
-        <p className="text-center text-slate-600 text-xs mt-6">
-          © 2026 Portdock. All rights reserved.
-        </p>
-      </div>
+      </main>
     </div>
   );
 }

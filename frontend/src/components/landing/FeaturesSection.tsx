@@ -1,18 +1,20 @@
 import { LANDING_FEATURES } from "@/constants/landing";
 
-export default function FeaturesSection() {
+export default function FeaturesSection({ hideHeader = false, className }: { hideHeader?: boolean; className?: string }) {
   return (
-    <section className="py-24 px-6 bg-white dark:bg-background transition-colors duration-300" id="features">
+    <section className={className || "py-24 px-6 bg-white dark:bg-background transition-colors duration-300"} id="features">
       <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-16 flex flex-col items-center">
-          <span className="text-blue-600 font-bold text-xs tracking-wider uppercase mb-3">
-            Features
-          </span>
-          <h2 className="text-3xl md:text-[2.5rem] font-bold text-foreground mb-6 tracking-tight transition-colors">
-            Semua yang Anda Butuhkan untuk Deployment
-          </h2>
-          <div className="w-12 h-0.5 bg-blue-500/80 rounded-full"></div>
-        </div>
+        {!hideHeader && (
+          <div className="text-center mb-16 flex flex-col items-center">
+            <span className="text-blue-600 font-bold text-xs tracking-wider uppercase mb-3">
+              Features
+            </span>
+            <h2 className="text-3xl md:text-[2.5rem] font-bold text-foreground mb-6 tracking-tight transition-colors">
+              Semua yang Anda Butuhkan untuk Deployment
+            </h2>
+            <div className="w-12 h-0.5 bg-blue-500/80 rounded-full"></div>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {LANDING_FEATURES.map((feature) => (

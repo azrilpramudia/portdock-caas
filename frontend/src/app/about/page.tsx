@@ -11,7 +11,7 @@ export default function AboutPage() {
       <Navbar />
 
       {/* Hero Section */}
-      <section className="relative min-h-[100dvh] flex items-center pt-32 pb-20 overflow-hidden bg-gradient-to-br from-white via-blue-50/40 to-white dark:from-background dark:via-blue-950/20 dark:to-background transition-colors duration-300">
+      <section className="relative min-h-[100dvh] flex items-center pt-32 pb-20 overflow-hidden bg-gradient-to-b from-white via-blue-50/40 to-white dark:from-background dark:via-blue-950/20 dark:to-background transition-colors duration-300">
         {/* Background decorations */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <div

@@ -43,8 +43,8 @@ export default function Footer() {
           <div className="lg:col-span-2">
             <h4 className="text-white font-semibold text-xs tracking-wider mb-6">PRODUCT</h4>
             <ul className="space-y-4 text-sm text-slate-400">
-              <li><Link href="#" className="hover:text-blue-400 transition-colors">Features</Link></li>
-              <li><Link href="#" className="hover:text-blue-400 transition-colors">Pricing</Link></li>
+              <li><Link href="/features" className="hover:text-blue-400 transition-colors">Features</Link></li>
+              <li><Link href="/pricing" className="hover:text-blue-400 transition-colors">Pricing</Link></li>
               <li><Link href="#" className="hover:text-blue-400 transition-colors">Documentation</Link></li>
               <li><Link href="#" className="hover:text-blue-400 transition-colors">Changelog</Link></li>
             </ul>
@@ -63,7 +63,7 @@ export default function Footer() {
           <div className="lg:col-span-2">
             <h4 className="text-white font-semibold text-xs tracking-wider mb-6">COMPANY</h4>
             <ul className="space-y-4 text-sm text-slate-400">
-              <li><Link href="#" className="hover:text-blue-400 transition-colors">About Us</Link></li>
+              <li><Link href="/about" className="hover:text-blue-400 transition-colors">About Us</Link></li>
               <li><Link href="#" className="hover:text-blue-400 transition-colors">Contact</Link></li>
               <li><Link href="#" className="hover:text-blue-400 transition-colors">Privacy Policy</Link></li>
               <li><Link href="#" className="hover:text-blue-400 transition-colors">Terms of Service</Link></li>
