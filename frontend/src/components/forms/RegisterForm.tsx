@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, Loader2, User, Mail, Lock, UserPlus } from "lucide-react";
+import { Turnstile } from "@marsidev/react-turnstile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,6 +15,8 @@ import Link from "next/link";
 export function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string>("");
+  const [turnstileError, setTurnstileError] = useState<string>("");
 
   const {
     register,
@@ -25,12 +28,24 @@ export function RegisterForm() {
 
   const registerMutation = useRegisterMutation();
 
+  const onSubmit = (data: RegisterFormSchema) => {
+    if (!turnstileToken && process.env.NODE_ENV !== "development") {
+      // Allow bypass in dev if env var is missing, otherwise enforce
+      if (process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY) {
+        setTurnstileError("Please complete the verification");
+        return;
+      }
+    }
+    setTurnstileError("");
+    registerMutation.mutate({ ...data, turnstileToken });
+  };
+
   return (
     <form
-      onSubmit={handleSubmit((data) => registerMutation.mutate(data))}
-      className="space-y-3 w-full"
+      onSubmit={handleSubmit(onSubmit)}
+      className="space-y-2 w-full"
     >
-      <div className="space-y-1">
+      <div className="space-y-0.5">
         <Label htmlFor="name" className="text-slate-700 dark:text-slate-300 text-[13px] font-semibold">
           Full Name
         </Label>
@@ -42,7 +57,7 @@ export function RegisterForm() {
             id="name"
             placeholder="Enter your full name"
             {...register("name")}
-            className="pl-10 bg-white dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20 h-10 transition-all rounded-lg"
+            className="pl-10 bg-white dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20 h-9 transition-all rounded-lg"
           />
         </div>
         {errors.name && (
@@ -50,7 +65,7 @@ export function RegisterForm() {
         )}
       </div>
 
-      <div className="space-y-1">
+      <div className="space-y-0.5">
         <Label htmlFor="email" className="text-slate-700 dark:text-slate-300 text-[13px] font-semibold">
           Email
         </Label>
@@ -63,7 +78,7 @@ export function RegisterForm() {
             type="email"
             placeholder="Enter your email"
             {...register("email")}
-            className="pl-10 bg-white dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20 h-10 transition-all rounded-lg"
+            className="pl-10 bg-white dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20 h-9 transition-all rounded-lg"
           />
         </div>
         {errors.email && (
@@ -71,7 +86,7 @@ export function RegisterForm() {
         )}
       </div>
 
-      <div className="space-y-1">
+      <div className="space-y-0.5">
         <Label htmlFor="password" className="text-slate-700 dark:text-slate-300 text-[13px] font-semibold">
           Password
         </Label>
@@ -84,7 +99,7 @@ export function RegisterForm() {
             type={showPassword ? "text" : "password"}
             placeholder="Create a password"
             {...register("password")}
-            className="pl-10 pr-12 bg-white dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20 h-10 transition-all rounded-lg"
+            className="pl-10 pr-12 bg-white dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20 h-9 transition-all rounded-lg"
           />
           <button
             type="button"
@@ -99,7 +114,7 @@ export function RegisterForm() {
         )}
       </div>
 
-      <div className="space-y-1">
+      <div className="space-y-0.5">
         <Label htmlFor="confirmPassword" className="text-slate-700 dark:text-slate-300 text-[13px] font-semibold">
           Confirm Password
         </Label>
@@ -112,7 +127,7 @@ export function RegisterForm() {
             type={showConfirmPassword ? "text" : "password"}
             placeholder="Confirm your password"
             {...register("confirmPassword")}
-            className="pl-10 pr-12 bg-white dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20 h-10 transition-all rounded-lg"
+            className="pl-10 pr-12 bg-white dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20 h-9 transition-all rounded-lg"
           />
           <button
             type="button"
@@ -127,7 +142,7 @@ export function RegisterForm() {
         )}
       </div>
 
-      <div className="flex items-center space-x-2 pt-1">
+      <div className="flex items-center space-x-2 pt-0.5">
         <input 
           type="checkbox" 
           id="terms" 
@@ -136,6 +151,22 @@ export function RegisterForm() {
         <label htmlFor="terms" className="text-[13px] text-slate-600 dark:text-slate-400 cursor-pointer select-none">
           I agree to the <Link href="#" className="font-semibold text-blue-600 hover:text-blue-700 transition-colors">Terms of Service</Link> and <Link href="#" className="font-semibold text-blue-600 hover:text-blue-700 transition-colors">Privacy Policy</Link>
         </label>
+      </div>
+
+      <div className="flex flex-col items-center">
+        {process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && (
+          <Turnstile
+            siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+            onSuccess={(token) => {
+              setTurnstileToken(token);
+              setTurnstileError("");
+            }}
+            options={{ theme: "auto" }}
+          />
+        )}
+        {turnstileError && (
+          <p className="text-red-500 dark:text-red-400 text-xs mt-1">{turnstileError}</p>
+        )}
       </div>
 
       <Button

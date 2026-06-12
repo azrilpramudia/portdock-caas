@@ -18,7 +18,7 @@ export default function RegisterPage() {
       />
 
       {/* Top Header */}
-      <header className="relative z-10 w-full px-6 py-6 flex items-center justify-end max-w-7xl mx-auto">
+      <header className="relative z-10 w-full px-6 py-4 flex items-center justify-end max-w-7xl mx-auto">
         <Link 
           href="/" 
           className="flex items-center gap-1.5 text-sm font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-500 dark:hover:text-blue-400 transition-colors"
@@ -31,9 +31,9 @@ export default function RegisterPage() {
       {/* Main Content */}
       <main className="flex-1 flex items-center justify-center p-4 relative z-10">
         <Card className="w-full max-w-[500px] bg-white dark:bg-card border-white/20 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] dark:shadow-none rounded-2xl overflow-hidden animate-fade-in">
-          <CardContent className="px-8 py-6">
+          <CardContent className="px-8 py-4">
             {/* Header Area */}
-            <div className="mb-5">
+            <div className="mb-3">
               <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
                 Create Your Account
               </h1>

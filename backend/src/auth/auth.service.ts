@@ -17,6 +17,8 @@ export class AuthService {
   ) {}
 
   async register(dto: RegisterDto) {
+    await this.verifyTurnstileToken(dto.turnstileToken);
+
     const existing = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
@@ -53,6 +55,8 @@ export class AuthService {
   }
 
   async login(dto: LoginDto) {
+    await this.verifyTurnstileToken(dto.turnstileToken);
+
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
@@ -99,5 +103,35 @@ export class AuthService {
       email: user.email,
       name: user.name,
     });
+  }
+
+  private async verifyTurnstileToken(token: string | undefined) {
+    if (process.env.NODE_ENV !== 'development' && !token) {
+      throw new UnauthorizedException('Turnstile verification required');
+    }
+    
+    const secretKey = process.env.TURNSTILE_SECRET_KEY;
+    if (!secretKey || !token) return;
+
+    try {
+      const response = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          secret: secretKey,
+          response: token,
+        }),
+      });
+
+      const data = await response.json();
+      if (!data.success) {
+        throw new UnauthorizedException('Turnstile verification failed');
+      }
+    } catch (error) {
+      if (error instanceof UnauthorizedException) throw error;
+      throw new UnauthorizedException('Failed to verify Turnstile token');
+    }
   }
 }

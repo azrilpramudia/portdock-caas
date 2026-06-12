@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, Loader2, Mail, Lock, LogIn } from "lucide-react";
+import { Turnstile } from "@marsidev/react-turnstile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +14,8 @@ import Link from "next/link";
 
 export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string>("");
+  const [turnstileError, setTurnstileError] = useState<string>("");
   
   const {
     register,
@@ -24,9 +27,21 @@ export function LoginForm() {
 
   const loginMutation = useLoginMutation();
 
+  const onSubmit = (data: LoginFormSchema) => {
+    if (!turnstileToken && process.env.NODE_ENV !== "development") {
+      // Allow bypass in dev if env var is missing, otherwise enforce
+      if (process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY) {
+        setTurnstileError("Please complete the verification");
+        return;
+      }
+    }
+    setTurnstileError("");
+    loginMutation.mutate({ ...data, turnstileToken });
+  };
+
   return (
     <form
-      onSubmit={handleSubmit((data) => loginMutation.mutate(data))}
+      onSubmit={handleSubmit(onSubmit)}
       className="space-y-4 w-full"
     >
       <div className="space-y-1.5">
@@ -91,6 +106,22 @@ export function LoginForm() {
         >
           Forgot Password?
         </Link>
+      </div>
+
+      <div className="pt-2 pb-1 flex flex-col items-center">
+        {process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && (
+          <Turnstile
+            siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+            onSuccess={(token) => {
+              setTurnstileToken(token);
+              setTurnstileError("");
+            }}
+            options={{ theme: "auto" }}
+          />
+        )}
+        {turnstileError && (
+          <p className="text-red-500 dark:text-red-400 text-xs mt-1">{turnstileError}</p>
+        )}
       </div>
 
       <Button
