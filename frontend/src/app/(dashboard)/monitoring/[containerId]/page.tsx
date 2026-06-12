@@ -192,7 +192,7 @@ export default function MonitoringPage() {
                       <XAxis dataKey="timestamp" tick={{ fontSize: 10 }} />
                       <YAxis domain={[0, 100]} tick={{ fontSize: 10 }} />
                       <Tooltip
-                        formatter={(v: number) => [`${Number(v).toFixed(2)}%`, "CPU"]}
+                        formatter={(v: any) => [`${Number(v).toFixed(2)}%`, "CPU"]}
                         contentStyle={{ fontSize: 12 }}
                       />
                       <Line
@@ -223,7 +223,7 @@ export default function MonitoringPage() {
                       <XAxis dataKey="timestamp" tick={{ fontSize: 10 }} />
                       <YAxis domain={[0, 100]} tick={{ fontSize: 10 }} />
                       <Tooltip
-                        formatter={(v: number) => [`${Number(v).toFixed(2)}%`, "RAM"]}
+                        formatter={(v: any) => [`${Number(v).toFixed(2)}%`, "RAM"]}
                         contentStyle={{ fontSize: 12 }}
                       />
                       <Line

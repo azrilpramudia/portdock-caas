@@ -84,29 +84,29 @@ function StatsGrid() {
 function ContainerTable() {
   return (
     <div>
-      <p className="text-[10px] font-semibold text-gray-700 mb-1.5">Container Status</p>
-      <div className="border border-gray-100 rounded-lg overflow-hidden">
+      <p className="text-[10px] font-semibold text-gray-700 dark:text-slate-300 mb-1.5 transition-colors">Container Status</p>
+      <div className="border border-gray-100 dark:border-slate-800/80 rounded-lg overflow-hidden transition-colors">
         <table className="w-full text-[10px]">
           <thead>
-            <tr className="bg-gray-50 text-gray-500">
+            <tr className="bg-gray-50 dark:bg-slate-800/50 text-gray-500 dark:text-slate-400 transition-colors">
               <th className="text-left px-2.5 py-1 font-medium">Name</th>
               <th className="text-left px-2.5 py-1 font-medium">Status</th>
               <th className="text-left px-2.5 py-1 font-medium">Port</th>
               <th className="text-left px-2.5 py-1 font-medium">IMAGE</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-50">
+          <tbody className="divide-y divide-gray-50 dark:divide-slate-800/50 transition-colors">
             {CONTAINER_ROWS.map((row) => (
               <tr key={row.name}>
-                <td className="px-2.5 py-1.5 font-medium text-gray-700">{row.name}</td>
+                <td className="px-2.5 py-1.5 font-medium text-gray-700 dark:text-slate-300">{row.name}</td>
                 <td className="px-2.5 py-1.5">
-                  <span className={`inline-flex items-center gap-1 ${row.running ? "text-green-600" : "text-gray-400"}`}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${row.running ? "bg-green-500" : "bg-gray-300"}`} />
+                  <span className={`inline-flex items-center gap-1 ${row.running ? "text-green-600 dark:text-green-400" : "text-gray-400 dark:text-slate-500"}`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${row.running ? "bg-green-500" : "bg-gray-300 dark:bg-slate-600"}`} />
                     {row.status}
                   </span>
                 </td>
-                <td className="px-2.5 py-1.5 text-gray-500">{row.port}</td>
-                <td className="px-2.5 py-1.5 text-gray-500 font-mono">{row.image}</td>
+                <td className="px-2.5 py-1.5 text-gray-500 dark:text-slate-400">{row.port}</td>
+                <td className="px-2.5 py-1.5 text-gray-500 dark:text-slate-400 font-mono">{row.image}</td>
               </tr>
             ))}
           </tbody>
@@ -119,7 +119,7 @@ function ContainerTable() {
 /* ── Floating Terminal Mockup ── */
 function FloatingTerminal() {
   return (
-    <div className="absolute -bottom-8 -right-8 w-72 bg-[#0f172a] rounded-xl shadow-2xl shadow-blue-900/20 border border-slate-700/50 overflow-hidden z-20 animate-[float_8s_ease-in-out_infinite_reverse]">
+    <div className="hidden sm:block absolute -bottom-8 -right-8 w-72 bg-[#0f172a] rounded-xl shadow-2xl shadow-blue-900/20 border border-slate-700/50 overflow-hidden z-20 animate-[float_8s_ease-in-out_infinite_reverse]">
       {/* Terminal Header */}
       <div className="flex items-center px-4 py-3 bg-[#1e293b]/50 border-b border-slate-700/50">
         <span className="text-slate-400 text-xs font-mono">$ docker ps</span>
@@ -184,13 +184,13 @@ export default function DashboardMockup() {
       </div>
 
       {/* Dashboard Card */}
-      <div className="relative bg-white rounded-2xl shadow-2xl shadow-gray-200/60 border border-gray-100 overflow-hidden flex">
+      <div className="relative bg-white dark:bg-[#020617] rounded-2xl shadow-2xl shadow-gray-200/60 dark:shadow-none border border-gray-100 dark:border-slate-800 overflow-hidden flex transition-colors duration-300">
         {/* Sidebar */}
         <Sidebar />
 
         {/* Main Content */}
         <div className="flex-1 p-4 space-y-3 min-w-0">
-          <h3 className="text-sm font-semibold text-gray-800">Dashboard</h3>
+          <h3 className="text-sm font-semibold text-gray-800 dark:text-slate-200 transition-colors">Dashboard</h3>
           <StatsGrid />
           <ContainerTable />
         </div>

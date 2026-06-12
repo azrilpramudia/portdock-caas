@@ -12,7 +12,7 @@ import Footer from "@/components/shared/Footer";
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-white text-gray-900 overflow-hidden">
+    <div className="min-h-screen bg-white dark:bg-[#020617] text-gray-900 dark:text-slate-200 overflow-hidden transition-colors duration-300">
       {/* Navigation */}
       <Navbar />
 

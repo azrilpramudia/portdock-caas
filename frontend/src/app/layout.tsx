@@ -20,18 +20,27 @@ export const metadata: Metadata = {
   authors: [{ name: APP_CONFIG.author }],
 };
 
+import { ThemeProvider } from "@/components/ThemeProvider";
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="id" className={poppins.variable}>
+    <html lang="id" className={poppins.variable} suppressHydrationWarning>
       <body className="font-poppins antialiased">
-        <Providers>
-          {children}
-          <Toaster position="top-right" richColors />
-        </Providers>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <Providers>
+            {children}
+            <Toaster position="top-right" richColors />
+          </Providers>
+        </ThemeProvider>
       </body>
     </html>
   );
