@@ -72,7 +72,7 @@ function StatsGrid() {
     <div className="grid grid-cols-4 gap-2">
       {DASHBOARD_STATS.map((stat) => (
         <div key={stat.label} className={`${stat.bg} rounded-lg p-2 text-center`}>
-          <p className="text-[9px] text-gray-500 mb-0.5 whitespace-nowrap">{stat.label}</p>
+          <p className="text-[9px] text-gray-500 mb-0.5 leading-tight">{stat.label}</p>
           <p className={`text-lg font-bold ${stat.color}`}>{stat.value}</p>
         </div>
       ))}

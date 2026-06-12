@@ -20,7 +20,7 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 shadow-sm">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200/80 shadow-sm">
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between gap-8">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5 shrink-0">
@@ -31,9 +31,9 @@ export default function Navbar() {
             width={56}
             quality={100}
             priority
-            className="h-12 w-auto object-contain -translate-y-[2px]"
+            className="h-11 w-auto object-contain -translate-y-1"
           />
-          <span className="font-bold text-[1.35rem] leading-none tracking-tight select-none translate-y-[2px]">
+          <span className="font-bold text-[1.35rem] leading-none tracking-tight select-none">
             <span className="text-gray-900">Port</span><span className="text-blue-600">Dock</span>
           </span>
         </Link>
