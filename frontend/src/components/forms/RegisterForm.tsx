@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, Loader2, User, Mail, Lock, UserPlus } from "lucide-react";
 import { Turnstile } from "@marsidev/react-turnstile";
@@ -11,6 +11,23 @@ import { Label } from "@/components/ui/label";
 import { registerSchema, RegisterFormSchema } from "@/lib/validations/auth";
 import { useRegisterMutation } from "@/hooks/useAuthQueries";
 import Link from "next/link";
+
+const getPasswordStrength = (password: string) => {
+  if (!password) return { score: 0, label: "", color: "bg-slate-200 dark:bg-slate-800", textColor: "text-slate-500" };
+  
+  let score = 0;
+  if (password.length >= 8) score += 1;
+  if (password.match(/(?=.*[a-z])(?=.*[A-Z])/)) score += 1;
+  if (password.match(/(?=.*[0-9])/)) score += 1;
+  if (password.match(/(?=.*[^A-Za-z0-9])/)) score += 1;
+
+  if (score === 0) return { score: 1, label: "Very Weak", color: "bg-red-500", textColor: "text-red-500 dark:text-red-400" };
+  if (score === 1) return { score: 2, label: "Weak", color: "bg-orange-500", textColor: "text-orange-500 dark:text-orange-400" };
+  if (score === 2) return { score: 3, label: "Medium", color: "bg-yellow-500", textColor: "text-yellow-500 dark:text-yellow-400" };
+  if (score >= 3) return { score: 4, label: "Strong", color: "bg-green-500", textColor: "text-green-500 dark:text-green-400" };
+  
+  return { score: 0, label: "", color: "bg-slate-200 dark:bg-slate-800", textColor: "text-slate-500" };
+};
 
 export function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -22,10 +39,19 @@ export function RegisterForm() {
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
   } = useForm<RegisterFormSchema>({
     resolver: zodResolver(registerSchema),
   });
+
+  const passwordValue = useWatch({
+    control,
+    name: "password",
+    defaultValue: "",
+  });
+
+  const strength = getPasswordStrength(passwordValue);
 
   const registerMutation = useRegisterMutation();
 
@@ -118,6 +144,19 @@ export function RegisterForm() {
             {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
           </button>
         </div>
+        {passwordValue && (
+          <div className="pt-1">
+            <div className="flex gap-1 h-1.5 w-full rounded-full overflow-hidden">
+              <div className={`h-full flex-1 ${strength.score >= 1 ? strength.color : "bg-slate-200 dark:bg-slate-800"} transition-colors duration-300`} />
+              <div className={`h-full flex-1 ${strength.score >= 2 ? strength.color : "bg-slate-200 dark:bg-slate-800"} transition-colors duration-300`} />
+              <div className={`h-full flex-1 ${strength.score >= 3 ? strength.color : "bg-slate-200 dark:bg-slate-800"} transition-colors duration-300`} />
+              <div className={`h-full flex-1 ${strength.score >= 4 ? strength.color : "bg-slate-200 dark:bg-slate-800"} transition-colors duration-300`} />
+            </div>
+            <p className={`text-[11px] mt-1 text-right font-medium ${strength.textColor}`}>
+              {strength.label}
+            </p>
+          </div>
+        )}
         {errors.password && (
           <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.password.message}</p>
         )}
