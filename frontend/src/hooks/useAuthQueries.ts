@@ -16,7 +16,14 @@ export function useLoginMutation() {
       router.push("/dashboard");
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Login gagal");
+      const message = error.response?.data?.message;
+      if (message === "Invalid credentials") {
+        toast.error("Login gagal: Email atau password salah.");
+      } else if (message?.includes("Turnstile")) {
+        toast.error("Verifikasi keamanan gagal. Silakan coba lagi.");
+      } else {
+        toast.error(message || "Terjadi kesalahan saat login.");
+      }
     },
   });
 }
@@ -33,7 +40,14 @@ export function useRegisterMutation() {
       router.push("/dashboard");
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Registrasi gagal");
+      const message = error.response?.data?.message;
+      if (message === "Email already registered") {
+        toast.error("Registrasi gagal: Email ini sudah terdaftar.");
+      } else if (message?.includes("Turnstile")) {
+        toast.error("Verifikasi keamanan gagal. Silakan coba lagi.");
+      } else {
+        toast.error(message || "Terjadi kesalahan saat registrasi.");
+      }
     },
   });
 }

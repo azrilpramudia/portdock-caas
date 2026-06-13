@@ -25,9 +25,13 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       if (typeof window !== "undefined") {
-        localStorage.removeItem("portdock_token");
-        localStorage.removeItem("portdock_user");
-        window.location.href = "/login";
+        // Prevent refresh if we are already on login or register pages
+        const currentPath = window.location.pathname;
+        if (currentPath !== "/login" && currentPath !== "/register") {
+          localStorage.removeItem("portdock_token");
+          localStorage.removeItem("portdock_user");
+          window.location.href = "/login";
+        }
       }
     }
     return Promise.reject(error);

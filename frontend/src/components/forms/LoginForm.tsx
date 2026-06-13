@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, Loader2, Mail, Lock, LogIn } from "lucide-react";
@@ -16,6 +16,7 @@ export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState<string>("");
   const [turnstileError, setTurnstileError] = useState<string>("");
+  const turnstileRef = useRef<any>(null);
   
   const {
     register,
@@ -36,7 +37,15 @@ export function LoginForm() {
       }
     }
     setTurnstileError("");
-    loginMutation.mutate({ ...data, turnstileToken });
+    loginMutation.mutate(
+      { ...data, turnstileToken },
+      {
+        onError: () => {
+          turnstileRef.current?.reset();
+          setTurnstileToken("");
+        },
+      }
+    );
   };
 
   return (
@@ -111,6 +120,7 @@ export function LoginForm() {
       <div className="pt-2 pb-1 flex flex-col items-center">
         {process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && (
           <Turnstile
+            ref={turnstileRef}
             siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
             onSuccess={(token) => {
               setTurnstileToken(token);
