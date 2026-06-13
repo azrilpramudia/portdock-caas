@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
+import portdockLogo from "@/assets/portdock.png";
 import {
   LayoutDashboard,
   FolderOpen,
@@ -12,70 +14,61 @@ import {
   Settings,
   LogOut,
   Container as ContainerIcon,
+  Terminal as TerminalIcon,
+  Rocket,
   ChevronRight,
   Menu,
+  Bell,
+  HelpCircle,
+  ChevronDown
 } from "lucide-react";
-import { useState } from "react";
 import { useAuthStore } from "@/store/auth";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/projects", icon: FolderOpen, label: "Projects" },
+  { href: "/deploy", icon: Rocket, label: "Deploy" },
   { href: "/containers", icon: Container, label: "Containers" },
   { href: "/monitoring", icon: BarChart3, label: "Monitoring" },
+  { href: "/terminal", icon: TerminalIcon, label: "Terminal" },
   { href: "/activity-logs", icon: ScrollText, label: "Activity Logs" },
   { href: "/settings", icon: Settings, label: "Settings" },
 ];
 
 function Sidebar({ mobile = false, onClose }: { mobile?: boolean; onClose?: () => void }) {
   const pathname = usePathname();
-  const router = useRouter();
-  const { user, logout } = useAuthStore();
-
-  const handleLogout = () => {
-    logout();
-    toast.success("Berhasil logout");
-    router.push("/login");
-  };
-
-  const initials = user?.name
-    ? user.name
-        .split(" ")
-        .map((n) => n[0])
-        .join("")
-        .toUpperCase()
-        .slice(0, 2)
-    : "U";
 
   return (
     <aside
       className={cn(
-        "flex flex-col h-full bg-[#0f172a] border-r border-[#1e293b]",
-        mobile ? "w-full" : "w-64"
+        "flex flex-col h-full bg-white border-r border-slate-200",
+        mobile ? "w-full" : "w-[260px]"
       )}
     >
       {/* Logo */}
-      <div className="p-6 border-b border-[#1e293b]">
-        <Link href="/dashboard" className="flex items-center gap-3 group" onClick={onClose}>
-          <div className="w-10 h-10 portdock-gradient rounded-xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
-            <ContainerIcon className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <span className="text-xl font-bold text-white">Portdock</span>
-            <Badge className="ml-2 text-[10px] bg-blue-600/20 text-blue-400 border-blue-500/30 px-1.5 py-0">
-              MVP
-            </Badge>
-          </div>
+      <div className="p-6">
+        <Link href="/dashboard" className="flex items-center gap-2 group" onClick={onClose}>
+          <Image
+            src={portdockLogo}
+            alt="Portdock icon"
+            height={40}
+            width={48}
+            quality={100}
+            priority
+            className="h-9 w-auto object-contain"
+          />
+          <span className="font-bold text-[1.35rem] leading-none tracking-tight select-none mt-1">
+            <span className="text-slate-900 transition-colors duration-300">Port</span><span className="text-blue-600">Dock</span>
+          </span>
         </Link>
       </div>
 
       {/* Nav items */}
-      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+      <nav className="flex-1 px-4 py-2 space-y-1.5 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         {navItems.map((item) => {
           const isActive =
             pathname === item.href || pathname.startsWith(item.href + "/");
@@ -85,50 +78,38 @@ function Sidebar({ mobile = false, onClose }: { mobile?: boolean; onClose?: () =
               href={item.href}
               onClick={onClose}
               className={cn(
-                "flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group",
+                "flex items-center gap-3 px-4 py-3 rounded-xl text-[14px] font-semibold transition-all duration-200 group",
                 isActive
-                  ? "bg-blue-600 text-white shadow-lg shadow-blue-500/20"
-                  : "text-slate-400 hover:text-white hover:bg-[#1e293b]"
+                  ? "bg-blue-600 text-white shadow-[0_4px_14px_0_rgba(37,99,235,0.39)]"
+                  : "text-slate-500 hover:text-slate-900 hover:bg-slate-50"
               )}
             >
               <item.icon
                 className={cn(
-                  "w-4.5 h-4.5 flex-shrink-0 transition-transform group-hover:scale-110",
-                  isActive ? "text-white" : "text-slate-500"
+                  "w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110",
+                  isActive ? "text-white" : "text-slate-400 group-hover:text-slate-600"
                 )}
               />
               <span>{item.label}</span>
-              {isActive && (
-                <ChevronRight className="w-3 h-3 ml-auto text-white/60" />
-              )}
             </Link>
           );
         })}
       </nav>
 
-      <Separator className="bg-[#1e293b]" />
-
-      {/* User section */}
-      <div className="p-4">
-        <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-[#1e293b] transition-colors cursor-pointer mb-2">
-          <Avatar className="w-9 h-9 border-2 border-blue-500/30">
-            <AvatarFallback className="bg-blue-600 text-white text-sm font-semibold">
-              {initials}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-white truncate">{user?.name}</p>
-            <p className="text-xs text-slate-400 truncate">{user?.email}</p>
+      {/* Help block */}
+      <div className="p-5">
+        <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5 text-center">
+          <div className="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-3">
+            <HelpCircle className="w-5 h-5 text-blue-600" />
           </div>
+          <h4 className="font-semibold text-slate-900 text-sm mb-1.5">Need Help?</h4>
+          <p className="text-xs text-slate-500 mb-4 leading-relaxed">
+            Check our documentation or contact support team.
+          </p>
+          <Button variant="outline" className="w-full bg-white border-slate-200 text-blue-600 font-semibold hover:bg-slate-50 hover:text-blue-700 h-9 text-xs">
+            View Documentation
+          </Button>
         </div>
-        <button
-          onClick={handleLogout}
-          id="btn-logout"
-          className="flex items-center gap-3 w-full px-4 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-all duration-150"
-        >
-          <LogOut className="w-4 h-4" />
-          <span>Logout</span>
-        </button>
       </div>
     </aside>
   );
@@ -140,6 +121,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const { user, isAuthenticated, initialize } = useAuthStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -162,6 +144,10 @@ export default function DashboardLayout({
         .slice(0, 2)
     : "U";
 
+  // Determine current page title
+  const currentNav = navItems.find((item) => pathname === item.href || pathname.startsWith(item.href + "/"));
+  const pageTitle = currentNav?.label || "Dashboard";
+
   if (!isAuthenticated) return null;
 
   return (
@@ -175,10 +161,10 @@ export default function DashboardLayout({
       {sidebarOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
             onClick={() => setSidebarOpen(false)}
           />
-          <div className="absolute left-0 top-0 bottom-0 w-72">
+          <div className="absolute left-0 top-0 bottom-0 w-[260px]">
             <Sidebar mobile onClose={() => setSidebarOpen(false)} />
           </div>
         </div>
@@ -186,8 +172,61 @@ export default function DashboardLayout({
 
       {/* Main Content */}
       <div className="flex flex-1 flex-col overflow-hidden">
-        {/* Top header (mobile) */}
-        <header className="lg:hidden flex items-center justify-between px-4 py-3 bg-white border-b border-slate-200">
+        {/* Desktop Header */}
+        <header className="hidden lg:flex items-center justify-between px-8 py-5 bg-white border-b border-slate-200 z-10">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 bg-blue-50 text-blue-600 rounded-[10px] flex items-center justify-center">
+              <Menu className="w-[18px] h-[18px]" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-slate-900 leading-tight">
+                {pageTitle}
+              </h1>
+              {pageTitle === "Dashboard" && (
+                <p className="text-[13px] text-slate-500 mt-0.5">Overview of your deployments and system status</p>
+              )}
+              {pageTitle === "Projects" && (
+                <p className="text-[13px] text-slate-500 mt-0.5">Manage all your deployment projects</p>
+              )}
+              {pageTitle === "Deploy" && (
+                <p className="text-[13px] text-slate-500 mt-0.5">Deploy your application to Docker in minutes</p>
+              )}
+              {pageTitle === "Containers" && (
+                <p className="text-[13px] text-slate-500 mt-0.5">Manage and control your Docker containers</p>
+              )}
+              {pageTitle === "Monitoring" && (
+                <p className="text-[13px] text-slate-500 mt-0.5">Real-time overview of your container resources</p>
+              )}
+              {pageTitle === "Terminal" && (
+                <p className="text-[13px] text-slate-500 mt-0.5">Access and manage your containers via web terminal</p>
+              )}
+              {pageTitle === "Activity Logs" && (
+                <p className="text-[13px] text-slate-500 mt-0.5">View all system activities and user actions</p>
+              )}
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-6">
+            <button className="relative text-slate-400 hover:text-slate-600 transition-colors">
+              <Bell className="w-5 h-5" />
+              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
+            </button>
+            <div className="flex items-center gap-3 cursor-pointer group">
+              <Avatar className="w-9 h-9 border border-slate-200">
+                <AvatarFallback className="bg-slate-100 text-slate-600 text-sm font-semibold">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-semibold text-slate-700 group-hover:text-slate-900 transition-colors">{user?.name}</span>
+                <ChevronDown className="w-4 h-4 text-slate-400" />
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Mobile Header */}
+        <header className="lg:hidden flex items-center justify-between px-4 py-3 bg-white border-b border-slate-200 z-10">
           <button
             onClick={() => setSidebarOpen(true)}
             className="p-2 rounded-lg text-slate-600 hover:bg-slate-100"
@@ -195,11 +234,10 @@ export default function DashboardLayout({
             <Menu className="w-5 h-5" />
           </button>
           <div className="flex items-center gap-2">
-            <ContainerIcon className="w-5 h-5 text-blue-600" />
-            <span className="font-bold text-slate-900">Portdock</span>
+            <span className="font-bold text-slate-900">{pageTitle}</span>
           </div>
-          <Avatar className="w-8 h-8 border border-blue-500/30">
-            <AvatarFallback className="bg-blue-600 text-white text-xs font-semibold">
+          <Avatar className="w-8 h-8 border border-slate-200">
+            <AvatarFallback className="bg-slate-100 text-slate-600 text-xs font-semibold">
               {initials}
             </AvatarFallback>
           </Avatar>
@@ -207,7 +245,7 @@ export default function DashboardLayout({
 
         {/* Page Content */}
         <main className="flex-1 overflow-y-auto">
-          <div className="p-6 lg:p-8 animate-fade-in">{children}</div>
+          <div className="p-4 lg:p-8 animate-fade-in">{children}</div>
         </main>
       </div>
     </div>

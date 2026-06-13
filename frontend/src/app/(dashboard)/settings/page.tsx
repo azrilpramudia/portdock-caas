@@ -1,247 +1,269 @@
 "use client";
 
-import { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { Settings, User, KeyRound, Loader2, CheckCircle2, Save } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import api from "@/lib/api";
-import { toast } from "sonner";
-import { useAuthStore } from "@/store/auth";
-import { format } from "date-fns";
-
-const profileSchema = z.object({
-  name: z.string().min(2, "Nama minimal 2 karakter").max(100),
-});
-
-const passwordSchema = z
-  .object({
-    currentPassword: z.string().min(1, "Password saat ini wajib diisi"),
-    newPassword: z.string().min(8, "Password baru minimal 8 karakter"),
-    confirmPassword: z.string(),
-  })
-  .refine((d) => d.newPassword === d.confirmPassword, {
-    message: "Password tidak cocok",
-    path: ["confirmPassword"],
-  });
+import { 
+  User, 
+  Lock, 
+  GitBranch, 
+  KeyRound, 
+  Bell, 
+  Eye, 
+  CheckCircle2, 
+  Copy,
+  Check
+} from "lucide-react";
 
 export default function SettingsPage() {
-  const { user, setAuth } = useAuthStore();
-
-  const { data: profile } = useQuery({
-    queryKey: ["profile"],
-    queryFn: async () => {
-      const res = await api.get("/auth/me");
-      return res.data;
-    },
-  });
-
-  const {
-    register: registerProfile,
-    handleSubmit: handleProfileSubmit,
-    formState: { errors: profileErrors },
-  } = useForm({
-    resolver: zodResolver(profileSchema),
-    values: { name: profile?.name || "" },
-  });
-
-  const {
-    register: registerPassword,
-    handleSubmit: handlePasswordSubmit,
-    reset: resetPassword,
-    formState: { errors: passwordErrors },
-  } = useForm({
-    resolver: zodResolver(passwordSchema),
-  });
-
-  const updateProfileMutation = useMutation({
-    mutationFn: async (data: { name: string }) => {
-      // Profile update would go through a users endpoint
-      const res = await api.get("/auth/me");
-      return { ...res.data, ...data };
-    },
-    onSuccess: (data) => {
-      const token = localStorage.getItem("portdock_token") || "";
-      setAuth(data, token);
-      toast.success("Profil berhasil diupdate");
-    },
-    onError: () => toast.error("Gagal mengupdate profil"),
-  });
-
-  const initials = profile?.name
-    ? profile.name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)
-    : "U";
-
   return (
-    <div className="space-y-6 max-w-2xl">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900">Settings</h1>
-        <p className="text-slate-500 mt-1">Kelola akun dan preferensi Anda</p>
+    <div className="w-full pb-8">
+      
+      {/* 2-Column Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        
+        {/* Profile Information */}
+        <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-sm flex flex-col h-full">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+              <User className="w-[18px] h-[18px]" />
+            </div>
+            <h2 className="text-[15px] font-bold text-slate-900">Profile Information</h2>
+          </div>
+          
+          <div className="space-y-5 flex-1">
+            <div className="space-y-2">
+              <label className="text-[13px] font-bold text-slate-700">Full Name</label>
+              <input 
+                type="text" 
+                defaultValue="John Doe" 
+                className="w-full bg-white border border-slate-200 text-slate-700 text-[14px] rounded-xl px-4 py-2.5 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all font-medium"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-[13px] font-bold text-slate-700">Email</label>
+              <input 
+                type="email" 
+                defaultValue="john@example.com" 
+                className="w-full bg-white border border-slate-200 text-slate-700 text-[14px] rounded-xl px-4 py-2.5 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all font-medium"
+              />
+            </div>
+          </div>
+          
+          <div className="mt-8">
+            <button className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-[14px] font-bold transition-all shadow-sm">
+              Save Changes
+            </button>
+          </div>
+        </div>
+
+        {/* Security */}
+        <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-sm flex flex-col h-full">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+              <Lock className="w-[18px] h-[18px]" />
+            </div>
+            <h2 className="text-[15px] font-bold text-slate-900">Security</h2>
+          </div>
+          
+          <div className="space-y-5 flex-1">
+            <div className="space-y-2">
+              <label className="text-[13px] font-bold text-slate-700">Current Password</label>
+              <div className="relative">
+                <input 
+                  type="password" 
+                  defaultValue="password123" 
+                  className="w-full bg-white border border-slate-200 text-slate-400 text-[14px] rounded-xl px-4 py-2.5 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all font-medium pr-10"
+                />
+                <Eye className="w-[18px] h-[18px] text-slate-400 absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer hover:text-slate-600 transition-colors" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <label className="text-[13px] font-bold text-slate-700">New Password</label>
+              <div className="relative">
+                <input 
+                  type="password" 
+                  defaultValue="password123" 
+                  className="w-full bg-white border border-slate-200 text-slate-400 text-[14px] rounded-xl px-4 py-2.5 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all font-medium pr-10"
+                />
+                <Eye className="w-[18px] h-[18px] text-slate-400 absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer hover:text-slate-600 transition-colors" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <label className="text-[13px] font-bold text-slate-700">Confirm Password</label>
+              <div className="relative">
+                <input 
+                  type="password" 
+                  defaultValue="password123" 
+                  className="w-full bg-white border border-slate-200 text-slate-400 text-[14px] rounded-xl px-4 py-2.5 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all font-medium pr-10"
+                />
+                <Eye className="w-[18px] h-[18px] text-slate-400 absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer hover:text-slate-600 transition-colors" />
+              </div>
+            </div>
+          </div>
+          
+          <div className="mt-8">
+            <button className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-[14px] font-bold transition-all shadow-sm">
+              Update Password
+            </button>
+          </div>
+        </div>
+
+        {/* GitHub Integration */}
+        <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-sm flex flex-col h-full">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+              <GitBranch className="w-[18px] h-[18px]" />
+            </div>
+            <h2 className="text-[15px] font-bold text-slate-900">GitHub Integration</h2>
+          </div>
+          
+          <div className="flex-1">
+            <div className="grid grid-cols-[160px_1fr] gap-y-4 text-[13px] mb-6">
+              <div className="font-bold text-slate-500 flex items-center">Status</div>
+              <div>
+                <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-600 font-bold text-[12px]">
+                  Connected
+                </span>
+              </div>
+              
+              <div className="font-bold text-slate-500 flex items-center">Account</div>
+              <div className="font-semibold text-slate-700 flex items-center">johndoe</div>
+              
+              <div className="font-bold text-slate-500 flex items-center">Repository Access</div>
+              <div className="font-semibold text-slate-700 flex items-center">Enabled</div>
+            </div>
+          </div>
+          
+          <div className="mt-auto">
+            <button className="flex items-center gap-2 px-4 py-2.5 border border-red-200 hover:bg-red-50 text-red-500 rounded-xl text-[13px] font-bold transition-colors">
+              <GitBranch className="w-[14px] h-[14px]" />
+              Disconnect GitHub
+            </button>
+          </div>
+        </div>
+
+        {/* SSH Keys */}
+        <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-sm flex flex-col h-full">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+              <KeyRound className="w-[18px] h-[18px]" />
+            </div>
+            <h2 className="text-[15px] font-bold text-slate-900">SSH Keys</h2>
+          </div>
+          
+          <div className="flex-1 flex flex-col gap-3">
+            <label className="text-[13px] font-bold text-slate-700">SSH Public Key</label>
+            <textarea 
+              readOnly 
+              className="w-full h-[100px] bg-white border border-slate-200 text-slate-500 text-[13px] rounded-xl p-4 outline-none resize-none font-medium leading-relaxed"
+              defaultValue={"ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC7ExampleKey...\nuser@portdock"}
+            />
+            <div className="flex items-start gap-2 mt-1">
+              <CheckCircle2 className="w-[15px] h-[15px] text-emerald-500 mt-[1px] flex-shrink-0" />
+              <p className="text-[12px] font-medium text-slate-500 leading-snug">
+                Your SSH key is used to access and manage your servers securely.
+              </p>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-3 mt-8">
+            <button className="px-4 py-2.5 border border-blue-200 text-blue-600 hover:bg-blue-50 rounded-xl text-[13px] font-bold transition-all bg-white shadow-sm">
+              Generate Key
+            </button>
+            <button className="flex items-center gap-2 px-4 py-2.5 border border-blue-200 text-blue-600 hover:bg-blue-50 rounded-xl text-[13px] font-bold transition-all bg-white shadow-sm">
+              <Copy className="w-[14px] h-[14px]" />
+              Copy Key
+            </button>
+          </div>
+        </div>
+
       </div>
 
-      <Tabs defaultValue="profile">
-        <TabsList className="mb-6">
-          <TabsTrigger value="profile" className="gap-2">
-            <User className="w-4 h-4" />
-            Profil
-          </TabsTrigger>
-          <TabsTrigger value="security" className="gap-2">
-            <KeyRound className="w-4 h-4" />
-            Keamanan
-          </TabsTrigger>
-        </TabsList>
+      {/* Full Width Bottom Section */}
+      <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-sm">
+        <div className="flex items-center gap-3 mb-8">
+          <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+            <Bell className="w-[18px] h-[18px]" />
+          </div>
+          <h2 className="text-[15px] font-bold text-slate-900">Notifications</h2>
+        </div>
 
-        {/* Profile Tab */}
-        <TabsContent value="profile">
-          <Card className="bg-white border border-slate-200/60 shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-base">Informasi Profil</CardTitle>
-              <CardDescription>Update informasi akun Anda</CardDescription>
-            </CardHeader>
-            <Separator />
-            <CardContent className="p-6">
-              {/* Avatar */}
-              <div className="flex items-center gap-4 mb-6 p-4 bg-slate-50 rounded-xl">
-                <Avatar className="w-16 h-16 border-2 border-blue-200">
-                  <AvatarFallback className="bg-blue-600 text-white text-xl font-semibold">
-                    {initials}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="font-semibold text-slate-900">{profile?.name}</p>
-                  <p className="text-sm text-slate-500">{profile?.email}</p>
-                  {profile?.createdAt && (
-                    <p className="text-xs text-slate-400 mt-1">
-                      Bergabung {format(new Date(profile.createdAt), "MMMM yyyy")}
-                    </p>
-                  )}
-                </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-y-6 gap-x-8 mb-4">
+          
+          {/* Checkbox item */}
+          <label className="flex items-start gap-4 cursor-pointer group">
+            <div className="relative flex items-center justify-center mt-0.5">
+              <input type="checkbox" className="peer sr-only" defaultChecked />
+              <div className="w-[18px] h-[18px] border-2 border-slate-200 bg-white rounded flex items-center justify-center peer-checked:bg-blue-600 peer-checked:border-blue-600 transition-colors shadow-sm">
+                <Check className="w-3 h-3 text-white opacity-0 peer-checked:opacity-100" strokeWidth={3} />
               </div>
+            </div>
+            <div>
+              <div className="text-[13px] font-bold text-slate-800 leading-none mb-1.5 group-hover:text-blue-600 transition-colors">Deployment Success</div>
+              <div className="text-[12px] font-medium text-slate-500">Receive notification when deployment succeeds.</div>
+            </div>
+          </label>
 
-              <form
-                onSubmit={handleProfileSubmit((data) => updateProfileMutation.mutate(data))}
-                className="space-y-4"
-              >
-                <div className="space-y-2">
-                  <Label htmlFor="setting-name">Nama Lengkap</Label>
-                  <Input
-                    id="setting-name"
-                    {...registerProfile("name")}
-                    className="h-10"
-                  />
-                  {profileErrors.name && (
-                    <p className="text-red-500 text-xs">{profileErrors.name.message as string}</p>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="setting-email">Email</Label>
-                  <Input
-                    id="setting-email"
-                    value={profile?.email || ""}
-                    disabled
-                    className="h-10 bg-slate-50 text-slate-500"
-                  />
-                  <p className="text-xs text-slate-400">Email tidak dapat diubah</p>
-                </div>
-                <Button
-                  type="submit"
-                  id="btn-save-profile"
-                  disabled={updateProfileMutation.isPending}
-                  className="portdock-gradient text-white hover:opacity-90 shadow-lg shadow-blue-500/25"
-                >
-                  {updateProfileMutation.isPending ? (
-                    <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Menyimpan...</>
-                  ) : (
-                    <><Save className="w-4 h-4 mr-2" />Simpan Perubahan</>
-                  )}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-        </TabsContent>
+          <label className="flex items-start gap-4 cursor-pointer group">
+            <div className="relative flex items-center justify-center mt-0.5">
+              <input type="checkbox" className="peer sr-only" defaultChecked />
+              <div className="w-[18px] h-[18px] border-2 border-slate-200 bg-white rounded flex items-center justify-center peer-checked:bg-blue-600 peer-checked:border-blue-600 transition-colors shadow-sm">
+                <Check className="w-3 h-3 text-white opacity-0 peer-checked:opacity-100" strokeWidth={3} />
+              </div>
+            </div>
+            <div>
+              <div className="text-[13px] font-bold text-slate-800 leading-none mb-1.5 group-hover:text-blue-600 transition-colors">Container Down</div>
+              <div className="text-[12px] font-medium text-slate-500">Receive notification when a container is down.</div>
+            </div>
+          </label>
+          
+          <label className="flex items-start gap-4 cursor-pointer group">
+            <div className="relative flex items-center justify-center mt-0.5">
+              <input type="checkbox" className="peer sr-only" defaultChecked />
+              <div className="w-[18px] h-[18px] border-2 border-slate-200 bg-white rounded flex items-center justify-center peer-checked:bg-blue-600 peer-checked:border-blue-600 transition-colors shadow-sm">
+                <Check className="w-3 h-3 text-white opacity-0 peer-checked:opacity-100" strokeWidth={3} />
+              </div>
+            </div>
+            <div>
+              <div className="text-[13px] font-bold text-slate-800 leading-none mb-1.5 group-hover:text-blue-600 transition-colors">Deployment Failed</div>
+              <div className="text-[12px] font-medium text-slate-500">Receive notification when deployment fails.</div>
+            </div>
+          </label>
 
-        {/* Security Tab */}
-        <TabsContent value="security">
-          <Card className="bg-white border border-slate-200/60 shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-base">Ubah Password</CardTitle>
-              <CardDescription>Pastikan akun Anda menggunakan password yang kuat</CardDescription>
-            </CardHeader>
-            <Separator />
-            <CardContent className="p-6">
-              <form
-                onSubmit={handlePasswordSubmit(() => {
-                  toast.info("Fitur ubah password akan segera tersedia");
-                  resetPassword();
-                })}
-                className="space-y-4"
-              >
-                <div className="space-y-2">
-                  <Label htmlFor="current-password">Password Saat Ini</Label>
-                  <Input
-                    id="current-password"
-                    type="password"
-                    placeholder="••••••••"
-                    {...registerPassword("currentPassword")}
-                    className="h-10"
-                  />
-                  {passwordErrors.currentPassword && (
-                    <p className="text-red-500 text-xs">{passwordErrors.currentPassword.message as string}</p>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="new-password">Password Baru</Label>
-                  <Input
-                    id="new-password"
-                    type="password"
-                    placeholder="Min. 8 karakter"
-                    {...registerPassword("newPassword")}
-                    className="h-10"
-                  />
-                  {passwordErrors.newPassword && (
-                    <p className="text-red-500 text-xs">{passwordErrors.newPassword.message as string}</p>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="confirm-password">Konfirmasi Password Baru</Label>
-                  <Input
-                    id="confirm-password"
-                    type="password"
-                    placeholder="Ulangi password baru"
-                    {...registerPassword("confirmPassword")}
-                    className="h-10"
-                  />
-                  {passwordErrors.confirmPassword && (
-                    <p className="text-red-500 text-xs">{passwordErrors.confirmPassword.message as string}</p>
-                  )}
-                </div>
-                <Button
-                  type="submit"
-                  id="btn-change-password"
-                  className="portdock-gradient text-white hover:opacity-90 shadow-lg shadow-blue-500/25"
-                >
-                  <KeyRound className="w-4 h-4 mr-2" />
-                  Ubah Password
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+          <label className="flex items-start gap-4 cursor-pointer group">
+            <div className="relative flex items-center justify-center mt-0.5">
+              <input type="checkbox" className="peer sr-only" defaultChecked />
+              <div className="w-[18px] h-[18px] border-2 border-slate-200 bg-white rounded flex items-center justify-center peer-checked:bg-blue-600 peer-checked:border-blue-600 transition-colors shadow-sm">
+                <Check className="w-3 h-3 text-white opacity-0 peer-checked:opacity-100" strokeWidth={3} />
+              </div>
+            </div>
+            <div>
+              <div className="text-[13px] font-bold text-slate-800 leading-none mb-1.5 group-hover:text-blue-600 transition-colors">Container Restart</div>
+              <div className="text-[12px] font-medium text-slate-500">Receive notification when a container restarts.</div>
+            </div>
+          </label>
+
+          <label className="flex items-start gap-4 cursor-pointer group">
+            <div className="relative flex items-center justify-center mt-0.5">
+              <input type="checkbox" className="peer sr-only" />
+              <div className="w-[18px] h-[18px] border-2 border-slate-200 bg-white rounded flex items-center justify-center peer-checked:bg-blue-600 peer-checked:border-blue-600 transition-colors shadow-sm">
+                <Check className="w-3 h-3 text-white opacity-0 peer-checked:opacity-100" strokeWidth={3} />
+              </div>
+            </div>
+            <div>
+              <div className="text-[13px] font-bold text-slate-800 leading-none mb-1.5 group-hover:text-blue-600 transition-colors">Weekly Summary</div>
+              <div className="text-[12px] font-medium text-slate-500">Receive a weekly summary of your projects.</div>
+            </div>
+          </label>
+
+        </div>
+
+        <div className="flex justify-end mt-4">
+          <button className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-[14px] font-bold transition-all shadow-sm">
+            Save Preferences
+          </button>
+        </div>
+
+      </div>
+
     </div>
   );
 }
