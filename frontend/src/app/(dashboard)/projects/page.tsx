@@ -150,36 +150,36 @@ export default function ProjectsPage() {
   const statCards = [
     {
       title: "Total Projects",
-      value: stats?.totalProjects || 12,
+      value: stats?.totalProjects || 0,
       icon: FolderOpen,
       iconColor: "text-blue-600",
       iconBgColor: "bg-blue-50",
-      trend: "+2",
+      trend: stats?.totalProjects ? "+2" : "",
     },
     {
       title: "Running Projects",
-      value: stats?.runningContainers || 8, // approximated since running projects specifically isn't in stats yet
+      value: stats?.runningContainers || 0, 
       icon: Container,
       iconColor: "text-emerald-500",
       iconBgColor: "bg-emerald-50",
-      trend: "+1",
+      trend: stats?.runningContainers ? "+1" : "",
     },
     {
       title: "Stopped Projects",
-      value: Math.max(0, (stats?.totalProjects || 12) - (stats?.runningContainers || 8)),
+      value: Math.max(0, (stats?.totalProjects || 0) - (stats?.runningContainers || 0)),
       icon: Database,
       iconColor: "text-amber-500",
       iconBgColor: "bg-amber-50",
-      trend: "-1",
+      trend: stats?.totalProjects ? "-1" : "",
       trendColor: "red"
     },
     {
       title: "Total Deployments",
-      value: stats?.totalDeployments || 24,
+      value: stats?.totalDeployments || 0,
       icon: Rocket,
       iconColor: "text-purple-600",
       iconBgColor: "bg-purple-50",
-      trend: "+5",
+      trend: stats?.totalDeployments ? "+5" : "",
     },
   ];
 
@@ -306,10 +306,8 @@ export default function ProjectsPage() {
                           </Link>
                           
                           <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="outline" size="sm" className="h-8 w-8 p-0 rounded-lg border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-slate-900 shadow-sm">
-                                <MoreHorizontal className="w-4 h-4 text-slate-500" />
-                              </Button>
+                            <DropdownMenuTrigger className="inline-flex items-center justify-center h-8 w-8 p-0 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 hover:text-slate-900 shadow-sm outline-none transition-colors">
+                              <MoreHorizontal className="w-4 h-4 text-slate-500" />
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="w-40 rounded-xl shadow-lg border-slate-200">
                               <Link href={`/projects/${project.id}/deploy`}>

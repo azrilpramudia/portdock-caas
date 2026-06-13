@@ -30,55 +30,12 @@ import {
 
 // --- MOCK DATA ---
 
-const sparklineDataCPU = [
-  { value: 15 }, { value: 18 }, { value: 16 }, { value: 20 }, { value: 19 },
-  { value: 22 }, { value: 25 }, { value: 23 }, { value: 26 }, { value: 28 },
-  { value: 25 }, { value: 29 }, { value: 31 }, { value: 30 }, { value: 32 },
-  { value: 35 }, { value: 33 }, { value: 29 }, { value: 27 }, { value: 25 },
-  { value: 23 }
-];
-
-const sparklineDataRAM = [
-  { value: 30 }, { value: 32 }, { value: 31 }, { value: 34 }, { value: 33 },
-  { value: 36 }, { value: 38 }, { value: 37 }, { value: 40 }, { value: 42 },
-  { value: 41 }, { value: 43 }, { value: 45 }, { value: 44 }, { value: 46 },
-  { value: 48 }, { value: 47 }, { value: 46 }, { value: 45 }, { value: 46 },
-  { value: 45 }
-];
-
-const sparklineDataDisk = [
-  { value: 60 }, { value: 60 }, { value: 60 }, { value: 61 }, { value: 61 },
-  { value: 61 }, { value: 62 }, { value: 62 }, { value: 62 }, { value: 62 },
-  { value: 61 }, { value: 61 }, { value: 60 }, { value: 60 }, { value: 61 },
-  { value: 61 }, { value: 62 }, { value: 62 }, { value: 62 }, { value: 62 },
-  { value: 62 }
-];
-
-const sparklineDataNetwork = [
-  { value: 5 }, { value: 8 }, { value: 6 }, { value: 10 }, { value: 7 },
-  { value: 12 }, { value: 9 }, { value: 15 }, { value: 11 }, { value: 14 },
-  { value: 8 }, { value: 6 }, { value: 9 }, { value: 7 }, { value: 11 },
-  { value: 10 }, { value: 13 }, { value: 11 }, { value: 12 }, { value: 14 },
-  { value: 12 }
-];
-
-const areaChartData = [
-  { time: "09:30", cpu: 18, ram: 15 },
-  { time: "09:40", cpu: 22, ram: 18 },
-  { time: "09:50", cpu: 25, ram: 28 },
-  { time: "10:00", cpu: 30, ram: 38 },
-  { time: "10:10", cpu: 35, ram: 45 },
-  { time: "10:20", cpu: 48, ram: 58 },
-  { time: "10:30", cpu: 32, ram: 52 },
-];
-
-const recentLogs = [
-  { time: "10:30:00", cpu: "23%", ram: "45%", disk: "62%", network: "12", up: 8, down: 4 },
-  { time: "10:29:00", cpu: "21%", ram: "42%", disk: "61%", network: "11", up: 7, down: 4 },
-  { time: "10:28:00", cpu: "20%", ram: "41%", disk: "61%", network: "10", up: 6, down: 4 },
-  { time: "10:27:00", cpu: "19%", ram: "40%", disk: "60%", network: "9", up: 6, down: 3 },
-  { time: "10:26:00", cpu: "18%", ram: "38%", disk: "60%", network: "9", up: 5, down: 4 },
-];
+const sparklineDataCPU: any[] = [];
+const sparklineDataRAM: any[] = [];
+const sparklineDataDisk: any[] = [];
+const sparklineDataNetwork: any[] = [];
+const areaChartData: any[] = [];
+const recentLogs: any[] = [];
 
 export default function MonitoringIndexPage() {
   return (
@@ -91,7 +48,7 @@ export default function MonitoringIndexPage() {
           <div className="relative w-full md:w-[320px]">
             <div className="flex items-center gap-2 w-full h-10 px-3 text-[13px] font-bold text-slate-700 bg-white border border-slate-200 rounded-lg cursor-pointer hover:border-slate-300 transition-colors">
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-              <span className="flex-1">my-portfolio</span>
+              <span className="flex-1 text-slate-400">Select Container</span>
               <ChevronDown className="w-4 h-4 text-slate-400" />
             </div>
           </div>
@@ -125,8 +82,8 @@ export default function MonitoringIndexPage() {
             </div>
             <div>
               <p className="text-[12px] font-medium text-slate-500 mb-0.5">CPU Usage</p>
-              <h3 className="text-2xl font-bold text-slate-900 leading-tight">23%</h3>
-              <p className="text-[11px] font-medium text-slate-500 mt-1">0.46 / 2 CPU</p>
+              <h3 className="text-2xl font-bold text-slate-900 leading-tight">0%</h3>
+              <p className="text-[11px] font-medium text-slate-500 mt-1">0 / 0 CPU</p>
             </div>
           </div>
           <div className="w-[80px] h-[40px]">
@@ -146,8 +103,8 @@ export default function MonitoringIndexPage() {
             </div>
             <div>
               <p className="text-[12px] font-medium text-slate-500 mb-0.5">RAM Usage</p>
-              <h3 className="text-2xl font-bold text-slate-900 leading-tight">45%</h3>
-              <p className="text-[11px] font-medium text-slate-500 mt-1">921 MB / 2 GB</p>
+              <h3 className="text-2xl font-bold text-slate-900 leading-tight">0%</h3>
+              <p className="text-[11px] font-medium text-slate-500 mt-1">0 MB / 0 GB</p>
             </div>
           </div>
           <div className="w-[80px] h-[40px]">
@@ -167,8 +124,8 @@ export default function MonitoringIndexPage() {
             </div>
             <div>
               <p className="text-[12px] font-medium text-slate-500 mb-0.5">Disk Usage</p>
-              <h3 className="text-2xl font-bold text-slate-900 leading-tight">62%</h3>
-              <p className="text-[11px] font-medium text-slate-500 mt-1">12.4 GB / 20 GB</p>
+              <h3 className="text-2xl font-bold text-slate-900 leading-tight">0%</h3>
+              <p className="text-[11px] font-medium text-slate-500 mt-1">0 GB / 0 GB</p>
             </div>
           </div>
           <div className="w-[80px] h-[40px]">
@@ -188,10 +145,10 @@ export default function MonitoringIndexPage() {
             </div>
             <div>
               <p className="text-[12px] font-medium text-slate-500 mb-0.5">Network Usage</p>
-              <h3 className="text-2xl font-bold text-slate-900 leading-tight">12 Mbps</h3>
+              <h3 className="text-2xl font-bold text-slate-900 leading-tight">0 Mbps</h3>
               <div className="flex items-center gap-2 mt-1 text-[11px] font-bold">
-                <span className="flex items-center text-amber-500"><ArrowUp className="w-3 h-3 mr-0.5" /> 8 Mbps</span>
-                <span className="flex items-center text-amber-500"><ArrowDown className="w-3 h-3 mr-0.5" /> 4 Mbps</span>
+                <span className="flex items-center text-amber-500"><ArrowUp className="w-3 h-3 mr-0.5" /> 0 Mbps</span>
+                <span className="flex items-center text-amber-500"><ArrowDown className="w-3 h-3 mr-0.5" /> 0 Mbps</span>
               </div>
             </div>
           </div>
@@ -288,8 +245,8 @@ export default function MonitoringIndexPage() {
                 <CheckCircle2 className="w-4 h-4 text-emerald-500" />
                 <span className="text-[13px] font-medium text-slate-600">Status</span>
               </div>
-              <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-600 text-[11px] font-bold">
-                Running
+              <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[11px] font-bold">
+                Unknown
               </span>
             </div>
             
@@ -298,7 +255,7 @@ export default function MonitoringIndexPage() {
                 <Disc className="w-4 h-4" />
                 <span className="text-[13px] font-medium text-slate-600">Image</span>
               </div>
-              <span className="text-[13px] font-bold text-slate-700">node:20</span>
+              <span className="text-[13px] font-bold text-slate-700">-</span>
             </div>
             
             <div className="flex items-center justify-between p-4">
@@ -306,7 +263,7 @@ export default function MonitoringIndexPage() {
                 <Hash className="w-4 h-4" />
                 <span className="text-[13px] font-medium text-slate-600">Container ID</span>
               </div>
-              <span className="text-[13px] font-bold text-slate-700">c4a92d1f3b7a</span>
+              <span className="text-[13px] font-bold text-slate-700">-</span>
             </div>
             
             <div className="flex items-center justify-between p-4">
@@ -314,7 +271,7 @@ export default function MonitoringIndexPage() {
                 <Clock className="w-4 h-4" />
                 <span className="text-[13px] font-medium text-slate-600">Uptime</span>
               </div>
-              <span className="text-[13px] font-bold text-slate-700">2 Days 4 Hours</span>
+              <span className="text-[13px] font-bold text-slate-700">-</span>
             </div>
             
             <div className="flex items-center justify-between p-4">
@@ -322,7 +279,7 @@ export default function MonitoringIndexPage() {
                 <Link2 className="w-4 h-4" />
                 <span className="text-[13px] font-medium text-slate-600">Port</span>
               </div>
-              <span className="text-[13px] font-bold text-slate-700">3000</span>
+              <span className="text-[13px] font-bold text-slate-700">-</span>
             </div>
             
             <div className="flex items-center justify-between p-4">
@@ -330,7 +287,7 @@ export default function MonitoringIndexPage() {
                 <Calendar className="w-4 h-4" />
                 <span className="text-[13px] font-medium text-slate-600">Created At</span>
               </div>
-              <span className="text-[13px] font-bold text-slate-700">May 18, 2025 09:21 AM</span>
+              <span className="text-[13px] font-bold text-slate-700">-</span>
             </div>
           </div>
         </div>
@@ -351,22 +308,31 @@ export default function MonitoringIndexPage() {
                 </tr>
               </thead>
               <tbody className="text-[13px] text-slate-700 divide-y divide-slate-50/80">
-                {recentLogs.map((log, i) => (
-                  <tr key={i} className="hover:bg-slate-50/30 transition-colors">
-                    <td className="px-5 py-3.5 font-semibold text-slate-900">{log.time}</td>
-                    <td className="px-5 py-3.5 text-center font-semibold">{log.cpu}</td>
-                    <td className="px-5 py-3.5 text-center font-semibold">{log.ram}</td>
-                    <td className="px-5 py-3.5 text-center font-semibold">{log.disk}</td>
-                    <td className="px-5 py-3.5 text-center">
-                      <div className="flex items-center justify-center gap-1.5">
-                        <span className="font-semibold">{log.network}</span>
-                        <span className="text-[11px] font-medium text-slate-400">
-                          (↑{log.up} / ↓{log.down})
-                        </span>
-                      </div>
+                {recentLogs.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="px-5 py-12 text-center text-slate-500">
+                      <Activity className="w-10 h-10 mx-auto mb-3 text-slate-300" />
+                      <p className="font-medium text-[13px]">No recent logs</p>
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  recentLogs.map((log, i) => (
+                    <tr key={i} className="hover:bg-slate-50/30 transition-colors">
+                      <td className="px-5 py-3.5 font-semibold text-slate-900">{log.time}</td>
+                      <td className="px-5 py-3.5 text-center font-semibold">{log.cpu}</td>
+                      <td className="px-5 py-3.5 text-center font-semibold">{log.ram}</td>
+                      <td className="px-5 py-3.5 text-center font-semibold">{log.disk}</td>
+                      <td className="px-5 py-3.5 text-center">
+                        <div className="flex items-center justify-center gap-1.5">
+                          <span className="font-semibold">{log.network}</span>
+                          <span className="text-[11px] font-medium text-slate-400">
+                            (↑{log.up} / ↓{log.down})
+                          </span>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

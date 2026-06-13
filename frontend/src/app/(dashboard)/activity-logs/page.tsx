@@ -25,146 +25,10 @@ import {
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-const logs = [
-  {
-    id: 1,
-    date: "May 18, 2025",
-    time: "12:30:45 PM",
-    user: "John Doe",
-    role: "Administrator",
-    actionTitle: "Deploy Project",
-    actionSub: "Deployed new version",
-    actionIcon: <Rocket className="w-4 h-4 text-blue-600" />,
-    actionBg: "bg-blue-50",
-    targetTitle: "my-portfolio",
-    targetSub: "Web Application",
-    targetIcon: <Atom className="w-4 h-4 text-sky-500" />,
-    targetBg: "bg-sky-50",
-    status: "Success",
-    ip: "192.168.1.10"
-  },
-  {
-    id: 2,
-    date: "May 18, 2025",
-    time: "12:28:12 PM",
-    user: "John Doe",
-    role: "Administrator",
-    actionTitle: "Start Container",
-    actionSub: "Container started",
-    actionIcon: <Box className="w-4 h-4 text-blue-600" />,
-    actionBg: "bg-blue-50",
-    targetTitle: "nginx-container",
-    targetSub: "Container",
-    targetIcon: <span className="font-bold text-[14px] text-emerald-600">N</span>,
-    targetBg: "bg-emerald-50",
-    status: "Success",
-    ip: "192.168.1.10"
-  },
-  {
-    id: 3,
-    date: "May 18, 2025",
-    time: "12:20:33 PM",
-    user: "John Doe",
-    role: "Administrator",
-    actionTitle: "Connect GitHub",
-    actionSub: "Repository connected",
-    actionIcon: <GitBranch className="w-4 h-4 text-slate-800" />,
-    actionBg: "bg-slate-100",
-    targetTitle: "company-profile",
-    targetSub: "Web Application",
-    targetIcon: <Box className="w-4 h-4 text-emerald-600" />,
-    targetBg: "bg-emerald-50",
-    status: "Success",
-    ip: "192.168.1.10"
-  },
-  {
-    id: 4,
-    date: "May 18, 2025",
-    time: "11:45:01 AM",
-    user: "John Doe",
-    role: "Administrator",
-    actionTitle: "Terminal Command",
-    actionSub: "Executed command: docker ps",
-    actionIcon: <Terminal className="w-4 h-4 text-slate-600" />,
-    actionBg: "bg-slate-100",
-    targetTitle: "my-portfolio",
-    targetSub: "Container",
-    targetIcon: <Box className="w-4 h-4 text-blue-600" />,
-    targetBg: "bg-blue-50",
-    status: "Success",
-    ip: "192.168.1.10"
-  },
-  {
-    id: 5,
-    date: "May 18, 2025",
-    time: "11:30:22 AM",
-    user: "John Doe",
-    role: "Administrator",
-    actionTitle: "Restart Container",
-    actionSub: "Container restarted",
-    actionIcon: <Play className="w-4 h-4 text-emerald-600 fill-emerald-600" />,
-    actionBg: "bg-emerald-50",
-    targetTitle: "php-fpm",
-    targetSub: "Container",
-    targetIcon: <FileCode className="w-4 h-4 text-indigo-600" />,
-    targetBg: "bg-indigo-50",
-    status: "Success",
-    ip: "192.168.1.10"
-  },
-  {
-    id: 6,
-    date: "May 18, 2025",
-    time: "10:15:18 AM",
-    user: "John Doe",
-    role: "Administrator",
-    actionTitle: "Stop Container",
-    actionSub: "Container stopped",
-    actionIcon: <Square className="w-4 h-4 text-red-500 fill-red-500" />,
-    actionBg: "bg-red-50",
-    targetTitle: "redis-db",
-    targetSub: "Container",
-    targetIcon: <Database className="w-4 h-4 text-red-600" />,
-    targetBg: "bg-red-50",
-    status: "Success",
-    ip: "192.168.1.10"
-  },
-  {
-    id: 7,
-    date: "May 18, 2025",
-    time: "09:10:05 AM",
-    user: "John Doe",
-    role: "Administrator",
-    actionTitle: "Deploy Project",
-    actionSub: "Deployment failed",
-    actionIcon: <AlertTriangle className="w-4 h-4 text-orange-500" />,
-    actionBg: "bg-orange-50",
-    targetTitle: "ecommerce-app",
-    targetSub: "Web Application",
-    targetIcon: <Layers className="w-4 h-4 text-red-500" />,
-    targetBg: "bg-red-50",
-    status: "Failed",
-    ip: "192.168.1.10"
-  },
-  {
-    id: 8,
-    date: "May 18, 2025",
-    time: "08:22:47 AM",
-    user: "John Doe",
-    role: "Administrator",
-    actionTitle: "User Login",
-    actionSub: "User logged in",
-    actionIcon: <Key className="w-4 h-4 text-emerald-600" />,
-    actionBg: "bg-emerald-50",
-    targetTitle: "System",
-    targetSub: "Authentication",
-    targetIcon: <Shield className="w-4 h-4 text-slate-600" />,
-    targetBg: "bg-slate-100",
-    status: "Success",
-    ip: "192.168.1.10"
-  }
-];
+import { Activity } from "lucide-react";
 
 export default function ActivityLogsPage() {
+  const logs: any[] = [];
   return (
     <div className="bg-white border border-slate-200/60 rounded-2xl shadow-sm overflow-hidden flex flex-col h-[calc(100vh-144px)]">
       
@@ -230,83 +94,92 @@ export default function ActivityLogsPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-50">
-            {logs.map((log) => (
-              <tr key={log.id} className="hover:bg-slate-50/50 transition-colors group">
-                
-                {/* Time */}
-                <td className="px-6 py-4">
-                  <div className="text-[13px] font-medium text-slate-600">{log.date}</div>
-                  <div className="text-[12px] text-slate-400 mt-0.5">{log.time}</div>
-                </td>
-
-                {/* User */}
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-3">
-                    <Avatar className="w-8 h-8 rounded-full border border-slate-200">
-                      <AvatarImage src="https://api.dicebear.com/7.x/notionists/svg?seed=John&backgroundColor=f1f5f9" />
-                      <AvatarFallback className="text-[10px] font-bold">JD</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <div className="text-[13px] font-bold text-slate-800">{log.user}</div>
-                      <div className="text-[12px] font-medium text-slate-500 mt-0.5">{log.role}</div>
-                    </div>
-                  </div>
-                </td>
-
-                {/* Action */}
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${log.actionBg}`}>
-                      {log.actionIcon}
-                    </div>
-                    <div>
-                      <div className="text-[13px] font-bold text-slate-800">{log.actionTitle}</div>
-                      <div className="text-[12px] font-medium text-slate-500 mt-0.5">{log.actionSub}</div>
-                    </div>
-                  </div>
-                </td>
-
-                {/* Project / Container */}
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${log.targetBg}`}>
-                      {log.targetIcon}
-                    </div>
-                    <div>
-                      <div className="text-[13px] font-bold text-slate-800">{log.targetTitle}</div>
-                      <div className="text-[12px] font-medium text-slate-500 mt-0.5">{log.targetSub}</div>
-                    </div>
-                  </div>
-                </td>
-
-                {/* Status */}
-                <td className="px-6 py-4">
-                  {log.status === "Success" ? (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-600 text-[12px] font-bold">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                      Success
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-red-50 text-red-600 text-[12px] font-bold">
-                      <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
-                      Failed
-                    </span>
-                  )}
-                </td>
-
-                {/* IP Address */}
-                <td className="px-6 py-4">
-                  <span className="text-[13px] font-medium text-slate-600">{log.ip}</span>
-                </td>
-
-                {/* Actions (Three dots) */}
-                <td className="px-6 py-4 text-right">
-                  <button className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg transition-colors opacity-0 group-hover:opacity-100">
-                    <MoreHorizontal className="w-4 h-4" />
-                  </button>
+            {logs.length === 0 ? (
+              <tr>
+                <td colSpan={7} className="px-6 py-16 text-center text-slate-500">
+                  <Activity className="w-10 h-10 mx-auto mb-3 text-slate-300" />
+                  <p className="font-medium text-sm">No activity logs found</p>
                 </td>
               </tr>
-            ))}
+            ) : (
+              logs.map((log) => (
+                <tr key={log.id} className="hover:bg-slate-50/50 transition-colors group">
+                  
+                  {/* Time */}
+                  <td className="px-6 py-4">
+                    <div className="text-[13px] font-medium text-slate-600">{log.date}</div>
+                    <div className="text-[12px] text-slate-400 mt-0.5">{log.time}</div>
+                  </td>
+
+                  {/* User */}
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="w-8 h-8 rounded-full border border-slate-200">
+                        <AvatarImage src="https://api.dicebear.com/7.x/notionists/svg?seed=John&backgroundColor=f1f5f9" />
+                        <AvatarFallback className="text-[10px] font-bold">JD</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <div className="text-[13px] font-bold text-slate-800">{log.user}</div>
+                        <div className="text-[12px] font-medium text-slate-500 mt-0.5">{log.role}</div>
+                      </div>
+                    </div>
+                  </td>
+
+                  {/* Action */}
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${log.actionBg}`}>
+                        {log.actionIcon}
+                      </div>
+                      <div>
+                        <div className="text-[13px] font-bold text-slate-800">{log.actionTitle}</div>
+                        <div className="text-[12px] font-medium text-slate-500 mt-0.5">{log.actionSub}</div>
+                      </div>
+                    </div>
+                  </td>
+
+                  {/* Project / Container */}
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${log.targetBg}`}>
+                        {log.targetIcon}
+                      </div>
+                      <div>
+                        <div className="text-[13px] font-bold text-slate-800">{log.targetTitle}</div>
+                        <div className="text-[12px] font-medium text-slate-500 mt-0.5">{log.targetSub}</div>
+                      </div>
+                    </div>
+                  </td>
+
+                  {/* Status */}
+                  <td className="px-6 py-4">
+                    {log.status === "Success" ? (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-600 text-[12px] font-bold">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                        Success
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-red-50 text-red-600 text-[12px] font-bold">
+                        <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                        Failed
+                      </span>
+                    )}
+                  </td>
+
+                  {/* IP Address */}
+                  <td className="px-6 py-4">
+                    <span className="text-[13px] font-medium text-slate-600">{log.ip}</span>
+                  </td>
+
+                  {/* Actions (Three dots) */}
+                  <td className="px-6 py-4 text-right">
+                    <button className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg transition-colors opacity-0 group-hover:opacity-100">
+                      <MoreHorizontal className="w-4 h-4" />
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
@@ -314,7 +187,7 @@ export default function ActivityLogsPage() {
       {/* 3. PAGINATION */}
       <div className="flex items-center justify-between p-6 border-t border-slate-100">
         <div className="text-[13px] font-medium text-slate-500">
-          Showing 1 to 8 of 48 activities
+          Showing 0 to 0 of 0 activities
         </div>
         <div className="flex items-center gap-1.5">
           <button className="w-8 h-8 flex items-center justify-center text-slate-400 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:text-slate-600 transition-colors">

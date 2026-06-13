@@ -5,18 +5,8 @@ import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import portdockLogo from "@/assets/portdock.png";
+import { navItems } from "@/constants/nav";
 import {
-  LayoutDashboard,
-  FolderOpen,
-  Container,
-  BarChart3,
-  ScrollText,
-  Settings,
-  LogOut,
-  Container as ContainerIcon,
-  Terminal as TerminalIcon,
-  Rocket,
-  ChevronRight,
   Menu,
   Bell,
   HelpCircle,
@@ -28,16 +18,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-const navItems = [
-  { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-  { href: "/projects", icon: FolderOpen, label: "Projects" },
-  { href: "/deploy", icon: Rocket, label: "Deploy" },
-  { href: "/containers", icon: Container, label: "Containers" },
-  { href: "/monitoring", icon: BarChart3, label: "Monitoring" },
-  { href: "/terminal", icon: TerminalIcon, label: "Terminal" },
-  { href: "/activity-logs", icon: ScrollText, label: "Activity Logs" },
-  { href: "/settings", icon: Settings, label: "Settings" },
-];
+
 
 function Sidebar({ mobile = false, onClose }: { mobile?: boolean; onClose?: () => void }) {
   const pathname = usePathname();

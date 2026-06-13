@@ -33,7 +33,7 @@ export default function SettingsPage() {
               <label className="text-[13px] font-bold text-slate-700">Full Name</label>
               <input 
                 type="text" 
-                defaultValue="John Doe" 
+                defaultValue="" 
                 className="w-full bg-white border border-slate-200 text-slate-700 text-[14px] rounded-xl px-4 py-2.5 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all font-medium"
               />
             </div>
@@ -41,7 +41,7 @@ export default function SettingsPage() {
               <label className="text-[13px] font-bold text-slate-700">Email</label>
               <input 
                 type="email" 
-                defaultValue="john@example.com" 
+                defaultValue="" 
                 className="w-full bg-white border border-slate-200 text-slate-700 text-[14px] rounded-xl px-4 py-2.5 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all font-medium"
               />
             </div>
@@ -69,7 +69,7 @@ export default function SettingsPage() {
               <div className="relative">
                 <input 
                   type="password" 
-                  defaultValue="password123" 
+                  defaultValue="" 
                   className="w-full bg-white border border-slate-200 text-slate-400 text-[14px] rounded-xl px-4 py-2.5 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all font-medium pr-10"
                 />
                 <Eye className="w-[18px] h-[18px] text-slate-400 absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer hover:text-slate-600 transition-colors" />
@@ -80,7 +80,7 @@ export default function SettingsPage() {
               <div className="relative">
                 <input 
                   type="password" 
-                  defaultValue="password123" 
+                  defaultValue="" 
                   className="w-full bg-white border border-slate-200 text-slate-400 text-[14px] rounded-xl px-4 py-2.5 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all font-medium pr-10"
                 />
                 <Eye className="w-[18px] h-[18px] text-slate-400 absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer hover:text-slate-600 transition-colors" />
@@ -91,7 +91,7 @@ export default function SettingsPage() {
               <div className="relative">
                 <input 
                   type="password" 
-                  defaultValue="password123" 
+                  defaultValue="" 
                   className="w-full bg-white border border-slate-200 text-slate-400 text-[14px] rounded-xl px-4 py-2.5 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all font-medium pr-10"
                 />
                 <Eye className="w-[18px] h-[18px] text-slate-400 absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer hover:text-slate-600 transition-colors" />
@@ -119,23 +119,23 @@ export default function SettingsPage() {
             <div className="grid grid-cols-[160px_1fr] gap-y-4 text-[13px] mb-6">
               <div className="font-bold text-slate-500 flex items-center">Status</div>
               <div>
-                <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-600 font-bold text-[12px]">
-                  Connected
+                <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-slate-100 text-slate-600 font-bold text-[12px]">
+                  Not Connected
                 </span>
               </div>
               
               <div className="font-bold text-slate-500 flex items-center">Account</div>
-              <div className="font-semibold text-slate-700 flex items-center">johndoe</div>
+              <div className="font-semibold text-slate-700 flex items-center">-</div>
               
               <div className="font-bold text-slate-500 flex items-center">Repository Access</div>
-              <div className="font-semibold text-slate-700 flex items-center">Enabled</div>
+              <div className="font-semibold text-slate-700 flex items-center">Not Configured</div>
             </div>
           </div>
           
           <div className="mt-auto">
-            <button className="flex items-center gap-2 px-4 py-2.5 border border-red-200 hover:bg-red-50 text-red-500 rounded-xl text-[13px] font-bold transition-colors">
+            <button className="flex items-center gap-2 px-4 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-[13px] font-bold transition-colors">
               <GitBranch className="w-[14px] h-[14px]" />
-              Disconnect GitHub
+              Connect GitHub
             </button>
           </div>
         </div>
@@ -154,7 +154,7 @@ export default function SettingsPage() {
             <textarea 
               readOnly 
               className="w-full h-[100px] bg-white border border-slate-200 text-slate-500 text-[13px] rounded-xl p-4 outline-none resize-none font-medium leading-relaxed"
-              defaultValue={"ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC7ExampleKey...\nuser@portdock"}
+              defaultValue={""}
             />
             <div className="flex items-start gap-2 mt-1">
               <CheckCircle2 className="w-[15px] h-[15px] text-emerald-500 mt-[1px] flex-shrink-0" />

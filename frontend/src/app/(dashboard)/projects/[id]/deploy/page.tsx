@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useParams } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
+import { useDeployments } from "@/hooks/useDeployments";
 import {
   ArrowLeft,
   Upload,
@@ -27,97 +28,27 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 export default function DeployPage() {
-  const { id: projectId } = useParams();
-  const router = useRouter();
+  const params = useParams();
+  const projectId = params.id as string;
   const fileRef = useRef<HTMLInputElement>(null);
-
   const [file, setFile] = useState<File | null>(null);
   const [githubUrl, setGithubUrl] = useState("");
   const [branch, setBranch] = useState("main");
   const [dragOver, setDragOver] = useState(false);
-  const [deployStatus, setDeployStatus] = useState<"idle" | "deploying" | "success" | "error">("idle");
-  const [progress, setProgress] = useState(0);
-  const [deployMessage, setDeployMessage] = useState("");
+
+  const {
+    deployStatus,
+    progress,
+    deployMessage,
+    zipMutation,
+    githubMutation,
+  } = useDeployments(projectId);
 
   const { data: project } = useQuery({
     queryKey: ["project", projectId],
     queryFn: async () => {
       const res = await api.get(`/projects/${projectId}`);
       return res.data;
-    },
-  });
-
-  const simulateProgress = () => {
-    setProgress(0);
-    const interval = setInterval(() => {
-      setProgress((p) => {
-        if (p >= 90) {
-          clearInterval(interval);
-          return 90;
-        }
-        return p + Math.random() * 15;
-      });
-    }, 800);
-    return interval;
-  };
-
-  const zipMutation = useMutation({
-    mutationFn: async () => {
-      if (!file) return;
-      const formData = new FormData();
-      formData.append("file", file);
-      const res = await api.post(`/deployments/${projectId}/zip`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      return res.data;
-    },
-    onMutate: () => {
-      setDeployStatus("deploying");
-      const interval = simulateProgress();
-      return interval;
-    },
-    onSuccess: (data, _, interval) => {
-      clearInterval(interval as any);
-      setProgress(100);
-      setDeployStatus("success");
-      setDeployMessage(data?.message || "Deployment berhasil!");
-      toast.success("Deployment berhasil!");
-      setTimeout(() => router.push(`/projects/${projectId}`), 2000);
-    },
-    onError: (error: any, _, interval) => {
-      clearInterval(interval as any);
-      setDeployStatus("error");
-      setDeployMessage(error.response?.data?.message || "Deployment gagal");
-      toast.error("Deployment gagal");
-    },
-  });
-
-  const githubMutation = useMutation({
-    mutationFn: async () => {
-      const res = await api.post(`/deployments/${projectId}/github`, {
-        repositoryUrl: githubUrl,
-        branch,
-      });
-      return res.data;
-    },
-    onMutate: () => {
-      setDeployStatus("deploying");
-      const interval = simulateProgress();
-      return interval;
-    },
-    onSuccess: (data, _, interval) => {
-      clearInterval(interval as any);
-      setProgress(100);
-      setDeployStatus("success");
-      setDeployMessage(data?.message || "GitHub deployment berhasil!");
-      toast.success("GitHub deployment berhasil!");
-      setTimeout(() => router.push(`/projects/${projectId}`), 2000);
-    },
-    onError: (error: any, _, interval) => {
-      clearInterval(interval as any);
-      setDeployStatus("error");
-      setDeployMessage(error.response?.data?.message || "Deployment gagal");
-      toast.error("Deployment gagal");
     },
   });
 
@@ -264,7 +195,9 @@ export default function DeployPage() {
 
               <Button
                 id="btn-deploy-zip"
-                onClick={() => zipMutation.mutate()}
+                onClick={() => {
+                  if (file) zipMutation.mutate(file);
+                }}
                 disabled={!file || zipMutation.isPending || deployStatus === "deploying"}
                 className="w-full h-11 portdock-gradient text-white shadow-lg shadow-blue-500/25 hover:opacity-90"
               >
@@ -317,7 +250,7 @@ export default function DeployPage() {
 
               <Button
                 id="btn-deploy-github"
-                onClick={() => githubMutation.mutate()}
+                onClick={() => githubMutation.mutate({ repositoryUrl: githubUrl, branch })}
                 disabled={!githubUrl || githubMutation.isPending || deployStatus === "deploying"}
                 className="w-full h-11 portdock-gradient text-white shadow-lg shadow-blue-500/25 hover:opacity-90"
               >

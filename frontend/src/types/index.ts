@@ -40,3 +40,12 @@ export interface PaginatedResponse<T> {
   page: number;
   limit: number;
 }
+
+export interface StatsSnapshot {
+  timestamp: string;
+  cpuPercent: number;
+  memPercent: number;
+  netRxMb: number;
+  netTxMb: number;
+}
+

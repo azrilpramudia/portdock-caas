@@ -11,16 +11,7 @@ import {
 } from "lucide-react";
 
 export default function TerminalPage() {
-  const recentCommands = [
-    { cmd: "docker ps", time: "12:30 PM" },
-    { cmd: "npm install", time: "12:29 PM" },
-    { cmd: "pm2 restart app", time: "12:27 PM" },
-    { cmd: "cd /var/www/app", time: "12:25 PM" },
-    { cmd: "ls -la", time: "12:25 PM" },
-    { cmd: "cat .env", time: "12:24 PM" },
-    { cmd: "pm2 status", time: "12:23 PM" },
-    { cmd: "docker logs app", time: "12:22 PM" },
-  ];
+  const recentCommands: any[] = [];
 
   return (
     <div className="space-y-6">
@@ -31,7 +22,7 @@ export default function TerminalPage() {
           <label className="block text-[13px] font-bold text-slate-900 mb-2">Container Selection</label>
           <div className="relative w-[320px]">
             <select className="w-full appearance-none bg-white border border-slate-200 text-slate-700 text-[14px] rounded-xl px-4 py-2.5 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all font-bold pr-10 cursor-pointer">
-              <option>my-portfolio</option>
+              <option value="">Select Container</option>
             </select>
             <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
               <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)] block"></span>
@@ -73,15 +64,15 @@ export default function TerminalPage() {
           </div>
           <div className="flex flex-col items-center justify-center py-2 md:py-0">
             <span className="text-[13px] font-medium text-slate-500 mb-2">Host</span>
-            <span className="text-[13px] font-bold text-slate-700">my-portfolio</span>
+            <span className="text-[13px] font-bold text-slate-700">-</span>
           </div>
           <div className="flex flex-col items-center justify-center py-2 md:py-0">
             <span className="text-[13px] font-medium text-slate-500 mb-2">User</span>
-            <span className="text-[13px] font-bold text-slate-700">root</span>
+            <span className="text-[13px] font-bold text-slate-700">-</span>
           </div>
           <div className="flex flex-col items-center justify-center py-2 md:py-0">
             <span className="text-[13px] font-medium text-slate-500 mb-2">Started At</span>
-            <span className="text-[13px] font-bold text-slate-700">May 18, 2025 12:30 PM</span>
+            <span className="text-[13px] font-bold text-slate-700">-</span>
           </div>
         </div>
       </div>
@@ -111,52 +102,6 @@ export default function TerminalPage() {
           {/* Terminal Box */}
           <div className="bg-[#111827] rounded-xl flex-1 p-5 overflow-x-auto border border-slate-800 shadow-inner">
             <div className="font-mono text-[13px] leading-relaxed">
-              {/* Command 1 */}
-              <div>
-                <span className="text-emerald-400 font-semibold">root@container:~#</span> <span className="text-slate-200">docker ps</span>
-              </div>
-              <div className="text-slate-300 mt-1 mb-5 flex gap-8 whitespace-nowrap">
-                <div>
-                  <div className="text-slate-400 mb-0.5">CONTAINER ID</div>
-                  <div>a12b34cd56</div>
-                </div>
-                <div>
-                  <div className="text-slate-400 mb-0.5">IMAGE</div>
-                  <div>node:20</div>
-                </div>
-                <div>
-                  <div className="text-slate-400 mb-0.5">STATUS</div>
-                  <div>Up 2 hours</div>
-                </div>
-                <div>
-                  <div className="text-slate-400 mb-0.5">PORTS</div>
-                  <div>0.0.0.0:3000-&gt;3000/tcp</div>
-                </div>
-                <div>
-                  <div className="text-slate-400 mb-0.5">NAMES</div>
-                  <div>my-portfolio</div>
-                </div>
-              </div>
-
-              {/* Command 2 */}
-              <div>
-                <span className="text-emerald-400 font-semibold">root@container:~#</span> <span className="text-slate-200">npm install</span>
-              </div>
-              <div className="text-slate-300 mt-1 mb-5">
-                <div className="mb-2">Installing packages...</div>
-                <div>added 120 packages, and audited 120 packages in 3s</div>
-                <div>found <span className="text-emerald-400">0</span> vulnerabilities</div>
-              </div>
-
-              {/* Command 3 */}
-              <div>
-                <span className="text-emerald-400 font-semibold">root@container:~#</span> <span className="text-slate-200">pm2 restart app</span>
-              </div>
-              <div className="text-slate-300 mt-1 mb-3">
-                <div>[PM2] Applying <span className="text-sky-400">action restartProcessId</span> on app [app](ids: [ 0 ])</div>
-                <div>[PM2] [app](0) <span className="text-emerald-400">✓</span></div>
-              </div>
-
               {/* Cursor */}
               <div className="flex items-center">
                 <span className="text-emerald-400 font-semibold mr-2">root@container:~#</span>
@@ -176,17 +121,24 @@ export default function TerminalPage() {
           </div>
           
           <div className="divide-y divide-slate-100/80">
-            {recentCommands.map((item, i) => (
-              <div key={i} className="flex items-center justify-between py-3">
-                <div className="flex items-center gap-3">
-                  <div className="text-slate-400 bg-slate-50/80 px-1.5 py-1 rounded flex items-center justify-center">
-                    <Code className="w-3.5 h-3.5" />
-                  </div>
-                  <span className="text-[13px] font-medium text-slate-700">{item.cmd}</span>
-                </div>
-                <span className="text-[12px] font-medium text-slate-500">{item.time}</span>
+            {recentCommands.length === 0 ? (
+              <div className="py-8 text-center">
+                <Code className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                <p className="text-[13px] font-medium text-slate-500">No recent commands</p>
               </div>
-            ))}
+            ) : (
+              recentCommands.map((item, i) => (
+                <div key={i} className="flex items-center justify-between py-3">
+                  <div className="flex items-center gap-3">
+                    <div className="text-slate-400 bg-slate-50/80 px-1.5 py-1 rounded flex items-center justify-center">
+                      <Code className="w-3.5 h-3.5" />
+                    </div>
+                    <span className="text-[13px] font-medium text-slate-700">{item.cmd}</span>
+                  </div>
+                  <span className="text-[12px] font-medium text-slate-500">{item.time}</span>
+                </div>
+              ))
+            )}
           </div>
         </div>
         

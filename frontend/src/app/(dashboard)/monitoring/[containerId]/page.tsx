@@ -20,14 +20,9 @@ import {
 import api from "@/lib/api";
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
+import { StatsSnapshot } from "@/types";
 
-interface StatsSnapshot {
-  timestamp: string;
-  cpuPercent: number;
-  memPercent: number;
-  netRxMb: number;
-  netTxMb: number;
-}
+
 
 function StatCard({
   title,
