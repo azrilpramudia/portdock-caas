@@ -1,14 +1,20 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
+import { DockerService } from '../docker/docker.service';
+import { NginxService } from '../nginx/nginx.service';
 
 @Injectable()
 export class ProjectsService {
+  private readonly logger = new Logger(ProjectsService.name);
+
   constructor(
     private prisma: PrismaService,
     private activityLogs: ActivityLogsService,
+    private docker: DockerService,
+    private nginx: NginxService,
   ) {}
 
   async create(userId: string, dto: CreateProjectDto) {
@@ -106,7 +112,23 @@ export class ProjectsService {
   }
 
   async remove(id: string, userId: string) {
-    await this.findOne(id, userId);
+    const project = await this.findOne(id, userId);
+
+    for (const container of project.containers) {
+      try {
+        if (container.dockerContainerId) {
+          const dockerContainer = await this.docker.getContainer(container.dockerContainerId);
+          await dockerContainer.stop().catch(() => {});
+          await dockerContainer.remove({ force: true }).catch(() => {});
+        }
+      } catch (err) {
+        this.logger.warn(`Failed to cleanup docker container ${container.dockerContainerId}: ${err.message}`);
+      }
+    }
+
+    if (project.domain) {
+      await this.nginx.removeConfig(project.domain).catch(() => {});
+    }
 
     await this.prisma.project.delete({ where: { id } });
 

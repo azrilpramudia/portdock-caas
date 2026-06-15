@@ -76,7 +76,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Recent Activity */}
-      <RecentActivityFeed activities={stats?.recentActivities} />
+      <RecentActivityFeed activities={stats?.recentActivity} />
 
       {/* Centered Button */}
       <div className="flex justify-center pt-4 pb-8">

@@ -5,6 +5,16 @@ import { Menu, Bell, ChevronDown } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { navItems } from "@/constants/nav";
+import { LogOut, User as UserIcon, Settings } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  DropdownMenuGroup,
+} from "@/components/ui/dropdown-menu";
 
 interface DashboardHeaderProps {
   onMenuClick: () => void;
@@ -67,17 +77,46 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
             <Bell className="w-5 h-5" />
             <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
           </button>
-          <div className="flex items-center gap-3 cursor-pointer group">
-            <Avatar className="w-9 h-9 border border-slate-200">
-              <AvatarFallback className="bg-slate-100 text-slate-600 text-sm font-semibold">
-                {initials}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold text-slate-700 group-hover:text-slate-900 transition-colors">{user?.name}</span>
-              <ChevronDown className="w-4 h-4 text-slate-400" />
-            </div>
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger className="outline-none">
+              <div className="flex items-center gap-3 cursor-pointer group outline-none">
+                <Avatar className="w-9 h-9 border border-slate-200">
+                  <AvatarFallback className="bg-slate-100 text-slate-600 text-sm font-semibold">
+                    {initials}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold text-slate-700 group-hover:text-slate-900 transition-colors">{user?.name}</span>
+                  <ChevronDown className="w-4 h-4 text-slate-400" />
+                </div>
+              </div>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuGroup>
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              </DropdownMenuGroup>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="cursor-pointer text-slate-600">
+                <UserIcon className="mr-2 h-4 w-4" />
+                <span>Profile</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer text-slate-600">
+                <Settings className="mr-2 h-4 w-4" />
+                <span>Settings</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem 
+                className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
+                onClick={() => {
+                  useAuthStore.getState().logout();
+                  window.location.href = "/login";
+                }}
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Log out</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </header>
 

@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: portdock_db
+    environment:
+      POSTGRES_USER: portdock
+      POSTGRES_PASSWORD: MeowHX01
+      POSTGRES_DB: portdock_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - portdock_db_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  portdock_db_data:

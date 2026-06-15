@@ -13,14 +13,50 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { useQueryClient, useMutation } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+import { projectsService } from "@/services/projects.service";
+import { containersService } from "@/services/containers.service";
+import { toast } from "sonner";
 
 export function RecentProjectsList({ projects, isLoading }: { projects: any[], isLoading: boolean }) {
   const recentProjectsList = projects || [];
+  const router = useRouter();
+  const queryClient = useQueryClient();
 
-  const mapProjectStatus = (status: string) => {
-    if (status === 'ACTIVE') return 'DEPLOYED';
-    if (status === 'INACTIVE') return 'STOPPED';
-    return status;
+  const startContainerMutation = useMutation({
+    mutationFn: (id: string) => containersService.startContainer(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] }),
+  });
+
+  const stopContainerMutation = useMutation({
+    mutationFn: (id: string) => containersService.stopContainer(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] }),
+  });
+
+  const restartContainerMutation = useMutation({
+    mutationFn: (id: string) => containersService.restartContainer(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] }),
+  });
+
+  const deleteProjectMutation = useMutation({
+    mutationFn: (id: string) => projectsService.deleteProject(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] }),
+  });
+
+  const getProjectStatus = (project: any) => {
+    if (!project.containers || project.containers.length === 0) {
+      if (project.status === 'FAILED') return 'FAILED';
+      if (project.status === 'BUILDING') return 'BUILDING';
+      return 'STOPPED';
+    }
+    
+    // If any container is running, the project is deployed
+    const isRunning = project.containers.some((c: any) => c.status === 'RUNNING');
+    if (isRunning) return 'DEPLOYED';
+    
+    // Otherwise, check if they are all stopped
+    return 'STOPPED';
   };
 
   return (
@@ -72,27 +108,75 @@ export function RecentProjectsList({ projects, isLoading }: { projects: any[], i
                     </div>
                   </div>
                   <div className="flex items-center gap-4 shrink-0">
-                    <StatusBadge status={mapProjectStatus(project.status)} />
+                    <StatusBadge status={getProjectStatus(project)} />
                     
                     <DropdownMenu>
                       <DropdownMenuTrigger className="text-slate-400 hover:text-slate-700 outline-none p-1 rounded-md hover:bg-slate-200/50 transition-colors">
                         <MoreHorizontal className="w-5 h-5" />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-40 rounded-xl border-slate-200 shadow-lg p-1">
-                        <DropdownMenuItem className="cursor-pointer font-semibold text-[13px] text-slate-600 hover:text-blue-600 focus:text-blue-600 focus:bg-blue-50 py-2 rounded-lg">
+                        <DropdownMenuItem 
+                          className="cursor-pointer font-semibold text-[13px] text-slate-600 hover:text-blue-600 focus:text-blue-600 focus:bg-blue-50 py-2 rounded-lg"
+                          onClick={() => {
+                            const containerId = project.containers?.[0]?.id;
+                            if (containerId) {
+                              toast.promise(startContainerMutation.mutateAsync(containerId), {
+                                loading: 'Starting container...',
+                                success: 'Container started successfully',
+                                error: 'Failed to start container'
+                              });
+                            }
+                          }}
+                        >
                           <Play className="w-4 h-4 mr-2" /> Start
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="cursor-pointer font-semibold text-[13px] text-slate-600 hover:text-blue-600 focus:text-blue-600 focus:bg-blue-50 py-2 rounded-lg">
+                        <DropdownMenuItem 
+                          className="cursor-pointer font-semibold text-[13px] text-slate-600 hover:text-blue-600 focus:text-blue-600 focus:bg-blue-50 py-2 rounded-lg"
+                          onClick={() => {
+                            const containerId = project.containers?.[0]?.id;
+                            if (containerId) {
+                              toast.promise(stopContainerMutation.mutateAsync(containerId), {
+                                loading: 'Stopping container...',
+                                success: 'Container stopped successfully',
+                                error: 'Failed to stop container'
+                              });
+                            }
+                          }}
+                        >
                           <Square className="w-4 h-4 mr-2" /> Stop
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="cursor-pointer font-semibold text-[13px] text-slate-600 hover:text-blue-600 focus:text-blue-600 focus:bg-blue-50 py-2 rounded-lg">
+                        <DropdownMenuItem 
+                          className="cursor-pointer font-semibold text-[13px] text-slate-600 hover:text-blue-600 focus:text-blue-600 focus:bg-blue-50 py-2 rounded-lg"
+                          onClick={() => {
+                            const containerId = project.containers?.[0]?.id;
+                            if (containerId) {
+                              toast.promise(restartContainerMutation.mutateAsync(containerId), {
+                                loading: 'Restarting container...',
+                                success: 'Container restarted successfully',
+                                error: 'Failed to restart container'
+                              });
+                            }
+                          }}
+                        >
                           <RefreshCw className="w-4 h-4 mr-2" /> Restart
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="cursor-pointer font-semibold text-[13px] text-slate-600 hover:text-blue-600 focus:text-blue-600 focus:bg-blue-50 py-2 rounded-lg">
+                        <DropdownMenuItem 
+                          className="cursor-pointer font-semibold text-[13px] text-slate-600 hover:text-blue-600 focus:text-blue-600 focus:bg-blue-50 py-2 rounded-lg"
+                          onClick={() => router.push(`/deploy`)}
+                        >
                           <Rocket className="w-4 h-4 mr-2" /> Deploy
                         </DropdownMenuItem>
                         <DropdownMenuSeparator className="bg-slate-100 my-1" />
-                        <DropdownMenuItem className="cursor-pointer font-semibold text-[13px] text-red-600 hover:text-red-700 focus:text-red-700 focus:bg-red-50 py-2 rounded-lg">
+                        <DropdownMenuItem 
+                          className="cursor-pointer font-semibold text-[13px] text-red-600 hover:text-red-700 focus:text-red-700 focus:bg-red-50 py-2 rounded-lg"
+                          onClick={() => {
+                            toast.promise(deleteProjectMutation.mutateAsync(project.id), {
+                              loading: 'Deleting project...',
+                              success: 'Project deleted successfully',
+                              error: 'Failed to delete project'
+                            });
+                          }}
+                        >
                           <Trash2 className="w-4 h-4 mr-2" /> Delete
                         </DropdownMenuItem>
                       </DropdownMenuContent>

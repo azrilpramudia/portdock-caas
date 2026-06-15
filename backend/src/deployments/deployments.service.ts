@@ -78,6 +78,7 @@ export class DeploymentsService {
       const dockerContainer = await this.docker.createContainer({
         name: `${project.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${Date.now()}`,
         Image: `${imageName}:${imageTag}`,
+        Env: [`PORT=${internalPort}`],
         ExposedPorts: { [`${internalPort}/tcp`]: {} },
         HostConfig: {
           PortBindings: {
@@ -193,6 +194,7 @@ export class DeploymentsService {
       const dockerContainer = await this.docker.createContainer({
         name: containerName,
         Image: `${imageName}:${imageTag}`,
+        Env: [`PORT=${internalPort}`],
         ExposedPorts: { [`${internalPort}/tcp`]: {} },
         HostConfig: {
           PortBindings: {

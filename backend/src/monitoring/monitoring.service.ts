@@ -83,6 +83,22 @@ export class MonitoringService {
       },
     });
 
+    // Generate realistic mock time-series data for the chart
+    // In a real production system, this would be queried from Prometheus or InfluxDB
+    const chartData: any[] = [];
+    const now = new Date();
+    const baseCpu = runningContainers > 0 ? 15 + (runningContainers * 5) : 0;
+    const baseRam = runningContainers > 0 ? 20 + (runningContainers * 8) : 0;
+    
+    for (let i = 6; i >= 0; i--) {
+      const time = new Date(now.getTime() - i * 5 * 60000); // Past 30 mins, 5 min intervals
+      chartData.push({
+        time: time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        cpu: runningContainers > 0 ? Math.max(0, Math.min(100, Math.floor(baseCpu + (Math.random() * 15 - 5)))) : 0,
+        ram: runningContainers > 0 ? Math.max(0, Math.min(100, Math.floor(baseRam + (Math.random() * 10 - 3)))) : 0,
+      });
+    }
+
     return {
       totalProjects,
       totalContainers,
@@ -90,6 +106,7 @@ export class MonitoringService {
       totalDeployments,
       recentProjects,
       recentActivity,
+      chartData,
     };
   }
 }

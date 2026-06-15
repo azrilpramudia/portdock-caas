@@ -4,6 +4,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronDown } from "lucide-react";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   AreaChart,
   Area,
   XAxis,
@@ -24,13 +30,17 @@ export function ResourceUsageChart({ data }: { data?: any[] }) {
             Resource Usage
           </CardTitle>
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1.5">
-              <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-              <span className="text-[11px] text-slate-500 font-medium">Live</span>
-            </div>
-            <Button variant="outline" size="sm" className="h-7 px-2 text-[11px] font-semibold text-slate-600 border-slate-200">
-              All Containers <ChevronDown className="w-3 h-3 ml-1 text-slate-400" />
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger className="inline-flex items-center justify-center whitespace-nowrap rounded-md outline-none bg-background hover:bg-slate-100 h-7 px-2 text-[11px] font-semibold text-slate-600 border border-slate-200 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950 disabled:pointer-events-none disabled:opacity-50">
+                All Containers <ChevronDown className="w-3 h-3 ml-1 text-slate-400" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-40">
+                <DropdownMenuItem className="text-xs cursor-pointer">All Containers</DropdownMenuItem>
+                <DropdownMenuItem className="text-xs cursor-pointer">Web Frontend</DropdownMenuItem>
+                <DropdownMenuItem className="text-xs cursor-pointer">API Backend</DropdownMenuItem>
+                <DropdownMenuItem className="text-xs cursor-pointer">Database Cache</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </CardHeader>
