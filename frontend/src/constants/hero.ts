@@ -1,8 +1,12 @@
 /* ── Sidebar menu ── */
 export const SIDEBAR_ITEMS = [
   { iconName: "LayoutDashboard" as const, label: "Dashboard", active: true },
-  { iconName: "FolderKanban" as const, label: "Projects", active: false },
+  { iconName: "FolderOpen" as const, label: "Projects", active: false },
+  { iconName: "Rocket" as const, label: "Deploy", active: false },
   { iconName: "Container" as const, label: "Containers", active: false },
+  { iconName: "BarChart3" as const, label: "Monitoring", active: false },
+  { iconName: "TerminalSquare" as const, label: "Terminal", active: false },
+  { iconName: "ScrollText" as const, label: "Activity Logs", active: false },
   { iconName: "Settings" as const, label: "Settings", active: false },
 ];
 
