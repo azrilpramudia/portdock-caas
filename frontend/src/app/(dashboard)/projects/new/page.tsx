@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -13,6 +14,10 @@ import {
   FileArchive,
   FileCode,
   Loader2,
+  CheckCircle2,
+  CloudUpload,
+  Info,
+  Rocket,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -84,20 +89,61 @@ export default function NewProjectPage() {
     defaultValues: { deploymentType: "ZIP" },
   });
 
+  const [file, setFile] = useState<File | null>(null);
+  const [dragOver, setDragOver] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const handleFileDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
+    if (e.dataTransfer.files?.[0]) {
+      setFile(e.dataTransfer.files[0]);
+    }
+  };
+
   const deploymentType = watch("deploymentType");
 
   const createMutation = useMutation({
     mutationFn: async (data: FormData) => {
-      const res = await api.post("/projects", data);
-      return res.data;
+      if (data.deploymentType === "ZIP" && !file) {
+        throw new Error("File ZIP belum dipilih!");
+      }
+
+      // Clean up empty string payloads so backend optional validation works
+      const payload = { ...data };
+      if (!payload.repositoryUrl) delete payload.repositoryUrl;
+      if (!payload.domain) delete payload.domain;
+      if (!payload.description) delete payload.description;
+
+      // 1. Create Project
+      const res = await api.post("/projects", payload);
+      const project = res.data;
+
+      // 2. Upload ZIP
+      if (data.deploymentType === "ZIP" && file) {
+        const formData = new FormData();
+        formData.append("file", file);
+        await api.post(`/deployments/${project.id}/zip`, formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+      } else if (data.deploymentType === "GITHUB" && data.repositoryUrl) {
+        await api.post(`/deployments/${project.id}/github`, {
+          repositoryUrl: data.repositoryUrl,
+          branch: "main",
+        });
+      }
+
+      return project;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["projects"] });
-      toast.success("Project berhasil dibuat!");
+      toast.success("Deployment sedang berjalan!");
       router.push(`/projects/${data.id}`);
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Gagal membuat project");
+      // Prioritize backend error message over generic axios error message
+      const errMessage = error.response?.data?.message || error.message || "Gagal melakukan deployment";
+      toast.error(errMessage);
     },
   });
 
@@ -212,7 +258,7 @@ export default function NewProjectPage() {
             ))}
 
             {deploymentType === "GITHUB" && (
-              <div className="space-y-2 pt-2">
+              <div className="space-y-2 pt-2 border-t border-slate-100 mt-4">
                 <Label htmlFor="repositoryUrl">Repository URL</Label>
                 <Input
                   id="repositoryUrl"
@@ -220,6 +266,56 @@ export default function NewProjectPage() {
                   {...register("repositoryUrl")}
                   className="h-10"
                 />
+              </div>
+            )}
+
+            {deploymentType === "ZIP" && (
+              <div className="space-y-3 pt-2 border-t border-slate-100 mt-4">
+                <div>
+                  <Label>Upload ZIP File</Label>
+                  <p className="text-xs text-slate-500 mb-2">Upload source code aplikasi Anda dalam format ZIP. Max 50MB.</p>
+                </div>
+                
+                <div
+                  onDragOver={handleFileDrop}
+                  onDragLeave={() => setDragOver(false)}
+                  onDrop={handleFileDrop}
+                  onClick={() => fileRef.current?.click()}
+                  className={cn(
+                    "border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-150",
+                    dragOver ? "border-blue-400 bg-blue-50" :
+                    file ? "border-green-400 bg-green-50" :
+                    "border-slate-200 hover:border-blue-300 hover:bg-slate-50"
+                  )}
+                >
+                  <input
+                    ref={fileRef}
+                    type="file"
+                    accept=".zip"
+                    className="hidden"
+                    onChange={(e) => setFile(e.target.files?.[0] || null)}
+                  />
+                  {file ? (
+                    <>
+                      <CheckCircle2 className="w-10 h-10 text-green-500 mx-auto mb-3" />
+                      <p className="font-medium text-green-700">{file.name}</p>
+                      <p className="text-xs text-slate-500 mt-1">
+                        {(file.size / 1024 / 1024).toFixed(2)} MB
+                      </p>
+                      <p className="text-xs text-slate-400 mt-2">Klik untuk mengubah file</p>
+                    </>
+                  ) : (
+                    <>
+                      <FileArchive className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+                      <p className="font-medium text-slate-700 mb-1">
+                        Drag & drop file ZIP di sini
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        atau klik untuk memilih file
+                      </p>
+                    </>
+                  )}
+                </div>
               </div>
             )}
           </CardContent>
@@ -240,12 +336,12 @@ export default function NewProjectPage() {
             {createMutation.isPending ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Membuat...
+                Mengunggah & Deploying...
               </>
             ) : (
               <>
-                <FolderPlus className="w-4 h-4 mr-2" />
-                Buat Project
+                <Rocket className="w-4 h-4 mr-2" />
+                Deploy Project
               </>
             )}
           </Button>

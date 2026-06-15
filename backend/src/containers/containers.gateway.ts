@@ -11,6 +11,7 @@ import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
 import { DockerService } from '../docker/docker.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { PassThrough } from 'stream';
 
 @WebSocketGateway({ cors: { origin: '*' } })
 export class ContainersGateway
@@ -66,16 +67,27 @@ export class ContainersGateway
         tail: 100,
       });
 
+      const passThrough = new PassThrough();
+
+      try {
+        // Demultiplex the stream (Docker adds 8-byte headers to stdout/stderr if TTY is false)
+        dockerContainer.modem.demuxStream(stream, passThrough, passThrough);
+      } catch (e) {
+        // Fallback if demux fails (e.g. TTY is true)
+        stream.pipe(passThrough);
+      }
+
       // Avoid memory leaks and multiple streams
       const streamId = `${client.id}-logs-${containerId}`;
       this.logStreams.set(streamId, stream as any);
 
-      stream.on('data', (chunk) => {
+      passThrough.on('data', (chunk) => {
         client.emit(`logs-${containerId}`, chunk.toString('utf-8'));
       });
 
       stream.on('end', () => {
-        client.emit(`logs-${containerId}`, '\\r\\n[Connection Closed]\\r\\n');
+        client.emit(`logs-${containerId}`, '\r\n[Connection Closed]\r\n');
+        passThrough.end();
       });
 
       client.on('disconnect', () => {

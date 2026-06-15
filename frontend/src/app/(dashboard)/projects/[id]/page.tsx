@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
 import Link from "next/link";
@@ -22,6 +23,7 @@ import { Separator } from "@/components/ui/separator";
 import api from "@/lib/api";
 import { formatDistanceToNow, format } from "date-fns";
 import { id } from "date-fns/locale";
+import { ContainerDetails } from "@/components/containers/ContainerDetails";
 
 function getContainerStatusBadge(status: string) {
   const map: Record<string, { label: string; className: string; icon: any }> = {
@@ -42,6 +44,7 @@ function getContainerStatusBadge(status: string) {
 
 export default function ProjectDetailPage() {
   const { id: projectId } = useParams();
+  const [selectedContainer, setSelectedContainer] = useState<any>(null);
 
   const { data: project, isLoading } = useQuery({
     queryKey: ["project", projectId],
@@ -110,25 +113,29 @@ export default function ProjectDetailPage() {
               {project.containers?.length > 0 ? (
                 <div className="divide-y divide-slate-100">
                   {project.containers.map((container: any) => (
-                    <Link
+                    <div
                       key={container.id}
-                      href={`/containers/${container.id}`}
-                      className="flex items-center gap-4 px-6 py-4 hover:bg-slate-50 transition-colors"
+                      onClick={() => setSelectedContainer(container)}
+                      className="flex items-center gap-4 px-6 py-4 hover:bg-slate-50 transition-colors cursor-pointer"
                     >
                       <div className="w-9 h-9 bg-slate-100 rounded-lg flex items-center justify-center">
                         <Container className="w-4 h-4 text-slate-600" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-slate-900 truncate">{container.name}</p>
-                        <p className="text-xs text-slate-400">{container.imageName}:{container.imageTag}</p>
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <p className="font-bold text-slate-900 text-sm truncate max-w-[250px]">
+                            {container.name}
+                          </p>
+                          {getContainerStatusBadge(container.status)}
+                          {container.hostPort && (
+                            <span className="text-slate-400 text-[11px] font-medium px-2 py-0.5 bg-slate-100 rounded-md">Port: {container.hostPort}</span>
+                          )}
+                        </div>
+                        <p className="text-xs text-slate-500 truncate max-w-[350px]">
+                          {container.imageName}:{container.imageTag}
+                        </p>
                       </div>
-                      <div className="flex items-center gap-3">
-                        {getContainerStatusBadge(container.status)}
-                        {container.hostPort && (
-                          <span className="text-xs text-slate-400">:{container.hostPort}</span>
-                        )}
-                      </div>
-                    </Link>
+                    </div>
                   ))}
                 </div>
               ) : (
@@ -227,16 +234,17 @@ export default function ProjectDetailPage() {
               </div>
             </CardContent>
           </Card>
-
-          <div className="flex flex-col gap-2">
-            <Link href={`/projects/${projectId}/deploy`} className="w-full">
-              <Button className="w-full portdock-gradient text-white hover:opacity-90">
-                <Rocket className="w-4 h-4 mr-2" /> Deploy Baru
-              </Button>
-            </Link>
-          </div>
         </div>
       </div>
+
+      {/* Container Details Modal */}
+      {selectedContainer && (
+        <ContainerDetails 
+          containerId={selectedContainer.id}
+          containerName={selectedContainer.name}
+          onClose={() => setSelectedContainer(null)}
+        />
+      )}
     </div>
   );
 }
