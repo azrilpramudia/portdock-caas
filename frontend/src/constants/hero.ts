@@ -2,7 +2,6 @@
 export const SIDEBAR_ITEMS = [
   { iconName: "LayoutDashboard" as const, label: "Dashboard", active: true },
   { iconName: "FolderOpen" as const, label: "Projects", active: false },
-  { iconName: "Rocket" as const, label: "Deploy", active: false },
   { iconName: "Container" as const, label: "Containers", active: false },
   { iconName: "BarChart3" as const, label: "Monitoring", active: false },
   { iconName: "TerminalSquare" as const, label: "Terminal", active: false },

@@ -71,9 +71,9 @@ export default function TopDecorations() {
       </div>
       
       {/* Floating Sparkles / Dots */}
-      <circle cx="200" cy="20" r="2" fill="#bfdbfe" className="absolute" />
-      <circle cx="400" cy="10" r="3" fill="#bfdbfe" className="absolute" />
-      <circle cx="600" cy="40" r="2" fill="#bfdbfe" className="absolute" />
+      <div className="absolute w-1 h-1 bg-blue-200 rounded-full" style={{ left: 200, top: 20 }} />
+      <div className="absolute w-1.5 h-1.5 bg-blue-200 rounded-full" style={{ left: 400, top: 10 }} />
+      <div className="absolute w-1 h-1 bg-blue-200 rounded-full" style={{ left: 600, top: 40 }} />
     </div>
   );
 }
