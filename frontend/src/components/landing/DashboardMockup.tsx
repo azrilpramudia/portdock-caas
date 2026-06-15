@@ -1,45 +1,16 @@
 import Image from "next/image";
-import {
-  Container,
-  LayoutDashboard,
-  FolderOpen,
-  Settings,
-  Rocket,
-  BarChart3,
-  TerminalSquare,
-  ScrollText,
-  Server,
-  Cloud as CloudIcon,
-} from "lucide-react";
-import portdockWhale from "@/assets/portdock.png";
+import { Container } from "lucide-react";
+import { HERO_ICON_MAP } from "@/utils/icon-helpers";
+import TopDecorations from "./TopDecorations";
 import {
   SIDEBAR_ITEMS,
   DASHBOARD_STATS,
   CONTAINER_ROWS,
 } from "@/constants/hero";
 
-/* ── Icon lookup ── */
-const ICON_MAP = {
-  LayoutDashboard,
-  FolderOpen,
-  Rocket,
-  Container,
-  BarChart3,
-  TerminalSquare,
-  ScrollText,
-  Settings,
-} as const;
 
-/* ── Cloud SVG decoration ── */
-function Cloud({ className }: { className?: string }) {
-  return (
-    <svg width="80" height="40" viewBox="0 0 80 40" fill="none" className={className}>
-      <ellipse cx="40" cy="26" rx="30" ry="14" fill="#93c5fd" />
-      <ellipse cx="28" cy="20" rx="18" ry="12" fill="#93c5fd" />
-      <ellipse cx="52" cy="18" rx="20" ry="14" fill="#93c5fd" />
-    </svg>
-  );
-}
+
+
 
 /* ── Sidebar ── */
 function Sidebar() {
@@ -56,7 +27,7 @@ function Sidebar() {
       {/* Nav Items */}
       <nav className="space-y-1">
         {SIDEBAR_ITEMS.map((item) => {
-          const Icon = ICON_MAP[item.iconName];
+          const Icon = HERO_ICON_MAP[item.iconName as keyof typeof HERO_ICON_MAP];
           return (
             <div
               key={item.label}
@@ -169,59 +140,11 @@ function FloatingTerminal() {
   );
 }
 
-/* ── Floating Server Badge ── */
-function FloatingServerBadge() {
-  return (
-    <div className="hidden sm:flex absolute -top-8 left-1/4 bg-white dark:bg-slate-800 rounded-xl shadow-[0_10px_40px_-10px_rgba(59,130,246,0.3)] dark:shadow-blue-900/20 border border-blue-100/50 dark:border-slate-700/50 p-3 items-center gap-3 z-20 animate-[float_7s_ease-in-out_infinite] backdrop-blur-sm">
-      <div className="relative">
-        <div className="absolute inset-0 bg-blue-400 blur-md opacity-20 dark:opacity-40" />
-        <div className="relative bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/40 dark:to-blue-800/40 p-2 rounded-lg border border-blue-200/50 dark:border-blue-700/50 text-blue-600 dark:text-blue-400">
-          <Server className="w-4 h-4" />
-        </div>
-      </div>
-      <div>
-        <div className="flex items-center gap-1 mb-0.5">
-          <CloudIcon className="w-3 h-3 text-slate-400" />
-          <p className="text-[9px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-bold">Cloud Server</p>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)] animate-pulse" />
-          <p className="text-xs font-bold text-slate-700 dark:text-slate-200 leading-none">Connected</p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 /* ── Main Dashboard Mockup ── */
 export default function DashboardMockup() {
   return (
-    <div className="relative lg:pl-4">
-      {/* Floating Server Badge */}
-      <FloatingServerBadge />
-
-      {/* Floating Docker Whale */}
-      <div className="absolute -top-6 right-6 z-10 animate-[float_6s_ease-in-out_infinite]">
-        <Image
-          src={portdockWhale}
-          alt="Docker whale"
-          width={96}
-          height={80}
-          quality={100}
-          className="h-20 w-auto object-contain drop-shadow-lg opacity-90"
-        />
-      </div>
-
-      {/* Floating Server Badge */}
-      <FloatingServerBadge />
-
-      {/* Cloud decorations */}
-      <div className="absolute -top-2 left-8 z-0">
-        <Cloud className="opacity-20" />
-      </div>
-      <div className="absolute top-6 right-0 z-0">
-        <Cloud className="opacity-15 scale-75" />
-      </div>
+    <div className="relative lg:pl-4 mt-20">
+      <TopDecorations />
 
       {/* Dashboard Card */}
       <div className="relative bg-white dark:bg-background rounded-2xl shadow-2xl shadow-gray-200/60 dark:shadow-none border border-gray-100 dark:border-slate-800 overflow-hidden flex transition-colors duration-300">

@@ -22,9 +22,14 @@ import {
   Hexagon,
   Layers,
   Database,
-  ChevronDown
+  ChevronDown,
+  CheckCircle2,
+  AlertCircle,
+  Clock,
+  Filter,
 } from "lucide-react";
 import { FaGithub } from "react-icons/fa";
+import { getProjectIcon, getDeployTypeDetails } from "@/utils/icon-helpers";
 import {
   Card,
   CardContent,
@@ -98,23 +103,7 @@ function StatCard({
   );
 }
 
-function getProjectIcon(name: string) {
-  const n = name.toLowerCase();
-  if (n.includes("portfolio")) return { icon: Atom, bg: "bg-blue-500", text: "text-white" };
-  if (n.includes("company")) return { icon: Hexagon, bg: "bg-emerald-500", text: "text-white" };
-  if (n.includes("ecommerce")) return { icon: Layers, bg: "bg-orange-500", text: "text-white" };
-  if (n.includes("blog")) return { icon: FileCode2, bg: "bg-indigo-500", text: "text-white" };
-  if (n.includes("landing")) return { icon: Layers, bg: "bg-rose-500", text: "text-white" };
-  if (n.includes("admin")) return { icon: Database, bg: "bg-teal-500", text: "text-white" };
-  return { icon: FolderOpen, bg: "bg-blue-100", text: "text-blue-600" };
-}
 
-function getDeployTypeDetails(type: string) {
-  if (type === "GITHUB") return { icon: FaGithub, label: "GitHub" };
-  if (type === "ZIP") return { icon: FileArchive, label: "ZIP" };
-  if (type === "DOCKERFILE") return { icon: Container, label: "Dockerfile" };
-  return { icon: FileCode2, label: type };
-}
 
 function getStatusBadge(status: string) {
   const isRunning = status === "ACTIVE" || status === "DEPLOYED";
@@ -228,7 +217,7 @@ export default function ProjectsPage() {
                 <option value="FAILED">Failed</option>
               </select>
               <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+                <Filter className="w-3.5 h-3.5 text-slate-400" />
               </div>
               <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
                 <ChevronDown className="w-4 h-4 text-slate-400" />

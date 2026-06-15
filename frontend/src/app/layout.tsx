@@ -20,7 +20,6 @@ export const metadata: Metadata = {
   authors: [{ name: APP_CONFIG.author }],
 };
 
-import { ThemeProvider } from "@/components/ThemeProvider";
 
 export default function RootLayout({
   children,
@@ -30,17 +29,17 @@ export default function RootLayout({
   return (
     <html lang="id" className={poppins.variable} suppressHydrationWarning>
       <body className="font-poppins antialiased">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
+        <Providers
+          themeProps={{
+            attribute: "class",
+            defaultTheme: "system",
+            enableSystem: true,
+            disableTransitionOnChange: true,
+          }}
         >
-          <Providers>
-            {children}
-            <Toaster position="top-right" richColors />
-          </Providers>
-        </ThemeProvider>
+          {children}
+          <Toaster position="top-right" richColors />
+        </Providers>
       </body>
     </html>
   );
