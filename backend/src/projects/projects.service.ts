@@ -20,12 +20,8 @@ export class ProjectsService {
   async create(userId: string, dto: CreateProjectDto) {
     const project = await this.prisma.project.create({
       data: {
+        ...(dto as any),
         userId,
-        name: dto.name,
-        description: dto.description,
-        deploymentType: dto.deploymentType,
-        repositoryUrl: dto.repositoryUrl,
-        domain: dto.domain,
       },
       include: { containers: true },
     });
@@ -98,7 +94,7 @@ export class ProjectsService {
 
     const project = await this.prisma.project.update({
       where: { id },
-      data: dto,
+      data: dto as any,
     });
 
     await this.activityLogs.create({

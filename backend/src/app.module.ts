@@ -10,6 +10,7 @@ import { DeploymentsModule } from './deployments/deployments.module';
 import { MonitoringModule } from './monitoring/monitoring.module';
 import { ActivityLogsModule } from './activity-logs/activity-logs.module';
 import { NginxModule } from './nginx/nginx.module';
+import { TerminalModule } from './terminal/terminal.module';
 import { GitModule } from './git/git.module';
 import { ArchiveModule } from './archive/archive.module';
 
@@ -26,6 +27,7 @@ import { ArchiveModule } from './archive/archive.module';
     MonitoringModule,
     ActivityLogsModule,
     NginxModule,
+    TerminalModule,
     GitModule,
     ArchiveModule,
   ],
