@@ -484,7 +484,11 @@ export default function TerminalPage() {
         <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-[15px] font-bold text-foreground">Recent Commands</h3>
-            <button className="p-1.5 text-muted-foreground/70 hover:text-foreground hover:bg-muted border border-border rounded-lg transition-colors">
+            <button 
+              onClick={() => setRecentCommands([])}
+              title="Clear Recent Commands"
+              className="p-1.5 text-muted-foreground/70 hover:text-foreground hover:bg-muted border border-border rounded-lg transition-colors"
+            >
               <RefreshCw className="w-4 h-4" />
             </button>
           </div>
