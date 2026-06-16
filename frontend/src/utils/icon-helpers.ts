@@ -37,7 +37,7 @@ export function getProjectIcon(name: string) {
   if (n.includes("blog")) return { icon: FileCode2, bg: "bg-indigo-500", text: "text-white" };
   if (n.includes("landing")) return { icon: Layers, bg: "bg-rose-500", text: "text-white" };
   if (n.includes("admin")) return { icon: Database, bg: "bg-teal-500", text: "text-white" };
-  return { icon: FolderOpen, bg: "bg-blue-100", text: "text-blue-600" };
+  return { icon: FolderOpen, bg: "bg-blue-500/10", text: "text-blue-600 dark:text-blue-400" };
 }
 
 export function getDeployTypeDetails(type: string) {

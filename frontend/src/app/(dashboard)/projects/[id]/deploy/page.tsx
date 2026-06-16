@@ -75,8 +75,8 @@ export default function DeployPage() {
           </Button>
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Deploy Aplikasi</h1>
-          <p className="text-slate-500 text-sm">
+          <h1 className="text-2xl font-bold text-foreground">Deploy Aplikasi</h1>
+          <p className="text-muted-foreground text-sm">
             {project?.name} — Pilih metode deployment
           </p>
         </div>
@@ -86,9 +86,9 @@ export default function DeployPage() {
       {deployStatus !== "idle" && (
         <Card className={cn(
           "border",
-          deployStatus === "success" ? "bg-green-50 border-green-200" :
-          deployStatus === "error" ? "bg-red-50 border-red-200" :
-          "bg-blue-50 border-blue-200"
+          deployStatus === "success" ? "bg-green-500/10 border-green-500/20" :
+          deployStatus === "error" ? "bg-red-500/10 border-red-500/20" :
+          "bg-blue-500/10 border-blue-500/20"
         )}>
           <CardContent className="p-5">
             <div className="flex items-center gap-3 mb-3">
@@ -103,8 +103,8 @@ export default function DeployPage() {
               )}
               <p className={cn(
                 "font-medium text-sm",
-                deployStatus === "success" ? "text-green-700" :
-                deployStatus === "error" ? "text-red-700" : "text-blue-700"
+                deployStatus === "success" ? "text-green-600 dark:text-green-400" :
+                deployStatus === "error" ? "text-red-600 dark:text-red-400" : "text-blue-600 dark:text-blue-400"
               )}>
                 {deployStatus === "deploying" ? "Sedang mendeploy aplikasi..." :
                  deployStatus === "success" ? "Deployment berhasil!" :
@@ -113,14 +113,14 @@ export default function DeployPage() {
             </div>
             <Progress value={progress} className="h-2" />
             {deployMessage && (
-              <p className="text-xs text-slate-500 mt-2">{deployMessage}</p>
+              <p className="text-xs text-muted-foreground mt-2">{deployMessage}</p>
             )}
           </CardContent>
         </Card>
       )}
 
       {/* Deploy Tabs */}
-      <Card className="bg-white border border-slate-200/60 shadow-sm">
+      <Card className="bg-card border border-border shadow-sm">
         <Tabs defaultValue={defaultTab}>
           <CardHeader className="pb-0">
             <TabsList className="grid grid-cols-3 w-full">
@@ -154,9 +154,9 @@ export default function DeployPage() {
                 onClick={() => fileRef.current?.click()}
                 className={cn(
                   "border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-150",
-                  dragOver ? "border-blue-400 bg-blue-50" :
-                  file ? "border-green-400 bg-green-50" :
-                  "border-slate-200 hover:border-blue-300 hover:bg-slate-50"
+                  dragOver ? "border-blue-400 bg-blue-500/10" :
+                  file ? "border-green-400 bg-green-500/10" :
+                  "border-border hover:border-blue-500/50 hover:bg-muted"
                 )}
               >
                 <input
@@ -169,26 +169,26 @@ export default function DeployPage() {
                 {file ? (
                   <>
                     <CheckCircle2 className="w-10 h-10 text-green-500 mx-auto mb-3" />
-                    <p className="font-medium text-green-700">{file.name}</p>
-                    <p className="text-xs text-slate-500 mt-1">
+                    <p className="font-medium text-green-600 dark:text-green-400">{file.name}</p>
+                    <p className="text-xs text-muted-foreground mt-1">
                       {(file.size / 1024 / 1024).toFixed(2)} MB
                     </p>
-                    <p className="text-xs text-slate-400 mt-2">Klik untuk mengubah file</p>
+                    <p className="text-xs text-muted-foreground/70 mt-2">Klik untuk mengubah file</p>
                   </>
                 ) : (
                   <>
-                    <FileArchive className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-                    <p className="font-medium text-slate-600">
+                    <FileArchive className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
+                    <p className="font-medium text-muted-foreground">
                       Drag & drop file ZIP di sini
                     </p>
-                    <p className="text-xs text-slate-400 mt-1">atau klik untuk memilih file</p>
+                    <p className="text-xs text-muted-foreground/70 mt-1">atau klik untuk memilih file</p>
                   </>
                 )}
               </div>
 
-              <Alert className="bg-blue-50 border-blue-200">
+              <Alert className="bg-blue-500/10 border-blue-500/20">
                 <Cloud className="w-4 h-4 text-blue-500" />
-                <AlertDescription className="text-blue-700 text-xs">
+                <AlertDescription className="text-blue-600 dark:text-blue-400 text-xs">
                   Portdock akan otomatis mendeteksi runtime dan membuat Dockerfile jika tidak ada.
                 </AlertDescription>
               </Alert>
@@ -241,9 +241,9 @@ export default function DeployPage() {
                 </div>
               </div>
 
-              <Alert className="bg-blue-50 border-blue-200">
+              <Alert className="bg-blue-500/10 border-blue-500/20">
                 <GitBranch className="w-4 h-4 text-blue-500" />
-                <AlertDescription className="text-blue-700 text-xs">
+                <AlertDescription className="text-blue-600 dark:text-blue-400 text-xs">
                   Pastikan repositori bersifat public atau Anda telah mengkonfigurasi GitHub token.
                 </AlertDescription>
               </Alert>
@@ -270,13 +270,13 @@ export default function DeployPage() {
                 <CardTitle className="text-base mb-1">Custom Dockerfile</CardTitle>
                 <CardDescription>Upload ZIP yang berisi Dockerfile custom Anda.</CardDescription>
               </div>
-              <Alert className="bg-amber-50 border-amber-200">
+              <Alert className="bg-amber-500/10 border-amber-500/20">
                 <FileCode className="w-4 h-4 text-amber-500" />
-                <AlertDescription className="text-amber-700 text-xs">
+                <AlertDescription className="text-amber-600 dark:text-amber-400 text-xs">
                   Upload file ZIP yang berisi Dockerfile di root directory. Sistem akan menggunakan Dockerfile tersebut untuk build image.
                 </AlertDescription>
               </Alert>
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-muted-foreground">
                 Gunakan tab <strong>ZIP Upload</strong> dan pastikan file ZIP Anda berisi Dockerfile di root directory.
               </p>
             </CardContent>

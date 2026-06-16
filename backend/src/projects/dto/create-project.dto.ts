@@ -8,6 +8,7 @@ export const CreateProjectSchema = z.object({
   deploymentType: z.nativeEnum(DeploymentType).describe('Deployment type'),
   repositoryUrl: z.string().url().optional().describe('GitHub repository URL'),
   domain: z.string().optional().describe('Custom domain'),
+  envVars: z.record(z.string()).optional().describe('Environment variables'),
 });
 
 export class CreateProjectDto extends createZodDto(CreateProjectSchema) {}

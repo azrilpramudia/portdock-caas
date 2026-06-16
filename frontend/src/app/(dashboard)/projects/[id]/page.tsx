@@ -27,10 +27,10 @@ import { ContainerDetails } from "@/components/containers/ContainerDetails";
 
 function getContainerStatusBadge(status: string) {
   const map: Record<string, { label: string; className: string; icon: any }> = {
-    RUNNING: { label: "Running", className: "bg-green-100 text-green-700 border-green-200", icon: CheckCircle2 },
-    STOPPED: { label: "Stopped", className: "bg-slate-100 text-slate-600 border-slate-200", icon: XCircle },
-    BUILDING: { label: "Building", className: "bg-yellow-100 text-yellow-700 border-yellow-200", icon: Loader2 },
-    ERROR: { label: "Error", className: "bg-red-100 text-red-700 border-red-200", icon: AlertCircle },
+    RUNNING: { label: "Running", className: "bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20", icon: CheckCircle2 },
+    STOPPED: { label: "Stopped", className: "bg-muted text-muted-foreground border-border", icon: XCircle },
+    BUILDING: { label: "Building", className: "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20", icon: Loader2 },
+    ERROR: { label: "Error", className: "bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20", icon: AlertCircle },
   };
   const s = map[status] || map.STOPPED;
   const Icon = s.icon;
@@ -75,18 +75,18 @@ export default function ProjectDetailPage() {
         </Link>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3 flex-wrap">
-            <h1 className="text-2xl font-bold text-slate-900">{project.name}</h1>
+            <h1 className="text-2xl font-bold text-foreground">{project.name}</h1>
             <Badge className={`text-xs border ${
-              project.status === "ACTIVE" ? "bg-green-100 text-green-700 border-green-200" :
-              project.status === "BUILDING" ? "bg-yellow-100 text-yellow-700 border-yellow-200" :
-              project.status === "FAILED" ? "bg-red-100 text-red-700 border-red-200" :
-              "bg-slate-100 text-slate-600 border-slate-200"
+              project.status === "ACTIVE" ? "bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20" :
+              project.status === "BUILDING" ? "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20" :
+              project.status === "FAILED" ? "bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20" :
+              "bg-muted text-muted-foreground border-border"
             }`}>
               {project.status}
             </Badge>
           </div>
           {project.description && (
-            <p className="text-slate-500 mt-1 text-sm">{project.description}</p>
+            <p className="text-muted-foreground mt-1 text-sm">{project.description}</p>
           )}
         </div>
         <Link href={`/projects/${projectId}/deploy`}>
@@ -101,7 +101,7 @@ export default function ProjectDetailPage() {
         {/* Info */}
         <div className="lg:col-span-2 space-y-5">
           {/* Containers */}
-          <Card className="bg-white border border-slate-200/60 shadow-sm">
+          <Card className="bg-card border border-border shadow-sm">
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <Container className="w-4 h-4 text-blue-500" />
@@ -111,27 +111,27 @@ export default function ProjectDetailPage() {
             <Separator />
             <CardContent className="p-0">
               {project.containers?.length > 0 ? (
-                <div className="divide-y divide-slate-100">
+                <div className="divide-y divide-border">
                   {project.containers.map((container: any) => (
                     <div
                       key={container.id}
                       onClick={() => setSelectedContainer(container)}
-                      className="flex items-center gap-4 px-6 py-4 hover:bg-slate-50 transition-colors cursor-pointer"
+                      className="flex items-center gap-4 px-6 py-4 hover:bg-muted/50 transition-colors cursor-pointer"
                     >
-                      <div className="w-9 h-9 bg-slate-100 rounded-lg flex items-center justify-center">
-                        <Container className="w-4 h-4 text-slate-600" />
+                      <div className="w-9 h-9 bg-muted rounded-lg flex items-center justify-center">
+                        <Container className="w-4 h-4 text-muted-foreground" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-0.5">
-                          <p className="font-bold text-slate-900 text-sm truncate max-w-[250px]">
+                          <p className="font-bold text-foreground text-sm truncate max-w-[250px]">
                             {container.name}
                           </p>
                           {getContainerStatusBadge(container.status)}
                           {container.hostPort && (
-                            <span className="text-slate-400 text-[11px] font-medium px-2 py-0.5 bg-slate-100 rounded-md">Port: {container.hostPort}</span>
+                            <span className="text-muted-foreground/70 text-[11px] font-medium px-2 py-0.5 bg-muted rounded-md">Port: {container.hostPort}</span>
                           )}
                         </div>
-                        <p className="text-xs text-slate-500 truncate max-w-[350px]">
+                        <p className="text-xs text-muted-foreground truncate max-w-[350px]">
                           {container.imageName}:{container.imageTag}
                         </p>
                       </div>
@@ -140,8 +140,8 @@ export default function ProjectDetailPage() {
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center py-10 text-center">
-                  <Container className="w-8 h-8 text-slate-300 mb-2" />
-                  <p className="text-sm text-slate-500">Belum ada container</p>
+                  <Container className="w-8 h-8 text-muted-foreground/30 mb-2" />
+                  <p className="text-sm text-muted-foreground">Belum ada container</p>
                   <Link href={`/projects/${projectId}/deploy`} className="mt-3">
                     <Button size="sm" className="portdock-gradient text-white hover:opacity-90">
                       <Rocket className="w-3 h-3 mr-1.5" /> Deploy sekarang
@@ -153,7 +153,7 @@ export default function ProjectDetailPage() {
           </Card>
 
           {/* Activity Logs */}
-          <Card className="bg-white border border-slate-200/60 shadow-sm">
+          <Card className="bg-card border border-border shadow-sm">
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <Clock className="w-4 h-4 text-blue-500" />
@@ -163,13 +163,13 @@ export default function ProjectDetailPage() {
             <Separator />
             <CardContent className="p-0">
               {project.activityLogs?.length > 0 ? (
-                <div className="divide-y divide-slate-100">
+                <div className="divide-y divide-border">
                   {project.activityLogs.map((log: any) => (
                     <div key={log.id} className="flex items-start gap-3 px-6 py-3.5">
                       <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 shrink-0" />
                       <div className="flex-1">
-                        <p className="text-sm text-slate-700">{log.description || log.action}</p>
-                        <p className="text-xs text-slate-400 mt-0.5">
+                        <p className="text-sm text-foreground">{log.description || log.action}</p>
+                        <p className="text-xs text-muted-foreground/70 mt-0.5">
                           {formatDistanceToNow(new Date(log.createdAt), { addSuffix: true, locale: id })}
                         </p>
                       </div>
@@ -177,7 +177,7 @@ export default function ProjectDetailPage() {
                   ))}
                 </div>
               ) : (
-                <div className="py-8 text-center text-sm text-slate-500">Belum ada aktivitas</div>
+                <div className="py-8 text-center text-sm text-muted-foreground">Belum ada aktivitas</div>
               )}
             </CardContent>
           </Card>
@@ -185,15 +185,15 @@ export default function ProjectDetailPage() {
 
         {/* Sidebar info */}
         <div className="space-y-5">
-          <Card className="bg-white border border-slate-200/60 shadow-sm">
+          <Card className="bg-card border border-border shadow-sm">
             <CardContent className="p-5 space-y-4">
               <div>
-                <p className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-1">Deployment Type</p>
-                <Badge className="bg-blue-100 text-blue-700 border-blue-200 text-xs">{project.deploymentType}</Badge>
+                <p className="text-xs font-medium text-muted-foreground/70 uppercase tracking-wider mb-1">Deployment Type</p>
+                <Badge className="bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20 text-xs">{project.deploymentType}</Badge>
               </div>
               {project.repositoryUrl && (
                 <div>
-                  <p className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-1">Repository</p>
+                  <p className="text-xs font-medium text-muted-foreground/70 uppercase tracking-wider mb-1">Repository</p>
                   <a
                     href={project.repositoryUrl}
                     target="_blank"
@@ -207,7 +207,7 @@ export default function ProjectDetailPage() {
               )}
               {project.domain && (
                 <div>
-                  <p className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-1">Domain</p>
+                  <p className="text-xs font-medium text-muted-foreground/70 uppercase tracking-wider mb-1">Domain</p>
                   <a
                     href={`http://${project.domain}`}
                     target="_blank"
@@ -221,14 +221,14 @@ export default function ProjectDetailPage() {
               )}
               <Separator />
               <div>
-                <p className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-1">Dibuat</p>
-                <p className="text-sm text-slate-700">
+                <p className="text-xs font-medium text-muted-foreground/70 uppercase tracking-wider mb-1">Dibuat</p>
+                <p className="text-sm text-foreground">
                   {format(new Date(project.createdAt), "dd MMM yyyy, HH:mm")}
                 </p>
               </div>
               <div>
-                <p className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-1">Terakhir diupdate</p>
-                <p className="text-sm text-slate-700">
+                <p className="text-xs font-medium text-muted-foreground/70 uppercase tracking-wider mb-1">Terakhir diupdate</p>
+                <p className="text-sm text-foreground">
                   {formatDistanceToNow(new Date(project.updatedAt), { addSuffix: true, locale: id })}
                 </p>
               </div>

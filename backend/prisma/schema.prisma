@@ -33,6 +33,7 @@ model Project {
   deploymentType DeploymentType   @map("deployment_type")
   repositoryUrl  String?          @map("repository_url")
   domain         String?
+  envVars        Json?            @map("env_vars")
   status         ProjectStatus    @default(INACTIVE)
   createdAt      DateTime         @default(now()) @map("created_at")
   updatedAt      DateTime         @updatedAt @map("updated_at")

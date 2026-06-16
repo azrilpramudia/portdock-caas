@@ -28,7 +28,7 @@ export default function DashboardLayout({
   if (!isAuthenticated) return null;
 
   return (
-    <div className="flex h-screen bg-[#f8fafc] overflow-hidden">
+    <div className="flex h-screen bg-background overflow-hidden">
       {/* Desktop Sidebar */}
       <div className="hidden lg:flex lg:flex-shrink-0">
         <DashboardSidebar />

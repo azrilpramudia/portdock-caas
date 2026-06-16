@@ -59,9 +59,9 @@ const deployTypes = [
     label: "GitHub Repository",
     description: "Deploy dari repositori GitHub",
     icon: GitBranch,
-    color: "text-slate-700",
-    bg: "bg-slate-50",
-    border: "border-slate-200",
+    color: "text-foreground",
+    bg: "bg-muted",
+    border: "border-border",
   },
   {
     value: "DOCKERFILE" as const,
@@ -157,14 +157,14 @@ export default function NewProjectPage() {
           </Button>
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Project Baru</h1>
-          <p className="text-slate-500 text-sm">Buat project deployment baru</p>
+          <h1 className="text-2xl font-bold text-foreground">Project Baru</h1>
+          <p className="text-muted-foreground text-sm">Buat project deployment baru</p>
         </div>
       </div>
 
       <form onSubmit={handleSubmit((data) => createMutation.mutate(data))} className="space-y-6">
         {/* Basic Info */}
-        <Card className="bg-white border border-slate-200/60 shadow-sm">
+        <Card className="bg-card border border-border shadow-sm">
           <CardHeader>
             <CardTitle className="text-base">Informasi Project</CardTitle>
             <CardDescription>Detail dasar project Anda</CardDescription>
@@ -207,7 +207,7 @@ export default function NewProjectPage() {
         </Card>
 
         {/* Deployment Type */}
-        <Card className="bg-white border border-slate-200/60 shadow-sm">
+        <Card className="bg-card border border-border shadow-sm">
           <CardHeader>
             <CardTitle className="text-base">Metode Deployment</CardTitle>
             <CardDescription>Pilih cara Anda mendeploy aplikasi</CardDescription>
@@ -222,19 +222,19 @@ export default function NewProjectPage() {
                   "w-full flex items-center gap-4 p-4 rounded-xl border-2 text-left transition-all duration-150",
                   deploymentType === type.value
                     ? `border-blue-500 bg-blue-50/50 shadow-sm`
-                    : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+                    : "border-border hover:border-border/80 hover:bg-muted"
                 )}
               >
                 <div
                   className={cn(
                     "w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0",
-                    deploymentType === type.value ? type.bg : "bg-slate-100"
+                    deploymentType === type.value ? type.bg : "bg-muted"
                   )}
                 >
                   <type.icon
                     className={cn(
                       "w-5 h-5",
-                      deploymentType === type.value ? type.color : "text-slate-500"
+                      deploymentType === type.value ? type.color : "text-muted-foreground"
                     )}
                   />
                 </div>
@@ -242,12 +242,12 @@ export default function NewProjectPage() {
                   <p
                     className={cn(
                       "font-medium text-sm",
-                      deploymentType === type.value ? "text-blue-700" : "text-slate-700"
+                      deploymentType === type.value ? "text-blue-700 dark:text-blue-500" : "text-foreground"
                     )}
                   >
                     {type.label}
                   </p>
-                  <p className="text-xs text-slate-500 mt-0.5">{type.description}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{type.description}</p>
                 </div>
                 {deploymentType === type.value && (
                   <div className="ml-auto w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
@@ -258,7 +258,7 @@ export default function NewProjectPage() {
             ))}
 
             {deploymentType === "GITHUB" && (
-              <div className="space-y-2 pt-2 border-t border-slate-100 mt-4">
+              <div className="space-y-2 pt-2 border-t border-border mt-4">
                 <Label htmlFor="repositoryUrl">Repository URL</Label>
                 <Input
                   id="repositoryUrl"
@@ -270,10 +270,10 @@ export default function NewProjectPage() {
             )}
 
             {deploymentType === "ZIP" && (
-              <div className="space-y-3 pt-2 border-t border-slate-100 mt-4">
+              <div className="space-y-3 pt-2 border-t border-border mt-4">
                 <div>
                   <Label>Upload ZIP File</Label>
-                  <p className="text-xs text-slate-500 mb-2">Upload source code aplikasi Anda dalam format ZIP. Max 50MB.</p>
+                  <p className="text-xs text-muted-foreground mb-2">Upload source code aplikasi Anda dalam format ZIP. Max 50MB.</p>
                 </div>
                 
                 <div
@@ -285,7 +285,7 @@ export default function NewProjectPage() {
                     "border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-150",
                     dragOver ? "border-blue-400 bg-blue-50" :
                     file ? "border-green-400 bg-green-50" :
-                    "border-slate-200 hover:border-blue-300 hover:bg-slate-50"
+                    "border-border hover:border-blue-400 hover:bg-muted"
                   )}
                 >
                   <input
@@ -299,18 +299,18 @@ export default function NewProjectPage() {
                     <>
                       <CheckCircle2 className="w-10 h-10 text-green-500 mx-auto mb-3" />
                       <p className="font-medium text-green-700">{file.name}</p>
-                      <p className="text-xs text-slate-500 mt-1">
+                      <p className="text-xs text-muted-foreground mt-1">
                         {(file.size / 1024 / 1024).toFixed(2)} MB
                       </p>
-                      <p className="text-xs text-slate-400 mt-2">Klik untuk mengubah file</p>
+                      <p className="text-xs text-muted-foreground/70 mt-2">Klik untuk mengubah file</p>
                     </>
                   ) : (
                     <>
-                      <FileArchive className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-                      <p className="font-medium text-slate-700 mb-1">
+                      <FileArchive className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
+                      <p className="font-medium text-foreground mb-1">
                         Drag & drop file ZIP di sini
                       </p>
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-muted-foreground">
                         atau klik untuk memilih file
                       </p>
                     </>

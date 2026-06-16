@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { Menu, Bell, ChevronDown } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { ThemeToggle } from "@/components/shared/ThemeToggle";
 import { navItems } from "@/constants/nav";
 import { LogOut, User as UserIcon, Settings } from "lucide-react";
 import {
@@ -39,55 +40,56 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
   return (
     <>
       {/* Desktop Header */}
-      <header className="hidden lg:flex items-center justify-between px-8 py-5 bg-white border-b border-slate-200 z-10">
+      <header className="hidden lg:flex items-center justify-between px-8 py-5 bg-card border-b border-border z-10">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-blue-50 text-blue-600 rounded-[10px] flex items-center justify-center">
+          <div className="w-9 h-9 bg-primary/10 text-primary rounded-[10px] flex items-center justify-center">
             <Menu className="w-[18px] h-[18px]" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-slate-900 leading-tight">
+            <h1 className="text-xl font-bold text-foreground leading-tight">
               {pageTitle}
             </h1>
             {pageTitle === "Dashboard" && (
-              <p className="text-[13px] text-slate-500 mt-0.5">Overview of your deployments and system status</p>
+              <p className="text-[13px] text-muted-foreground mt-0.5">Overview of your deployments and system status</p>
             )}
             {pageTitle === "Projects" && (
-              <p className="text-[13px] text-slate-500 mt-0.5">Manage all your deployment projects</p>
+              <p className="text-[13px] text-muted-foreground mt-0.5">Manage all your deployment projects</p>
             )}
             {pageTitle === "Deploy" && (
-              <p className="text-[13px] text-slate-500 mt-0.5">Deploy your application to Docker in minutes</p>
+              <p className="text-[13px] text-muted-foreground mt-0.5">Deploy your application to Docker in minutes</p>
             )}
             {pageTitle === "Containers" && (
-              <p className="text-[13px] text-slate-500 mt-0.5">Manage and control your Docker containers</p>
+              <p className="text-[13px] text-muted-foreground mt-0.5">Manage and control your Docker containers</p>
             )}
             {pageTitle === "Monitoring" && (
-              <p className="text-[13px] text-slate-500 mt-0.5">Real-time overview of your container resources</p>
+              <p className="text-[13px] text-muted-foreground mt-0.5">Real-time overview of your container resources</p>
             )}
             {pageTitle === "Terminal" && (
-              <p className="text-[13px] text-slate-500 mt-0.5">Access and manage your containers via web terminal</p>
+              <p className="text-[13px] text-muted-foreground mt-0.5">Access and manage your containers via web terminal</p>
             )}
             {pageTitle === "Activity Logs" && (
-              <p className="text-[13px] text-slate-500 mt-0.5">View all system activities and user actions</p>
+              <p className="text-[13px] text-muted-foreground mt-0.5">View all system activities and user actions</p>
             )}
           </div>
         </div>
         
-        <div className="flex items-center gap-6">
-          <button className="relative text-slate-400 hover:text-slate-600 transition-colors">
+        <div className="flex items-center gap-4">
+          <ThemeToggle />
+          <button className="relative text-muted-foreground hover:text-foreground transition-colors">
             <Bell className="w-5 h-5" />
-            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
+            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-background"></span>
           </button>
           <DropdownMenu>
             <DropdownMenuTrigger className="outline-none">
               <div className="flex items-center gap-3 cursor-pointer group outline-none">
-                <Avatar className="w-9 h-9 border border-slate-200">
-                  <AvatarFallback className="bg-slate-100 text-slate-600 text-sm font-semibold">
+                <Avatar className="w-9 h-9 border border-border">
+                  <AvatarFallback className="bg-muted text-muted-foreground text-sm font-semibold">
                     {initials}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-slate-700 group-hover:text-slate-900 transition-colors">{user?.name}</span>
-                  <ChevronDown className="w-4 h-4 text-slate-400" />
+                  <span className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">{user?.name}</span>
+                  <ChevronDown className="w-4 h-4 text-muted-foreground" />
                 </div>
               </div>
             </DropdownMenuTrigger>
@@ -96,11 +98,11 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="cursor-pointer text-slate-600">
+              <DropdownMenuItem className="cursor-pointer text-muted-foreground hover:text-foreground focus:text-foreground">
                 <UserIcon className="mr-2 h-4 w-4" />
                 <span>Profile</span>
               </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer text-slate-600">
+              <DropdownMenuItem className="cursor-pointer text-muted-foreground hover:text-foreground focus:text-foreground">
                 <Settings className="mr-2 h-4 w-4" />
                 <span>Settings</span>
               </DropdownMenuItem>
@@ -121,18 +123,18 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
       </header>
 
       {/* Mobile Header */}
-      <header className="lg:hidden flex items-center justify-between px-4 py-3 bg-white border-b border-slate-200 z-10">
+      <header className="lg:hidden flex items-center justify-between px-4 py-3 bg-card border-b border-border z-10">
         <button
           onClick={onMenuClick}
-          className="p-2 rounded-lg text-slate-600 hover:bg-slate-100"
+          className="p-2 rounded-lg text-muted-foreground hover:bg-muted"
         >
           <Menu className="w-5 h-5" />
         </button>
         <div className="flex items-center gap-2">
-          <span className="font-bold text-slate-900">{pageTitle}</span>
+          <span className="font-bold text-foreground">{pageTitle}</span>
         </div>
-        <Avatar className="w-8 h-8 border border-slate-200">
-          <AvatarFallback className="bg-slate-100 text-slate-600 text-xs font-semibold">
+        <Avatar className="w-8 h-8 border border-border">
+          <AvatarFallback className="bg-muted text-muted-foreground text-xs font-semibold">
             {initials}
           </AvatarFallback>
         </Avatar>

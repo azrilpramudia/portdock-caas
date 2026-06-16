@@ -23,16 +23,16 @@ import { Activity } from "lucide-react";
 export function ResourceUsageChart({ data }: { data?: any[] }) {
   const chartData = data || [];
   return (
-    <Card className="bg-white border-slate-200/60 shadow-sm rounded-2xl overflow-hidden flex flex-col h-full">
-      <CardHeader className="px-6 py-5 border-b border-slate-100 shrink-0">
+    <Card className="bg-card border-border shadow-sm rounded-2xl overflow-hidden flex flex-col h-full">
+      <CardHeader className="px-6 py-5 border-b border-border shrink-0">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-[15px] font-bold text-slate-900 flex items-center gap-2">
+          <CardTitle className="text-[15px] font-bold text-foreground flex items-center gap-2">
             Resource Usage
           </CardTitle>
           <div className="flex items-center gap-4">
             <DropdownMenu>
-              <DropdownMenuTrigger className="inline-flex items-center justify-center whitespace-nowrap rounded-md outline-none bg-background hover:bg-slate-100 h-7 px-2 text-[11px] font-semibold text-slate-600 border border-slate-200 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950 disabled:pointer-events-none disabled:opacity-50">
-                All Containers <ChevronDown className="w-3 h-3 ml-1 text-slate-400" />
+              <DropdownMenuTrigger className="inline-flex items-center justify-center whitespace-nowrap rounded-md outline-none bg-background hover:bg-muted h-7 px-2 text-[11px] font-semibold text-muted-foreground border border-border shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950 disabled:pointer-events-none disabled:opacity-50">
+                All Containers <ChevronDown className="w-3 h-3 ml-1 text-muted-foreground/50" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-40">
                 <DropdownMenuItem className="text-xs cursor-pointer">All Containers</DropdownMenuItem>
@@ -49,24 +49,24 @@ export function ResourceUsageChart({ data }: { data?: any[] }) {
         <div className="flex justify-between items-end mb-6 shrink-0">
           <div className="flex gap-6">
             <div>
-              <p className="text-[12px] font-medium text-slate-500 mb-1 flex items-center gap-1.5">
+              <p className="text-[12px] font-medium text-muted-foreground mb-1 flex items-center gap-1.5">
                 <span className="w-2.5 h-2.5 rounded-full bg-blue-600"></span> CPU
               </p>
-              <p className="text-2xl font-bold text-slate-800 leading-none">{chartData.length ? chartData[chartData.length - 1]?.cpu : 0}<span className="text-lg text-slate-400">%</span></p>
+              <p className="text-2xl font-bold text-foreground leading-none">{chartData.length ? chartData[chartData.length - 1]?.cpu : 0}<span className="text-lg text-muted-foreground">%</span></p>
             </div>
             <div>
-              <p className="text-[12px] font-medium text-slate-500 mb-1 flex items-center gap-1.5">
+              <p className="text-[12px] font-medium text-muted-foreground mb-1 flex items-center gap-1.5">
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> RAM
               </p>
-              <p className="text-2xl font-bold text-slate-800 leading-none">{chartData.length ? chartData[chartData.length - 1]?.ram : 0}<span className="text-lg text-slate-400">%</span></p>
+              <p className="text-2xl font-bold text-foreground leading-none">{chartData.length ? chartData[chartData.length - 1]?.ram : 0}<span className="text-lg text-muted-foreground">%</span></p>
             </div>
           </div>
         </div>
 
         <div className="flex-1 min-h-[160px] w-full mt-auto">
           {chartData.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-slate-500">
-              <Activity className="w-8 h-8 mb-2 text-slate-300" />
+            <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+              <Activity className="w-8 h-8 mb-2 text-muted-foreground/30" />
               <p className="text-xs font-medium">No resource data available</p>
             </div>
           ) : (
@@ -82,11 +82,12 @@ export function ResourceUsageChart({ data }: { data?: any[] }) {
                     <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
                 <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#94a3b8' }} dy={10} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#94a3b8' }} />
                 <Tooltip 
-                  contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '12px', fontWeight: 'bold' }}
+                  contentStyle={{ borderRadius: '12px', border: '1px solid var(--border)', background: 'var(--card)', color: 'var(--foreground)', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '12px', fontWeight: 'bold' }}
+                  itemStyle={{ color: 'var(--foreground)' }}
                 />
                 <Area type="monotone" dataKey="cpu" name="CPU (%)" stroke="#2563eb" strokeWidth={2.5} fillOpacity={1} fill="url(#colorCpu)" />
                 <Area type="monotone" dataKey="ram" name="RAM (%)" stroke="#10b981" strokeWidth={2.5} fillOpacity={1} fill="url(#colorRam)" />

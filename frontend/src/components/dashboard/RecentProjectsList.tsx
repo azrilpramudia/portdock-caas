@@ -60,10 +60,10 @@ export function RecentProjectsList({ projects, isLoading }: { projects: any[], i
   };
 
   return (
-    <Card className="bg-white border-slate-200/60 shadow-sm rounded-2xl overflow-hidden flex flex-col h-full">
-      <CardHeader className="px-6 py-5 border-b border-slate-100 shrink-0">
+    <Card className="bg-card border-border shadow-sm rounded-2xl overflow-hidden flex flex-col h-full">
+      <CardHeader className="px-6 py-5 border-b border-border shrink-0">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-[15px] font-bold text-slate-900">
+          <CardTitle className="text-[15px] font-bold text-foreground">
             Recent Projects
           </CardTitle>
           <Link
@@ -80,29 +80,29 @@ export function RecentProjectsList({ projects, isLoading }: { projects: any[], i
             <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
           </div>
         ) : recentProjectsList.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 flex-1 text-slate-500">
-            <FolderOpen className="w-10 h-10 mb-3 text-slate-300" />
+          <div className="flex flex-col items-center justify-center py-12 flex-1 text-muted-foreground">
+            <FolderOpen className="w-10 h-10 mb-3 text-muted-foreground/30" />
             <p className="text-sm font-medium">No projects found</p>
           </div>
         ) : (
-          <div className="divide-y divide-slate-100 flex-1">
+          <div className="divide-y divide-border flex-1">
             {recentProjectsList.map((project: any, i: number) => {
-              const colors = ["bg-blue-50 text-blue-500", "bg-emerald-50 text-emerald-500", "bg-orange-50 text-orange-500", "bg-indigo-50 text-indigo-500"];
+              const colors = ["bg-blue-500/10 text-blue-500", "bg-emerald-500/10 text-emerald-500", "bg-orange-500/10 text-orange-500", "bg-indigo-500/10 text-indigo-500"];
               const colorClass = colors[i % colors.length];
               return (
                 <div
                   key={project.id}
-                  className="flex items-center justify-between px-6 py-4 hover:bg-slate-50 transition-colors group"
+                  className="flex items-center justify-between px-6 py-4 hover:bg-muted transition-colors group"
                 >
                   <div className="flex items-center gap-4 cursor-pointer flex-1">
                     <div className={`w-11 h-11 ${colorClass} rounded-2xl flex items-center justify-center flex-shrink-0 shadow-inner`}>
                       <FolderOpen className="w-5 h-5" />
                     </div>
                     <div>
-                      <p className="text-[14px] font-bold text-slate-800">
+                      <p className="text-[14px] font-bold text-foreground">
                         {project.name}
                       </p>
-                      <p className="text-[11px] text-slate-500 mt-0.5">
+                      <p className="text-[11px] text-muted-foreground mt-0.5">
                         Updated {formatDistanceToNow(new Date(project.updatedAt || Date.now()), { addSuffix: true, locale: id }).replace('sekitar ', '')}
                       </p>
                     </div>
@@ -111,12 +111,12 @@ export function RecentProjectsList({ projects, isLoading }: { projects: any[], i
                     <StatusBadge status={getProjectStatus(project)} />
                     
                     <DropdownMenu>
-                      <DropdownMenuTrigger className="text-slate-400 hover:text-slate-700 outline-none p-1 rounded-md hover:bg-slate-200/50 transition-colors">
+                      <DropdownMenuTrigger className="text-muted-foreground hover:text-foreground outline-none p-1 rounded-md hover:bg-accent transition-colors">
                         <MoreHorizontal className="w-5 h-5" />
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-40 rounded-xl border-slate-200 shadow-lg p-1">
+                      <DropdownMenuContent align="end" className="w-40 rounded-xl border-border shadow-lg p-1">
                         <DropdownMenuItem 
-                          className="cursor-pointer font-semibold text-[13px] text-slate-600 hover:text-blue-600 focus:text-blue-600 focus:bg-blue-50 py-2 rounded-lg"
+                          className="cursor-pointer font-semibold text-[13px] text-muted-foreground hover:text-primary focus:text-primary focus:bg-primary/10 py-2 rounded-lg"
                           onClick={() => {
                             const containerId = project.containers?.[0]?.id;
                             if (containerId) {
@@ -131,7 +131,7 @@ export function RecentProjectsList({ projects, isLoading }: { projects: any[], i
                           <Play className="w-4 h-4 mr-2" /> Start
                         </DropdownMenuItem>
                         <DropdownMenuItem 
-                          className="cursor-pointer font-semibold text-[13px] text-slate-600 hover:text-blue-600 focus:text-blue-600 focus:bg-blue-50 py-2 rounded-lg"
+                          className="cursor-pointer font-semibold text-[13px] text-muted-foreground hover:text-primary focus:text-primary focus:bg-primary/10 py-2 rounded-lg"
                           onClick={() => {
                             const containerId = project.containers?.[0]?.id;
                             if (containerId) {
@@ -146,7 +146,7 @@ export function RecentProjectsList({ projects, isLoading }: { projects: any[], i
                           <Square className="w-4 h-4 mr-2" /> Stop
                         </DropdownMenuItem>
                         <DropdownMenuItem 
-                          className="cursor-pointer font-semibold text-[13px] text-slate-600 hover:text-blue-600 focus:text-blue-600 focus:bg-blue-50 py-2 rounded-lg"
+                          className="cursor-pointer font-semibold text-[13px] text-muted-foreground hover:text-primary focus:text-primary focus:bg-primary/10 py-2 rounded-lg"
                           onClick={() => {
                             const containerId = project.containers?.[0]?.id;
                             if (containerId) {
@@ -161,12 +161,12 @@ export function RecentProjectsList({ projects, isLoading }: { projects: any[], i
                           <RefreshCw className="w-4 h-4 mr-2" /> Restart
                         </DropdownMenuItem>
                         <DropdownMenuItem 
-                          className="cursor-pointer font-semibold text-[13px] text-slate-600 hover:text-blue-600 focus:text-blue-600 focus:bg-blue-50 py-2 rounded-lg"
+                          className="cursor-pointer font-semibold text-[13px] text-muted-foreground hover:text-primary focus:text-primary focus:bg-primary/10 py-2 rounded-lg"
                           onClick={() => router.push(`/deploy`)}
                         >
                           <Rocket className="w-4 h-4 mr-2" /> Deploy
                         </DropdownMenuItem>
-                        <DropdownMenuSeparator className="bg-slate-100 my-1" />
+                        <DropdownMenuSeparator className="bg-border my-1" />
                         <DropdownMenuItem 
                           className="cursor-pointer font-semibold text-[13px] text-red-600 hover:text-red-700 focus:text-red-700 focus:bg-red-50 py-2 rounded-lg"
                           onClick={() => {

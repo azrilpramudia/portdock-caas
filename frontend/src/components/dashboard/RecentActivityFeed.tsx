@@ -7,10 +7,10 @@ import { Activity } from "lucide-react";
 export function RecentActivityFeed({ activities }: { activities?: any[] }) {
   const recentActivities = activities || [];
   return (
-    <Card className="bg-white border-slate-200/60 shadow-sm rounded-2xl overflow-hidden mt-6">
-      <CardHeader className="px-6 py-5 border-b border-slate-100">
+    <Card className="bg-card border-border shadow-sm rounded-2xl overflow-hidden mt-6">
+      <CardHeader className="px-6 py-5 border-b border-border">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-[15px] font-bold text-slate-900">
+          <CardTitle className="text-[15px] font-bold text-foreground">
             Recent Activity
           </CardTitle>
           <Link
@@ -23,44 +23,61 @@ export function RecentActivityFeed({ activities }: { activities?: any[] }) {
       </CardHeader>
       <CardContent className="p-0">
         {recentActivities.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-slate-500">
-            <Activity className="w-10 h-10 mb-3 text-slate-300" />
+          <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+            <Activity className="w-10 h-10 mb-3 text-muted-foreground/30" />
             <p className="text-sm font-medium">No recent activity</p>
           </div>
         ) : (
-          <div className="divide-y divide-slate-50">
-            {recentActivities.map((log) => (
-              <div key={log.id} className="flex items-center justify-between px-6 py-4 hover:bg-slate-50/50 transition-colors group">
+          <div className="divide-y divide-border">
+            {recentActivities.map((log) => {
+              let icon = <Activity className="w-5 h-5 text-gray-600 dark:text-gray-400" />;
+              let bg = "bg-gray-500/10";
+              let title = log.action.replace(/_/g, " ");
+              let isSuccess = !log.action.includes("FAILED") && !log.action.includes("ERROR");
+
+              if (log.action.includes("PROJECT")) {
+                icon = <Activity className="w-5 h-5 text-blue-600 dark:text-blue-400" />;
+                bg = "bg-blue-500/10";
+              } else if (log.action.includes("DEPLOYMENT")) {
+                icon = <Activity className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />;
+                bg = "bg-indigo-500/10";
+              } else if (log.action.includes("CONTAINER")) {
+                icon = <Activity className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />;
+                bg = "bg-emerald-500/10";
+              }
+
+              return (
+              <div key={log.id} className="flex items-center justify-between px-6 py-4 hover:bg-muted transition-colors group">
                 <div className="flex items-center gap-4 w-1/3">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${log.actionBg}`}>
-                    {log.actionIcon}
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${bg}`}>
+                    {icon}
                   </div>
                   <div>
-                    <p className="text-[13px] font-bold text-slate-800">{log.actionTitle}</p>
-                    <p className="text-[11.5px] text-slate-500 mt-0.5">by {log.user}</p>
+                    <p className="text-[13px] font-bold text-foreground capitalize">{title.toLowerCase()}</p>
+                    <p className="text-[11.5px] text-muted-foreground mt-0.5">by You</p>
                   </div>
                 </div>
-                <div className="w-1/6 text-[13px] font-bold text-blue-600">
-                  {log.actionSub}
+                <div className="w-1/6 text-[13px] font-bold text-blue-600 dark:text-blue-400">
+                  {log.project?.name || log.description || "-"}
                 </div>
-                <div className="w-1/6 text-[12px] text-slate-500 font-medium">
-                  {log.time}
+                <div className="w-1/6 text-[12px] text-muted-foreground font-medium">
+                  {new Date(log.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </div>
                 <div className="w-1/6 text-right">
-                  {log.status === "Success" ? (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-600 text-[11px] font-bold">
+                  {isSuccess ? (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[11px] font-bold">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                       Success
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-red-50 text-red-600 text-[11px] font-bold">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-red-500/10 text-red-600 dark:text-red-400 text-[11px] font-bold">
                       <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
                       Failed
                     </span>
                   )}
                 </div>
               </div>
-            ))}
+            )})}
           </div>
         )}
       </CardContent>
