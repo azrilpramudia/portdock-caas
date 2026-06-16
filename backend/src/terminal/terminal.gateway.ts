@@ -62,7 +62,7 @@ export class TerminalGateway implements OnGatewayConnection, OnGatewayDisconnect
 
       const session = await this.terminalService.spawnTerminal(
         container.dockerContainerId,
-        ['sh', '-c', 'if command -v bash >/dev/null 2>&1; then exec bash; else exec sh; fi'],
+        ['sh', '-c', 'export PROMPT_COMMAND=\'PS1="\\[\\e[1;32m\\]\\u@\\h\\[\\e[m\\]:\\[\\e[1;34m\\]\\w\\[\\e[m\\]\\$ "\'; if command -v bash >/dev/null 2>&1; then exec bash; else exec sh; fi'],
         (chunk) => {
           client.emit('terminal_output', chunk.toString());
         },

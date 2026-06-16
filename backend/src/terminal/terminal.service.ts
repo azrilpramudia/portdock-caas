@@ -27,7 +27,7 @@ export class TerminalService {
         AttachStderr: true,
         Tty: true,
         Cmd: command,
-        Env: ["TERM=xterm-256color"],
+        Env: ["TERM=xterm-256color", "FORCE_COLOR_PROMPT=yes"],
       });
 
       const stream = await exec.start({

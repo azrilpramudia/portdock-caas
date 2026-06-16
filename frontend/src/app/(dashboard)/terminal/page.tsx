@@ -2,18 +2,13 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { 
-  Terminal as TerminalIcon, 
-  Play, 
-  Square, 
-  RotateCcw, 
+  ChevronDown, 
+  RefreshCw, 
+  LogOut, 
+  Trash2, 
   Download, 
-  Trash2,
-  Maximize2,
-  ChevronDown,
-  Code,
-  Activity,
-  Cpu,
-  RefreshCw
+  Maximize, 
+  Code
 } from "lucide-react";
 import { toast } from "sonner";
 import { containersService } from "@/services/containers.service";
@@ -23,6 +18,7 @@ export default function TerminalPage() {
   const [containers, setContainers] = useState<any[]>([]);
   const [selectedContainerId, setSelectedContainerId] = useState("");
   const [isConnected, setIsConnected] = useState(false);
+  const [isMaximized, setIsMaximized] = useState(false);
   const [sessionInfo, setSessionInfo] = useState({
     host: "",
     user: "",
@@ -36,6 +32,9 @@ export default function TerminalPage() {
   const isInitializing = useRef(false);
   const initTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const connectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  const [recentCommands, setRecentCommands] = useState<{cmd: string, time: string}[]>([]);
+  const commandBufferRef = useRef("");
 
   // Load containers
   useEffect(() => {
@@ -147,6 +146,36 @@ export default function TerminalPage() {
     const dataDisposable = xtermRef.current.onData((data: string) => {
       if (socketRef.current && isConnected) {
         socketRef.current.emit("terminal_input", data);
+        
+        // Command buffering logic for "Recent Commands" UI
+        if (data.startsWith('\x1b')) {
+          // Ignore arrow keys and other ANSI escape sequences
+          return;
+        }
+        
+        if (data.includes('\r')) {
+          const parts = data.split('\r');
+          commandBufferRef.current += parts[0];
+          
+          const cmd = commandBufferRef.current.trim();
+          if (cmd) {
+            setRecentCommands(prev => {
+              // Format time like "04:35 PM"
+              const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+              const newCmds = [{ cmd, time: timeStr }, ...prev];
+              return newCmds.slice(0, 10); // Keep last 10 commands
+            });
+          }
+          
+          // Reset buffer
+          commandBufferRef.current = "";
+        } else if (data === '\u007F') { // Backspace
+          commandBufferRef.current = commandBufferRef.current.slice(0, -1);
+        } else {
+          // Only append printable characters
+          const printable = data.replace(/[\u0000-\u001F\u007F-\u009F]/g, '');
+          commandBufferRef.current += printable;
+        }
       }
     });
 
@@ -254,143 +283,182 @@ export default function TerminalPage() {
 
   const handleClear = () => {
     xtermRef.current?.clear();
-    xtermRef.current?.reset();
   };
 
   const handleDownloadLog = () => {
-    // Currently xterm doesn't provide a straightforward way to get all buffer content easily in v5 without addons, 
-    // but for simple cases we can grab the DOM or use a serialize addon.
-    toast.info("Log download feature coming soon");
+    if (!xtermRef.current) {
+      toast.error("Terminal is not active");
+      return;
+    }
+
+    try {
+      const term = xtermRef.current;
+      const buffer = term.buffer.active;
+      const rows = buffer.length;
+      let log = '';
+      
+      for (let i = 0; i < rows; i++) {
+        const line = buffer.getLine(i);
+        if (line) {
+          log += line.translateToString(true) + '\n';
+        }
+      }
+
+      const blob = new Blob([log], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `terminal-${selectedContainerId}-${new Date().toISOString().replace(/:/g, '-')}.log`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      toast.success("Log downloaded successfully");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to download log");
+    }
+  };
+
+  const toggleMaximize = () => {
+    setIsMaximized(prev => !prev);
+    // Wait for DOM layout to update, then fit
+    setTimeout(() => {
+      if (fitAddonRef.current && xtermRef.current) {
+        fitAddonRef.current.fit();
+        if (socketRef.current && isConnected) {
+          socketRef.current.emit("terminal_resize", { 
+            cols: xtermRef.current.cols, 
+            rows: xtermRef.current.rows 
+          });
+        }
+      }
+    }, 100);
   };
 
   return (
-    <div className="max-w-7xl mx-auto">
-      {/* 1. HEADER SECTION */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+    <div className="space-y-6">
+      
+      {/* 1. TOP HEADER */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-card border border-border rounded-2xl p-6 shadow-sm">
         <div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-foreground flex items-center gap-3">
-            <div className="p-2.5 bg-blue-500/10 rounded-xl">
-              <TerminalIcon className="w-7 h-7 text-blue-500" />
-            </div>
-            Terminal
-          </h1>
-          <p className="text-muted-foreground mt-2 text-[15px]">
-            Access and manage your containers via web terminal.
-          </p>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex items-center gap-3">
-          {isConnected ? (
-            <button 
-              onClick={handleDisconnect}
-              className="flex items-center gap-2 px-5 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl text-[14px] font-bold transition-all"
+          <label className="block text-[13px] font-bold text-foreground mb-2">Container Selection</label>
+          <div className="relative w-[320px]">
+            <select 
+              value={selectedContainerId}
+              onChange={(e) => setSelectedContainerId(e.target.value)}
+              disabled={isConnected}
+              className="w-full appearance-none bg-card border border-border text-foreground text-[14px] rounded-xl px-4 py-2.5 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all font-bold pr-10 cursor-pointer disabled:opacity-50"
             >
-              <Square className="w-4 h-4 fill-current" />
-              Disconnect
-            </button>
-          ) : (
+              <option value="" disabled>Select Container</option>
+              {containers.map(c => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
+              <span className={`w-2 h-2 rounded-full ${isConnected ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)] animate-pulse" : "bg-slate-600"} block`}></span>
+            </div>
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground/70">
+              <ChevronDown className="w-4 h-4" />
+            </div>
+            {/* Indent text so dot shows */}
+            <style jsx>{`
+              select {
+                padding-left: 2.5rem;
+              }
+            `}</style>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-3">
+          {!isConnected ? (
             <button 
               onClick={handleConnect}
               disabled={!selectedContainerId}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[14px] font-bold transition-all ${
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-[14px] font-bold transition-all shadow-sm ${
                 selectedContainerId 
-                ? "bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/20" 
-                : "bg-muted text-muted-foreground cursor-not-allowed"
+                ? "bg-card border border-border hover:bg-muted text-foreground" 
+                : "bg-muted text-muted-foreground cursor-not-allowed border-transparent"
               }`}
             >
-              <Play className="w-4 h-4 fill-current" />
+              <RefreshCw className="w-4 h-4" />
               Connect
             </button>
+          ) : (
+            <>
+              <button 
+                onClick={handleConnect}
+                className="flex items-center gap-2 px-4 py-2.5 bg-card border border-border hover:bg-muted text-foreground rounded-xl text-[14px] font-bold transition-all shadow-sm"
+              >
+                <RefreshCw className="w-4 h-4" />
+                Reconnect
+              </button>
+              <button 
+                onClick={handleDisconnect}
+                className="flex items-center gap-2 px-4 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 rounded-xl text-[14px] font-bold transition-all border border-red-500/20"
+              >
+                <LogOut className="w-4 h-4" />
+                Disconnect
+              </button>
+            </>
           )}
         </div>
       </div>
 
-      {/* 2. CONTAINER SELECTION */}
-      <div className="bg-card border border-border rounded-2xl p-6 shadow-sm mb-6">
-        <h3 className="text-[14px] font-bold text-muted-foreground mb-4 uppercase tracking-wider">Connection Settings</h3>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <label className="text-[13px] font-semibold text-foreground">Target Container</label>
-            <div className="relative">
-              <select 
-                value={selectedContainerId}
-                onChange={(e) => setSelectedContainerId(e.target.value)}
-                disabled={isConnected}
-                className="w-full appearance-none bg-background border border-border text-foreground text-[14px] rounded-xl px-4 py-3 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all font-bold pr-10 cursor-pointer disabled:opacity-50"
-              >
-                <option value="" disabled>Select a running container...</option>
-                {containers.map(c => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
-              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground/70">
-                <ChevronDown className="w-4 h-4" />
-              </div>
+      {/* 2. SESSION INFO */}
+      <div className="bg-card border border-border rounded-2xl shadow-sm px-6 py-5">
+        <h3 className="text-[14px] font-bold text-foreground mb-4">Session Information</h3>
+        <div className="grid grid-cols-1 md:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-border">
+          <div className="flex flex-col items-center justify-center py-2 md:py-0">
+            <span className="text-[13px] font-medium text-muted-foreground mb-2">Status</span>
+            <div className="flex items-center gap-2">
+              <span className={`w-2 h-2 rounded-full ${isConnected ? "bg-emerald-500" : "bg-slate-600"}`}></span>
+              <span className="text-[13px] font-bold text-foreground">{isConnected ? "Connected" : "Disconnected"}</span>
             </div>
           </div>
-          
-          <div className="space-y-2 flex flex-col justify-end">
-            <div className="bg-background border border-border rounded-xl p-3 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className={`w-2.5 h-2.5 rounded-full ${isConnected ? "bg-emerald-500 animate-pulse" : "bg-slate-600"}`}></div>
-                <span className="text-[14px] font-bold text-foreground">
-                  {isConnected ? "Session Active" : "Disconnected"}
-                </span>
-              </div>
-              {isConnected && (
-                <span className="text-[12px] font-semibold text-muted-foreground font-mono bg-muted px-2 py-1 rounded-md">
-                  {sessionInfo.startedAt}
-                </span>
-              )}
-            </div>
+          <div className="flex flex-col items-center justify-center py-2 md:py-0">
+            <span className="text-[13px] font-medium text-muted-foreground mb-2">Host</span>
+            <span className="text-[13px] font-bold text-foreground">{sessionInfo.host || "-"}</span>
+          </div>
+          <div className="flex flex-col items-center justify-center py-2 md:py-0">
+            <span className="text-[13px] font-medium text-muted-foreground mb-2">User</span>
+            <span className="text-[13px] font-bold text-foreground">{sessionInfo.user || "-"}</span>
+          </div>
+          <div className="flex flex-col items-center justify-center py-2 md:py-0">
+            <span className="text-[13px] font-medium text-muted-foreground mb-2">Started At</span>
+            <span className="text-[13px] font-bold text-foreground">{sessionInfo.startedAt || "-"}</span>
           </div>
         </div>
       </div>
 
-      {/* 3. TERMINAL AND INFO */}
+      {/* 3. TERMINAL AND COMMANDS */}
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6">
         
         {/* Terminal Window */}
-        <div className="bg-card border border-border rounded-2xl p-6 shadow-sm flex flex-col h-[650px]">
+        <div className={`bg-card border border-border rounded-2xl p-6 shadow-sm flex flex-col transition-all duration-200 ${isMaximized ? 'fixed inset-4 z-50 shadow-2xl' : ''}`}>
           <div className="flex items-center justify-between mb-4 flex-shrink-0">
-            <h3 className="text-[15px] font-bold text-foreground flex items-center gap-2">
-              <TerminalIcon className="w-4 h-4 text-blue-500" />
-              Terminal Window
-            </h3>
+            <h3 className="text-[15px] font-bold text-foreground">Terminal Window</h3>
             <div className="flex items-center gap-2">
-              <button 
-                onClick={handleClear}
-                className="flex items-center gap-2 px-3 py-1.5 hover:bg-muted text-muted-foreground hover:text-foreground rounded-lg text-[13px] font-semibold transition-colors border border-transparent hover:border-border"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
+              <button onClick={handleClear} className="flex items-center gap-2 px-3 py-1.5 text-muted-foreground hover:bg-muted border border-border rounded-lg text-[13px] font-semibold transition-colors">
+                <Trash2 className="w-4 h-4" />
                 Clear
               </button>
-              <button 
-                onClick={handleDownloadLog}
-                className="flex items-center gap-2 px-3 py-1.5 hover:bg-muted text-muted-foreground hover:text-foreground rounded-lg text-[13px] font-semibold transition-colors border border-transparent hover:border-border"
-              >
-                <Download className="w-3.5 h-3.5" />
-                Log
+              <button onClick={handleDownloadLog} className="flex items-center gap-2 px-3 py-1.5 text-muted-foreground hover:bg-muted border border-border rounded-lg text-[13px] font-semibold transition-colors">
+                <Download className="w-4 h-4" />
+                Download Log
+              </button>
+              <button onClick={toggleMaximize} className="p-1.5 text-muted-foreground/70 hover:text-foreground hover:bg-muted rounded-lg transition-colors border border-border ml-1">
+                <Maximize className="w-4 h-4" />
               </button>
             </div>
           </div>
           
           {/* Terminal Box */}
-          <div className="bg-[#111827] rounded-xl h-[520px] p-3 border border-slate-800 shadow-inner relative overflow-hidden">
-            {/* The ref container for xterm */}
+          <div className={`bg-[#111827] rounded-xl p-3 overflow-hidden border border-slate-800 shadow-inner relative ${isMaximized ? 'flex-1 min-h-0' : 'h-[520px]'}`}>
             <div className="absolute inset-3">
               <div ref={terminalRef} className="w-full h-full" />
             </div>
-            
-            {/* Overlay if not connected */}
-            {!isConnected && (
-              <div className="absolute inset-0 bg-[#111827]/80 flex flex-col items-center justify-center backdrop-blur-[2px] z-10 pointer-events-none">
-                <Code className="w-8 h-8 text-muted-foreground/50 mb-3" />
-                <p className="text-[13px] font-medium text-muted-foreground">Select a container and connect to start session</p>
-              </div>
-            )}
             
             <style jsx global>{`
               .xterm-viewport::-webkit-scrollbar {
@@ -412,61 +480,39 @@ export default function TerminalPage() {
           </div>
         </div>
 
-        {/* Session Information */}
-        <div className="bg-card border border-border rounded-2xl p-6 shadow-sm flex flex-col h-[650px]">
-          <h3 className="text-[15px] font-bold text-foreground mb-6 flex items-center gap-2">
-            <Activity className="w-4 h-4 text-blue-500" />
-            Session Info
-          </h3>
-
-          <div className="flex-1">
-            {isConnected ? (
-              <div className="space-y-6">
-                <div className="p-4 bg-blue-500/5 border border-blue-500/20 rounded-xl space-y-1">
-                  <p className="text-[12px] font-bold text-blue-500 uppercase tracking-wider">Host</p>
-                  <p className="text-[14px] font-mono text-foreground font-semibold break-all">
-                    {sessionInfo.host || selectedContainerId.substring(0, 12)}
-                  </p>
-                </div>
-                
-                <div className="p-4 bg-emerald-500/5 border border-emerald-500/20 rounded-xl space-y-1">
-                  <p className="text-[12px] font-bold text-emerald-500 uppercase tracking-wider">User</p>
-                  <p className="text-[14px] font-mono text-foreground font-semibold">
-                    {sessionInfo.user}
-                  </p>
-                </div>
-
-                <div className="p-4 bg-purple-500/5 border border-purple-500/20 rounded-xl space-y-1">
-                  <p className="text-[12px] font-bold text-purple-500 uppercase tracking-wider">Started At</p>
-                  <p className="text-[14px] font-mono text-foreground font-semibold">
-                    {sessionInfo.startedAt}
-                  </p>
-                </div>
-
-                <div className="pt-4 border-t border-border">
-                  <div className="flex items-center gap-2 text-muted-foreground mb-2">
-                    <Cpu className="w-4 h-4" />
-                    <span className="text-[13px] font-bold">Terminal Features</span>
-                  </div>
-                  <ul className="text-[13px] font-medium text-muted-foreground/80 space-y-2 ml-6 list-disc">
-                    <li>Full TTY Support</li>
-                    <li>Automatic Resizing</li>
-                    <li>256 Color Support</li>
-                  </ul>
-                </div>
+        {/* Recent Commands */}
+        <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-[15px] font-bold text-foreground">Recent Commands</h3>
+            <button className="p-1.5 text-muted-foreground/70 hover:text-foreground hover:bg-muted border border-border rounded-lg transition-colors">
+              <RefreshCw className="w-4 h-4" />
+            </button>
+          </div>
+          
+          <div className="divide-y divide-border">
+            {recentCommands.length === 0 ? (
+              <div className="py-8 text-center">
+                <Code className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
+                <p className="text-[13px] font-medium text-muted-foreground">No recent commands</p>
               </div>
             ) : (
-              <div className="h-full flex flex-col items-center justify-center text-center opacity-50">
-                <Square className="w-10 h-10 text-muted-foreground mb-4" />
-                <p className="text-[14px] font-medium text-muted-foreground max-w-[200px]">
-                  Connect to a container to view session details
-                </p>
-              </div>
+              recentCommands.map((item, i) => (
+                <div key={i} className="flex items-center justify-between py-3">
+                  <div className="flex items-center gap-3">
+                    <div className="text-muted-foreground/70 bg-muted/80 px-1.5 py-1 rounded flex items-center justify-center">
+                      <Code className="w-3.5 h-3.5" />
+                    </div>
+                    <span className="text-[13px] font-medium text-foreground">{item.cmd}</span>
+                  </div>
+                  <span className="text-[12px] font-medium text-muted-foreground">{item.time}</span>
+                </div>
+              ))
             )}
           </div>
         </div>
-
+        
       </div>
+      
     </div>
   );
 }
