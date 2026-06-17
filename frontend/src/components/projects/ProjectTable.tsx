@@ -19,13 +19,48 @@ interface ProjectTableProps {
   setDeleteId: (id: string) => void;
 }
 
-function getStatusBadge(status: string) {
-  const isRunning = status === "ACTIVE" || status === "DEPLOYED";
-  const label = isRunning ? "Running" : (status === "INACTIVE" ? "Stopped" : status);
+function getStatusBadge(project: any) {
+  let status = project.status;
+  
+  // If project is ACTIVE, but all containers are stopped, consider it INACTIVE
+  if (status === "ACTIVE" && project.containers && project.containers.length > 0) {
+    const allStopped = project.containers.every((c: any) => c.status === "STOPPED");
+    if (allStopped) {
+      status = "INACTIVE";
+    }
+  }
+
+  let label = status;
+  let colorClass = "bg-muted-foreground/50";
+  
+  switch(status) {
+    case "ACTIVE":
+    case "DEPLOYED":
+      label = "Running";
+      colorClass = "bg-emerald-500";
+      break;
+    case "INACTIVE":
+    case "STOPPED":
+      label = "Stopped";
+      colorClass = "bg-muted-foreground/50";
+      break;
+    case "BUILDING":
+      label = "Building";
+      colorClass = "bg-yellow-500";
+      break;
+    case "FAILED":
+    case "ERROR":
+      label = "Failed";
+      colorClass = "bg-red-500";
+      break;
+    default:
+      label = status ? status.charAt(0).toUpperCase() + status.slice(1).toLowerCase() : "Unknown";
+      colorClass = "bg-muted-foreground/50";
+  }
   
   return (
     <div className="flex items-center gap-2">
-      <div className={`w-2 h-2 rounded-full ${isRunning ? 'bg-emerald-500' : 'bg-muted-foreground/50'}`}></div>
+      <div className={`w-2 h-2 rounded-full ${colorClass}`}></div>
       <span className="text-[13px] font-medium text-muted-foreground">{label}</span>
     </div>
   );
@@ -111,7 +146,7 @@ export function ProjectTable({ isLoading, projects, setDeleteId }: ProjectTableP
                   </a>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  {getStatusBadge(project.status)}
+                  {getStatusBadge(project)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-[13px] text-muted-foreground font-medium">
                   {formatDistanceToNow(new Date(project.createdAt), { addSuffix: true, locale: id }).replace('sekitar ', '')}

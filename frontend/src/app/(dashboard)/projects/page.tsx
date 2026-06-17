@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { Plus, Search, FolderOpen, Container, Database, Rocket, Filter, ChevronDown, Loader2 } from "lucide-react";
+import { Plus, Search, FolderOpen, Container, Database, Rocket, Filter, ChevronDown, Loader2, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -20,6 +20,7 @@ import api from "@/lib/api";
 import { useProjectsList, useDeleteProject } from "@/hooks/useProjects";
 import { StatCard } from "@/components/projects/StatCard";
 import { ProjectTable } from "@/components/projects/ProjectTable";
+import { toast } from "sonner";
 
 export default function ProjectsPage() {
   const [search, setSearch] = useState("");
@@ -27,7 +28,7 @@ export default function ProjectsPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   // Use the monitoring dashboard stats for the top cards
-  const { data: stats } = useQuery({
+  const { data: stats, refetch: refetchStats, isRefetching: isRefetchingStats } = useQuery({
     queryKey: ["dashboard-stats"],
     queryFn: async () => {
       const res = await api.get("/monitoring/dashboard");
@@ -37,8 +38,13 @@ export default function ProjectsPage() {
   });
 
   // Main projects list query
-  const { data, isLoading } = useProjectsList(search, statusFilter === "all" ? "" : statusFilter);
+  const { data, isLoading, refetch, isRefetching } = useProjectsList(search, statusFilter === "all" ? "" : statusFilter);
   const deleteMutation = useDeleteProject(() => setDeleteId(null));
+
+  const handleRefresh = async () => {
+    await Promise.all([refetch(), refetchStats()]);
+    toast.success("Project data refreshed!", { duration: 2000 });
+  };
 
   const statCards = [
     {
@@ -92,11 +98,22 @@ export default function ProjectsPage() {
         <div className="p-6 border-b border-border space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <h2 className="text-[17px] font-bold text-foreground">All Projects</h2>
-            <Link href="/projects/new">
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold h-9 rounded-lg shadow-[0_4px_14px_0_rgba(37,99,235,0.39)] text-[13px]">
-                <Plus className="w-4 h-4 mr-1.5" /> Create New Project
+            <div className="flex items-center gap-3">
+              <Button 
+                variant="outline" 
+                onClick={handleRefresh}
+                disabled={isRefetching || isRefetchingStats}
+                className="h-9 rounded-lg text-[13px] font-semibold border-border bg-card hover:bg-muted"
+              >
+                <RefreshCw className={`w-4 h-4 mr-1.5 ${isRefetching || isRefetchingStats ? 'animate-spin' : ''}`} />
+                Refresh
               </Button>
-            </Link>
+              <Link href="/projects/new">
+                <Button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold h-9 rounded-lg shadow-[0_4px_14px_0_rgba(37,99,235,0.39)] text-[13px]">
+                  <Plus className="w-4 h-4 mr-1.5" /> Create New Project
+                </Button>
+              </Link>
+            </div>
           </div>
           
           <div className="flex items-center gap-3">

@@ -5,6 +5,7 @@ import { Menu, Bell, ChevronDown } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ThemeToggle } from "@/components/shared/ThemeToggle";
+import { NotificationBell } from "./NotificationBell";
 import { navItems } from "@/constants/nav";
 import { LogOut, User as UserIcon, Settings } from "lucide-react";
 import {
@@ -75,10 +76,7 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
         
         <div className="flex items-center gap-4">
           <ThemeToggle />
-          <button className="relative text-muted-foreground hover:text-foreground transition-colors">
-            <Bell className="w-5 h-5" />
-            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-background"></span>
-          </button>
+          <NotificationBell />
           <DropdownMenu>
             <DropdownMenuTrigger className="outline-none">
               <div className="flex items-center gap-3 cursor-pointer group outline-none">
@@ -108,7 +106,7 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem 
-                className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
+                className="cursor-pointer text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400 focus:bg-red-50 dark:focus:bg-red-500/10"
                 onClick={() => {
                   useAuthStore.getState().logout();
                   window.location.href = "/login";

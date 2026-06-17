@@ -18,6 +18,11 @@ model User {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  githubToken    String?
+  githubUsername String?
+  sshPublicKey   String?
+  sshPrivateKey  String?
+
   projects      Project[]
   activityLogs  ActivityLog[]
   terminalLogs  TerminalLog[]

@@ -195,13 +195,21 @@ export default function ProjectDetailPage() {
                 <div>
                   <p className="text-xs font-medium text-muted-foreground/70 uppercase tracking-wider mb-1">Repository</p>
                   <a
-                    href={project.repositoryUrl}
+                    href={
+                      project.repositoryUrl.startsWith("git@")
+                        ? project.repositoryUrl.replace("git@github.com:", "https://github.com/").replace(".git", "")
+                        : project.repositoryUrl
+                    }
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
                   >
                     <ExternalLink className="w-3 h-3" />
-                    <span className="truncate">{project.repositoryUrl.replace("https://github.com/", "")}</span>
+                    <span className="truncate">
+                      {project.repositoryUrl.startsWith("git@")
+                        ? project.repositoryUrl.replace("git@github.com:", "").replace(".git", "")
+                        : project.repositoryUrl.replace("https://github.com/", "")}
+                    </span>
                   </a>
                 </div>
               )}

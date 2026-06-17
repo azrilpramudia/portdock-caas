@@ -18,4 +18,34 @@ export const authService = {
     const res = await api.post("/auth/register", payload);
     return res.data;
   },
+
+  getMe: async (): Promise<User> => {
+    const res = await api.get("/auth/me");
+    return res.data;
+  },
+
+  updateProfile: async (data: { name: string; email: string }): Promise<User> => {
+    const res = await api.post("/auth/profile", data);
+    return res.data;
+  },
+
+  updatePassword: async (data: any): Promise<{ message: string }> => {
+    const res = await api.post("/auth/password", data);
+    return res.data;
+  },
+
+  generateSshKey: async (): Promise<{ sshPublicKey: string }> => {
+    const res = await api.post("/auth/ssh-key");
+    return res.data;
+  },
+
+  connectGithub: async (token: string): Promise<{ githubUsername: string }> => {
+    const res = await api.post("/auth/github", { token });
+    return res.data;
+  },
+
+  disconnectGithub: async (): Promise<{ message: string }> => {
+    const res = await api.delete("/auth/github");
+    return res.data;
+  },
 };

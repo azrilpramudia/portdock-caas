@@ -182,9 +182,17 @@ export class DeploymentsService {
       data: { status: ProjectStatus.BUILDING, repositoryUrl },
     });
 
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { sshPrivateKey: true, githubToken: true }
+    });
+
     try {
       // Clone repository
-      this.git.cloneRepository(repositoryUrl, branch, cloneDir);
+      this.git.cloneRepository(repositoryUrl, branch, cloneDir, {
+        sshPrivateKey: user?.sshPrivateKey,
+        githubToken: user?.githubToken,
+      });
 
       const dockerfilePath = path.join(cloneDir, 'Dockerfile');
       const imageName = `portdock-${projectId}`.toLowerCase();
