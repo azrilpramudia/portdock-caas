@@ -1,59 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { 
-  ChevronDown, 
-  RefreshCw, 
-  Cpu, 
-  Server, 
-  HardDrive, 
-  Activity,
-  CheckCircle2,
-  Disc,
-  Hash,
-  Clock,
-  Link2,
-  Calendar,
-  ArrowUp,
-  ArrowDown,
-  ArrowRight
-} from "lucide-react";
-import { 
-  AreaChart, 
-  Area, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer,
-  LineChart,
-  Line
-} from "recharts";
+import { ChevronDown, RefreshCw, Activity, CheckCircle2, Disc, Hash, Link2, Calendar, ArrowRight, ArrowUp, ArrowDown } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { containersService } from "@/services/containers.service";
-import { monitoringService } from "@/services/monitoring.service";
-
-type DataPoint = { time: string; value: number };
-type AreaDataPoint = { time: string; cpu: number; ram: number };
-type LogDataPoint = { time: string; cpu: number; ram: number; disk: number; network: number; up: number; down: number };
+import { useContainerMonitoring } from "@/hooks/useContainerMonitoring";
+import { MonitoringStats } from "@/components/monitoring/MonitoringStats";
+import { MonitoringCharts } from "@/components/monitoring/MonitoringCharts";
 
 export default function MonitoringIndexPage() {
   const [selectedContainerId, setSelectedContainerId] = useState<string>("");
   const [isRealTime, setIsRealTime] = useState(true);
-  
-  const [cpuPercent, setCpuPercent] = useState(0);
-  const [memUsageMb, setMemUsageMb] = useState(0);
-  const [memLimitMb, setMemLimitMb] = useState(0);
-  const [memPercent, setMemPercent] = useState(0);
-  const [netRxMb, setNetRxMb] = useState(0);
-  const [netTxMb, setNetTxMb] = useState(0);
-  const [containerInfo, setContainerInfo] = useState<any>(null);
-
-  const [sparklineDataCPU, setSparklineDataCPU] = useState<DataPoint[]>([]);
-  const [sparklineDataRAM, setSparklineDataRAM] = useState<DataPoint[]>([]);
-  const [sparklineDataNetwork, setSparklineDataNetwork] = useState<DataPoint[]>([]);
-  const [areaChartData, setAreaChartData] = useState<AreaDataPoint[]>([]);
-  const [recentLogs, setRecentLogs] = useState<LogDataPoint[]>([]);
 
   const { data: containersData } = useQuery({
     queryKey: ["containers"],
@@ -73,68 +30,21 @@ export default function MonitoringIndexPage() {
     }
   }, [containers, selectedContainerId]);
 
-  useEffect(() => {
-    let intervalId: NodeJS.Timeout;
-
-    const fetchStats = async () => {
-      if (!selectedContainerId) return;
-
-      try {
-        const stats = await monitoringService.getContainerStats(selectedContainerId);
-        
-        const timeStr = new Date(stats.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        
-        setCpuPercent(stats.cpuPercent || 0);
-        setMemUsageMb(stats.memUsageMb || 0);
-        setMemLimitMb(stats.memLimitMb || 0);
-        setMemPercent(stats.memPercent || 0);
-        setNetRxMb(stats.netRxMb || 0);
-        setNetTxMb(stats.netTxMb || 0);
-        setContainerInfo(stats);
-
-        const newCpuPoint = { time: timeStr, value: stats.cpuPercent || 0 };
-        const newRamPoint = { time: timeStr, value: stats.memPercent || 0 };
-        const totalNet = parseFloat(((stats.netRxMb || 0) + (stats.netTxMb || 0)).toFixed(2));
-        const newNetPoint = { time: timeStr, value: totalNet };
-        
-        const newAreaPoint = { time: timeStr, cpu: stats.cpuPercent || 0, ram: stats.memPercent || 0 };
-        
-        const newLog: LogDataPoint = { 
-          time: timeStr, 
-          cpu: stats.cpuPercent || 0, 
-          ram: stats.memPercent || 0, 
-          disk: 0, 
-          network: totalNet,
-          up: stats.netTxMb || 0,
-          down: stats.netRxMb || 0
-        };
-
-        setSparklineDataCPU(prev => [...prev.slice(-20), newCpuPoint]);
-        setSparklineDataRAM(prev => [...prev.slice(-20), newRamPoint]);
-        setSparklineDataNetwork(prev => [...prev.slice(-20), newNetPoint]);
-        setAreaChartData(prev => [...prev.slice(-30), newAreaPoint]);
-        setRecentLogs(prev => [newLog, ...prev.slice(0, 9)]);
-
-      } catch (err) {
-        console.error("Failed to fetch container stats", err);
-      }
-    };
-
-    if (isRealTime && selectedContainerId) {
-      fetchStats();
-      intervalId = setInterval(fetchStats, 3000);
-    }
-
-    return () => clearInterval(intervalId);
-  }, [selectedContainerId, isRealTime]);
-
-  const handleManualRefresh = () => {
-    setSparklineDataCPU([]);
-    setSparklineDataRAM([]);
-    setSparklineDataNetwork([]);
-    setAreaChartData([]);
-    setRecentLogs([]);
-  };
+  const {
+    cpuPercent,
+    memUsageMb,
+    memLimitMb,
+    memPercent,
+    netRxMb,
+    netTxMb,
+    containerInfo,
+    sparklineDataCPU,
+    sparklineDataRAM,
+    sparklineDataNetwork,
+    areaChartData,
+    recentLogs,
+    handleManualRefresh
+  } = useContainerMonitoring(selectedContainerId, isRealTime);
 
   const selectedContainerDetails = containers.find((c: any) => c.id === selectedContainerId);
 
@@ -186,156 +96,26 @@ export default function MonitoringIndexPage() {
       </div>
 
       {/* 2. METRICS CARDS */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        
-        {/* CPU */}
-        <div className="bg-card border border-border rounded-2xl p-5 shadow-sm flex items-center justify-between">
-          <div className="flex gap-4">
-            <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center flex-shrink-0">
-              <Cpu className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-            </div>
-            <div>
-              <p className="text-[12px] font-medium text-muted-foreground mb-0.5">CPU Usage</p>
-              <h3 className="text-2xl font-bold text-foreground leading-tight">{cpuPercent}%</h3>
-              <p className="text-[11px] font-medium text-muted-foreground mt-1">Real-time</p>
-            </div>
-          </div>
-          <div className="w-[80px] h-[40px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={sparklineDataCPU}>
-                <Line type="monotone" dataKey="value" stroke="#2563eb" strokeWidth={2} dot={false} isAnimationActive={false} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* RAM */}
-        <div className="bg-card border border-border rounded-2xl p-5 shadow-sm flex items-center justify-between">
-          <div className="flex gap-4">
-            <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
-              <Server className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
-            </div>
-            <div>
-              <p className="text-[12px] font-medium text-muted-foreground mb-0.5">RAM Usage</p>
-              <h3 className="text-2xl font-bold text-foreground leading-tight">{memPercent}%</h3>
-              <p className="text-[11px] font-medium text-muted-foreground mt-1">{memUsageMb} MB / {memLimitMb} MB</p>
-            </div>
-          </div>
-          <div className="w-[80px] h-[40px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={sparklineDataRAM}>
-                <Line type="monotone" dataKey="value" stroke="#10b981" strokeWidth={2} dot={false} isAnimationActive={false} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* Disk */}
-        <div className="bg-card border border-border rounded-2xl p-5 shadow-sm flex items-center justify-between opacity-60">
-          <div className="flex gap-4">
-            <div className="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center flex-shrink-0">
-              <HardDrive className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-            </div>
-            <div>
-              <p className="text-[12px] font-medium text-muted-foreground mb-0.5">Disk Usage</p>
-              <h3 className="text-2xl font-bold text-foreground leading-tight">0%</h3>
-              <p className="text-[11px] font-medium text-muted-foreground mt-1">N/A</p>
-            </div>
-          </div>
-          <div className="w-[80px] h-[40px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={[]}>
-                <Line type="monotone" dataKey="value" stroke="#8b5cf6" strokeWidth={2} dot={false} isAnimationActive={false} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* Network */}
-        <div className="bg-card border border-border rounded-2xl p-5 shadow-sm flex items-center justify-between">
-          <div className="flex gap-4">
-            <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center flex-shrink-0">
-              <Activity className="w-6 h-6 text-amber-500" />
-            </div>
-            <div>
-              <p className="text-[12px] font-medium text-muted-foreground mb-0.5">Network (I/O)</p>
-              <h3 className="text-2xl font-bold text-foreground leading-tight">{(netRxMb + netTxMb).toFixed(2)} MB</h3>
-              <div className="flex items-center gap-2 mt-1 text-[11px] font-bold">
-                <span className="flex items-center text-amber-500"><ArrowUp className="w-3 h-3 mr-0.5" /> {netTxMb.toFixed(2)}</span>
-                <span className="flex items-center text-amber-500"><ArrowDown className="w-3 h-3 mr-0.5" /> {netRxMb.toFixed(2)}</span>
-              </div>
-            </div>
-          </div>
-          <div className="w-[80px] h-[40px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={sparklineDataNetwork}>
-                <Line type="monotone" dataKey="value" stroke="#f59e0b" strokeWidth={2} dot={false} isAnimationActive={false} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-      </div>
+      <MonitoringStats 
+        cpuPercent={cpuPercent}
+        memPercent={memPercent}
+        memUsageMb={memUsageMb}
+        memLimitMb={memLimitMb}
+        netTxMb={netTxMb}
+        netRxMb={netRxMb}
+        sparklineDataCPU={sparklineDataCPU}
+        sparklineDataRAM={sparklineDataRAM}
+        sparklineDataNetwork={sparklineDataNetwork}
+      />
 
       {/* 3. MAIN CHARTS */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
-        {/* CPU Chart */}
-        <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-[15px] font-bold text-foreground">CPU Usage (Timeline)</h3>
-          </div>
-          <div className="h-[240px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={areaChartData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorCpu" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#64748b' }} dy={10} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#64748b' }} tickFormatter={(val) => `${val}%`} />
-                <Tooltip 
-                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
-                  itemStyle={{ fontSize: '12px', fontWeight: 'bold' }}
-                  labelStyle={{ fontSize: '11px', color: '#64748b', marginBottom: '4px' }}
-                />
-                <Area type="monotone" dataKey="cpu" stroke="#3b82f6" strokeWidth={2} fillOpacity={1} fill="url(#colorCpu)" isAnimationActive={false} />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
+        <MonitoringCharts areaChartData={areaChartData} />
+        {/* Placeholder for the other side, can be separated if needed */}
+        <div className="bg-card border border-border rounded-2xl p-6 shadow-sm flex flex-col items-center justify-center min-h-[300px]">
+          <h3 className="text-[15px] font-bold text-foreground mb-4">Network & Disk Flow</h3>
+          <p className="text-muted-foreground text-sm">Detailed views can be expanded here.</p>
         </div>
-
-        {/* RAM Chart */}
-        <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-[15px] font-bold text-foreground">RAM Usage (Timeline)</h3>
-          </div>
-          <div className="h-[240px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={areaChartData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorRam" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#64748b' }} dy={10} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#64748b' }} tickFormatter={(val) => `${val}%`} />
-                <Tooltip 
-                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
-                  itemStyle={{ fontSize: '12px', fontWeight: 'bold' }}
-                  labelStyle={{ fontSize: '11px', color: '#64748b', marginBottom: '4px' }}
-                />
-                <Area type="monotone" dataKey="ram" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorRam)" isAnimationActive={false} />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
       </div>
 
       {/* 4. BOTTOM PANELS */}

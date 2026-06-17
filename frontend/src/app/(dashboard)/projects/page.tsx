@@ -3,46 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import {
-  Plus,
-  Search,
-  FolderOpen,
-  Container,
-  MoreHorizontal,
-  Trash2,
-  Rocket,
-  Loader2,
-  ArrowRight,
-  Eye,
-  Pencil,
-  ExternalLink,
-  FileArchive,
-  FileCode2,
-  Atom,
-  Hexagon,
-  Layers,
-  Database,
-  ChevronDown,
-  CheckCircle2,
-  AlertCircle,
-  Clock,
-  Filter,
-} from "lucide-react";
-import { FaGithub } from "react-icons/fa";
-import { getProjectIcon, getDeployTypeDetails } from "@/utils/icon-helpers";
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card";
+import { Plus, Search, FolderOpen, Container, Database, Rocket, Filter, ChevronDown, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
 import {
   Dialog,
   DialogContent,
@@ -51,71 +14,11 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { formatDistanceToNow } from "date-fns";
-import { id } from "date-fns/locale";
+
 import api from "@/lib/api";
 import { useProjectsList, useDeleteProject } from "@/hooks/useProjects";
-
-function StatCard({
-  title,
-  value,
-  icon: Icon,
-  iconColor,
-  iconBgColor,
-  trend,
-  trendColor,
-}: {
-  title: string;
-  value: number | string;
-  icon: any;
-  iconColor: string;
-  iconBgColor: string;
-  trend?: string;
-  trendColor?: string;
-}) {
-  return (
-    <Card className="bg-card border-border shadow-sm rounded-2xl overflow-hidden hover:shadow-md transition-shadow">
-      <CardContent className="p-6">
-        <div className="flex items-center gap-4">
-          <div className={`w-14 h-14 ${iconBgColor} rounded-2xl flex items-center justify-center flex-shrink-0 shadow-inner`}>
-            <Icon className={`w-7 h-7 ${iconColor}`} />
-          </div>
-          <div>
-            <p className="text-[13px] font-semibold text-muted-foreground mb-1">{title}</p>
-            <p className="text-2xl font-bold text-foreground leading-none">{value}</p>
-            {trend && (
-              <div className="flex items-center gap-1 mt-2">
-                <span className={`text-[11px] font-semibold ${trendColor === 'red' ? 'text-rose-600 dark:text-rose-400 bg-rose-500/10' : 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10'} px-1.5 py-0.5 rounded flex items-center`}>
-                  {trendColor === 'red' ? (
-                    <ArrowRight className="w-2.5 h-2.5 rotate-45 mr-0.5" />
-                  ) : (
-                    <ArrowRight className="w-2.5 h-2.5 -rotate-45 mr-0.5" />
-                  )}
-                  {trend}
-                </span>
-                <span className="text-[11px] text-muted-foreground">from last week</span>
-              </div>
-            )}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-
-
-function getStatusBadge(status: string) {
-  const isRunning = status === "ACTIVE" || status === "DEPLOYED";
-  const label = isRunning ? "Running" : (status === "INACTIVE" ? "Stopped" : status);
-  
-  return (
-    <div className="flex items-center gap-2">
-      <div className={`w-2 h-2 rounded-full ${isRunning ? 'bg-emerald-500' : 'bg-muted-foreground/50'}`}></div>
-      <span className="text-[13px] font-medium text-muted-foreground">{label}</span>
-    </div>
-  );
-}
+import { StatCard } from "@/components/projects/StatCard";
+import { ProjectTable } from "@/components/projects/ProjectTable";
 
 export default function ProjectsPage() {
   const [search, setSearch] = useState("");
@@ -227,119 +130,12 @@ export default function ProjectsPage() {
         </div>
 
         {/* Table Body */}
-        {isLoading ? (
-          <div className="flex items-center justify-center py-24">
-            <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
-          </div>
-        ) : data?.data?.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse min-w-[800px]">
-              <thead>
-                <tr className="border-b border-border text-[12px] font-semibold text-muted-foreground bg-muted/50">
-                  <th className="px-6 py-3 font-semibold">Project Name <span className="inline-block ml-1 opacity-50">↕</span></th>
-                  <th className="px-6 py-3 font-semibold">Type <span className="inline-block ml-1 opacity-50">↕</span></th>
-                  <th className="px-6 py-3 font-semibold">Domain <span className="inline-block ml-1 opacity-50">↕</span></th>
-                  <th className="px-6 py-3 font-semibold">Status <span className="inline-block ml-1 opacity-50">↕</span></th>
-                  <th className="px-6 py-3 font-semibold">Last Updated <span className="inline-block ml-1 opacity-50">↕</span></th>
-                  <th className="px-6 py-3 font-semibold">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {data.data.map((project: any) => {
-                  const iconStyle = getProjectIcon(project.name);
-                  const ProjectIcon = iconStyle.icon;
-                  const iconColor = `${iconStyle.bg} ${iconStyle.text}`;
-                  const typeDetails = getDeployTypeDetails(project.deploymentType || "ZIP");
-                  const mockedDomain = `${project.name.toLowerCase().replace(/\s+/g, '-')}.portdock.id`;
+        <ProjectTable 
+          isLoading={isLoading} 
+          projects={data?.data} 
+          setDeleteId={setDeleteId} 
+        />
 
-                  return (
-                    <tr key={project.id} className="hover:bg-muted/50 transition-colors group">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-4">
-                          <div className={`w-10 h-10 ${iconColor} rounded-xl flex items-center justify-center flex-shrink-0 shadow-inner`}>
-                            <ProjectIcon className="w-5 h-5" />
-                          </div>
-                          <div>
-                            <p className="text-[14px] font-bold text-foreground">{project.name}</p>
-                            <p className="text-[12px] text-muted-foreground mt-0.5">{project.description || "No description provided"}</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          <typeDetails.icon className="w-4 h-4 text-muted-foreground" />
-                          <span className="text-[13px] font-semibold text-foreground">{typeDetails.label}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-1.5 text-[13px] font-medium text-muted-foreground hover:text-blue-600 cursor-pointer transition-colors">
-                          {mockedDomain}
-                          <ExternalLink className="w-3 h-3 text-blue-500" />
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {getStatusBadge(project.status)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-[13px] text-muted-foreground font-medium">
-                        {formatDistanceToNow(new Date(project.createdAt), { addSuffix: true, locale: id }).replace('sekitar ', '')}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          <Link href={`/projects/${project.id}`}>
-                            <Button variant="outline" size="sm" className="h-8 px-3 rounded-lg border-border text-muted-foreground hover:bg-muted hover:text-foreground text-[12px] font-semibold shadow-sm">
-                              <Eye className="w-3.5 h-3.5 mr-1.5 text-muted-foreground" /> View
-                            </Button>
-                          </Link>
-                          <Link href={`/projects/${project.id}/settings`}>
-                            <Button variant="outline" size="sm" className="h-8 w-8 p-0 rounded-lg border-border text-muted-foreground hover:bg-muted hover:text-foreground shadow-sm">
-                              <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
-                            </Button>
-                          </Link>
-                          
-                          <DropdownMenu>
-                            <DropdownMenuTrigger className="inline-flex items-center justify-center h-8 w-8 p-0 rounded-lg border border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground shadow-sm outline-none transition-colors">
-                              <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-40 rounded-xl shadow-lg border-border">
-                              <Link href={`/projects/${project.id}/deploy`}>
-                                <DropdownMenuItem className="cursor-pointer text-foreground font-medium focus:text-foreground">
-                                  <Rocket className="w-4 h-4 mr-2 text-muted-foreground" /> Deploy
-                                </DropdownMenuItem>
-                              </Link>
-                              <DropdownMenuSeparator className="bg-border my-1" />
-                              <DropdownMenuItem
-                                className="cursor-pointer text-red-600 font-medium hover:text-red-700 focus:text-red-700 focus:bg-red-500/10"
-                                onClick={() => setDeleteId(project.id)}
-                              >
-                                <Trash2 className="w-4 h-4 mr-2" /> Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <div className="py-20 flex flex-col items-center justify-center text-center">
-            <div className="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center mb-4">
-              <FolderOpen className="w-8 h-8 text-blue-500" />
-            </div>
-            <h3 className="text-lg font-bold text-foreground mb-2">No projects found</h3>
-            <p className="text-muted-foreground text-[13px] mb-6 max-w-sm leading-relaxed">
-              You haven't created any deployment projects yet. Get started by creating your first project.
-            </p>
-            <Link href="/projects/new">
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold h-10 px-6 rounded-xl shadow-[0_4px_14px_0_rgba(37,99,235,0.39)]">
-                <Plus className="w-4 h-4 mr-2" /> Create First Project
-              </Button>
-            </Link>
-          </div>
-        )}
       </div>
 
       {/* Delete Dialog */}

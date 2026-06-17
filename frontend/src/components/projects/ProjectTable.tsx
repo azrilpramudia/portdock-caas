@@ -1,0 +1,156 @@
+import React from "react";
+import Link from "next/link";
+import { formatDistanceToNow } from "date-fns";
+import { id } from "date-fns/locale";
+import { Eye, Pencil, Rocket, Trash2, MoreHorizontal, Loader2, ExternalLink, FolderOpen, Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { getProjectIcon, getDeployTypeDetails } from "@/utils/icon-helpers";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+
+interface ProjectTableProps {
+  isLoading: boolean;
+  projects: any[];
+  setDeleteId: (id: string) => void;
+}
+
+function getStatusBadge(status: string) {
+  const isRunning = status === "ACTIVE" || status === "DEPLOYED";
+  const label = isRunning ? "Running" : (status === "INACTIVE" ? "Stopped" : status);
+  
+  return (
+    <div className="flex items-center gap-2">
+      <div className={`w-2 h-2 rounded-full ${isRunning ? 'bg-emerald-500' : 'bg-muted-foreground/50'}`}></div>
+      <span className="text-[13px] font-medium text-muted-foreground">{label}</span>
+    </div>
+  );
+}
+
+export function ProjectTable({ isLoading, projects, setDeleteId }: ProjectTableProps) {
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-24">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+      </div>
+    );
+  }
+
+  if (!projects || projects.length === 0) {
+    return (
+      <div className="py-20 flex flex-col items-center justify-center text-center">
+        <div className="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center mb-4">
+          <FolderOpen className="w-8 h-8 text-blue-500" />
+        </div>
+        <h3 className="text-lg font-bold text-foreground mb-2">No projects found</h3>
+        <p className="text-muted-foreground text-[13px] mb-6 max-w-sm leading-relaxed">
+          You haven't created any deployment projects yet. Get started by creating your first project.
+        </p>
+        <Link href="/projects/new">
+          <Button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold h-10 px-6 rounded-xl shadow-[0_4px_14px_0_rgba(37,99,235,0.39)]">
+            <Plus className="w-4 h-4 mr-2" /> Create First Project
+          </Button>
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-left border-collapse min-w-[800px]">
+        <thead>
+          <tr className="border-b border-border text-[12px] font-semibold text-muted-foreground bg-muted/50">
+            <th className="px-6 py-3 font-semibold">Project Name <span className="inline-block ml-1 opacity-50">↕</span></th>
+            <th className="px-6 py-3 font-semibold">Type <span className="inline-block ml-1 opacity-50">↕</span></th>
+            <th className="px-6 py-3 font-semibold">Domain <span className="inline-block ml-1 opacity-50">↕</span></th>
+            <th className="px-6 py-3 font-semibold">Status <span className="inline-block ml-1 opacity-50">↕</span></th>
+            <th className="px-6 py-3 font-semibold">Last Updated <span className="inline-block ml-1 opacity-50">↕</span></th>
+            <th className="px-6 py-3 font-semibold">Action</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-border">
+          {projects.map((project: any) => {
+            const iconStyle = getProjectIcon(project.name);
+            const ProjectIcon = iconStyle.icon;
+            const iconColor = `${iconStyle.bg} ${iconStyle.text}`;
+            const typeDetails = getDeployTypeDetails(project.deploymentType || "ZIP");
+            const mockedDomain = `${project.name.toLowerCase().replace(/\s+/g, '-')}.portdock.id`;
+
+            return (
+              <tr key={project.id} className="hover:bg-muted/50 transition-colors group">
+                <td className="px-6 py-4">
+                  <div className="flex items-center gap-4">
+                    <div className={`w-10 h-10 ${iconColor} rounded-xl flex items-center justify-center flex-shrink-0 shadow-inner`}>
+                      <ProjectIcon className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-[14px] font-bold text-foreground">{project.name}</p>
+                      <p className="text-[12px] text-muted-foreground mt-0.5">{project.description || "No description provided"}</p>
+                    </div>
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="flex items-center gap-2">
+                    <typeDetails.icon className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-[13px] font-semibold text-foreground">{typeDetails.label}</span>
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="flex items-center gap-1.5 text-[13px] font-medium text-muted-foreground hover:text-blue-600 cursor-pointer transition-colors">
+                    {mockedDomain}
+                    <ExternalLink className="w-3 h-3 text-blue-500" />
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {getStatusBadge(project.status)}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-[13px] text-muted-foreground font-medium">
+                  {formatDistanceToNow(new Date(project.createdAt), { addSuffix: true, locale: id }).replace('sekitar ', '')}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="flex items-center gap-2">
+                    <Link href={`/projects/${project.id}`}>
+                      <Button variant="outline" size="sm" className="h-8 px-3 rounded-lg border-border text-muted-foreground hover:bg-muted hover:text-foreground text-[12px] font-semibold shadow-sm">
+                        <Eye className="w-3.5 h-3.5 mr-1.5 text-muted-foreground" /> View
+                      </Button>
+                    </Link>
+                    <Link href={`/projects/${project.id}/settings`}>
+                      <Button variant="outline" size="sm" className="h-8 w-8 p-0 rounded-lg border-border text-muted-foreground hover:bg-muted hover:text-foreground shadow-sm">
+                        <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
+                      </Button>
+                    </Link>
+                    
+                    <DropdownMenu>
+                      <DropdownMenuTrigger className="inline-flex items-center justify-center h-8 w-8 p-0 rounded-lg border border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground shadow-sm outline-none transition-colors">
+                        <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-40 rounded-xl shadow-lg border-border">
+                        <Link href={`/projects/${project.id}/deploy`}>
+                          <DropdownMenuItem className="cursor-pointer text-foreground font-medium focus:text-foreground">
+                            <Rocket className="w-4 h-4 mr-2 text-muted-foreground" /> Deploy
+                          </DropdownMenuItem>
+                        </Link>
+                        <DropdownMenuSeparator className="bg-border my-1" />
+                        <DropdownMenuItem
+                          className="cursor-pointer text-red-600 font-medium hover:text-red-700 focus:text-red-700 focus:bg-red-500/10"
+                          onClick={() => setDeleteId(project.id)}
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" /> Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
