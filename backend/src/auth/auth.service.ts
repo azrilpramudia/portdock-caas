@@ -16,7 +16,7 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async register(dto: RegisterDto) {
+  async register(dto: RegisterDto, ip: string) {
     await this.verifyTurnstileToken(dto.turnstileToken);
 
     const existing = await this.prisma.user.findUnique({
@@ -47,6 +47,7 @@ export class AuthService {
         userId: user.id,
         action: 'REGISTER',
         description: 'User registered',
+        ipAddress: ip,
       },
     });
 
@@ -54,7 +55,7 @@ export class AuthService {
     return { user, token };
   }
 
-  async login(dto: LoginDto) {
+  async login(dto: LoginDto, ip: string) {
     await this.verifyTurnstileToken(dto.turnstileToken);
 
     const user = await this.prisma.user.findUnique({
@@ -75,6 +76,7 @@ export class AuthService {
         userId: user.id,
         action: 'LOGIN',
         description: 'User logged in',
+        ipAddress: ip,
       },
     });
 

@@ -5,6 +5,8 @@ import { UpdateProjectDto } from './dto/update-project.dto';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { DockerService } from '../docker/docker.service';
 import { NginxService } from '../nginx/nginx.service';
+import { ConfigService } from '@nestjs/config';
+import { randomBytes } from 'crypto';
 
 @Injectable()
 export class ProjectsService {
@@ -15,12 +17,31 @@ export class ProjectsService {
     private activityLogs: ActivityLogsService,
     private docker: DockerService,
     private nginx: NginxService,
+    private configService: ConfigService,
   ) {}
 
   async create(userId: string, dto: CreateProjectDto) {
+    let domain = dto.domain;
+    
+    if (!domain) {
+      const baseDomain = this.configService.get<string>('BASE_DOMAIN');
+      if (baseDomain) {
+        const slug = dto.name.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+        let potentialDomain = `${slug}.${baseDomain}`;
+        
+        let existing = await this.prisma.project.findFirst({ where: { domain: potentialDomain } });
+        if (existing) {
+          const suffix = randomBytes(2).toString('hex');
+          potentialDomain = `${slug}-${suffix}.${baseDomain}`;
+        }
+        domain = potentialDomain;
+      }
+    }
+
     const project = await this.prisma.project.create({
       data: {
         ...(dto as any),
+        domain,
         userId,
       },
       include: { containers: true },

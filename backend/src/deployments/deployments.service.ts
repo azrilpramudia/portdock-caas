@@ -119,7 +119,17 @@ export class DeploymentsService {
 
       // Generate Nginx config if domain exists
       if (project.domain) {
-        await this.nginx.generateConfig(project.domain, hostPort);
+        const domain = project.domain;
+        await this.nginx.generateHttpConfig(domain, hostPort);
+        
+        // Attempt Let's Encrypt SSL in the background! 
+        // Do not block the HTTP response waiting for certbot to finish.
+        const userEmail = project.user?.email || 'admin@portdock.my.id';
+        this.nginx.requestSsl(domain, userEmail).then(async (sslSuccess) => {
+          if (sslSuccess) {
+            await this.nginx.generateHttpsConfig(domain, hostPort);
+          }
+        }).catch(err => this.logger.error('Background SSL Error', err));
       }
 
       // Cleanup
@@ -234,7 +244,16 @@ export class DeploymentsService {
 
       // Generate Nginx config if domain exists
       if (project.domain) {
-        await this.nginx.generateConfig(project.domain, hostPort);
+        const domain = project.domain;
+        await this.nginx.generateHttpConfig(domain, hostPort);
+        
+        // Attempt Let's Encrypt SSL in the background!
+        const userEmail = project.user?.email || 'admin@portdock.my.id';
+        this.nginx.requestSsl(domain, userEmail).then(async (sslSuccess) => {
+          if (sslSuccess) {
+            await this.nginx.generateHttpsConfig(domain, hostPort);
+          }
+        }).catch(err => this.logger.error('Background SSL Error', err));
       }
 
       this.archive.cleanup(cloneDir);
@@ -264,6 +283,7 @@ export class DeploymentsService {
   private async verifyProject(projectId: string, userId: string) {
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },
+      include: { user: { select: { email: true } } },
     });
     if (!project) throw new NotFoundException('Project not found');
     if (project.userId !== userId) throw new ForbiddenException();

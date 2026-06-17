@@ -78,7 +78,7 @@ export function ProjectTable({ isLoading, projects, setDeleteId }: ProjectTableP
             const ProjectIcon = iconStyle.icon;
             const iconColor = `${iconStyle.bg} ${iconStyle.text}`;
             const typeDetails = getDeployTypeDetails(project.deploymentType || "ZIP");
-            const mockedDomain = `${project.name.toLowerCase().replace(/\s+/g, '-')}.portdock.id`;
+            const displayDomain = project.domain || `${project.name.toLowerCase().replace(/\s+/g, '-')}.portdock.id`;
 
             return (
               <tr key={project.id} className="hover:bg-muted/50 transition-colors group">
@@ -100,10 +100,15 @@ export function ProjectTable({ isLoading, projects, setDeleteId }: ProjectTableP
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="flex items-center gap-1.5 text-[13px] font-medium text-muted-foreground hover:text-blue-600 cursor-pointer transition-colors">
-                    {mockedDomain}
-                    <ExternalLink className="w-3 h-3 text-blue-500" />
-                  </div>
+                  <a 
+                    href={`http://${displayDomain}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 text-[13px] font-medium text-muted-foreground hover:text-blue-600 transition-colors"
+                  >
+                    {displayDomain}
+                    <ExternalLink className="w-3 h-3 text-blue-500 flex-shrink-0" />
+                  </a>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   {getStatusBadge(project.status)}

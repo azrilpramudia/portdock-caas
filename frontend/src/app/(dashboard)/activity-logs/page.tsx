@@ -104,7 +104,7 @@ export default function ActivityLogsPage() {
       targetTitle: log.project ? log.project.name : (log.description || "System"),
       targetSub: log.project ? "Project" : "Container / System",
       status: log.status || "Success",
-      ip: "-",
+      ip: log.ipAddress || "-",
     };
   });
 

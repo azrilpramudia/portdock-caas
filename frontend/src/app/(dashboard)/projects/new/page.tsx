@@ -50,27 +50,24 @@ const deployTypes = [
     label: "ZIP Upload",
     description: "Upload source code sebagai file ZIP",
     icon: FileArchive,
-    color: "text-purple-600",
-    bg: "bg-purple-50",
-    border: "border-purple-200",
+    color: "text-purple-600 dark:text-purple-400",
+    bg: "bg-purple-50 dark:bg-purple-500/20",
   },
   {
     value: "GITHUB" as const,
     label: "GitHub Repository",
     description: "Deploy dari repositori GitHub",
     icon: GitBranch,
-    color: "text-foreground",
-    bg: "bg-muted",
-    border: "border-border",
+    color: "text-foreground dark:text-foreground",
+    bg: "bg-muted dark:bg-muted",
   },
   {
     value: "DOCKERFILE" as const,
     label: "Custom Dockerfile",
     description: "Deploy menggunakan Dockerfile custom",
     icon: FileCode,
-    color: "text-blue-600",
-    bg: "bg-blue-50",
-    border: "border-blue-200",
+    color: "text-blue-600 dark:text-blue-400",
+    bg: "bg-blue-50 dark:bg-blue-500/20",
   },
 ];
 
@@ -91,6 +88,7 @@ export default function NewProjectPage() {
 
   const [file, setFile] = useState<File | null>(null);
   const [dragOver, setDragOver] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handleFileDrop = (e: React.DragEvent) => {
@@ -125,6 +123,12 @@ export default function NewProjectPage() {
         formData.append("file", file);
         await api.post(`/deployments/${project.id}/zip`, formData, {
           headers: { "Content-Type": "multipart/form-data" },
+          onUploadProgress: (progressEvent) => {
+            if (progressEvent.total) {
+              const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+              setUploadProgress(percentCompleted);
+            }
+          },
         });
       } else if (data.deploymentType === "GITHUB" && data.repositoryUrl) {
         await api.post(`/deployments/${project.id}/github`, {
@@ -221,7 +225,7 @@ export default function NewProjectPage() {
                 className={cn(
                   "w-full flex items-center gap-4 p-4 rounded-xl border-2 text-left transition-all duration-150",
                   deploymentType === type.value
-                    ? `border-blue-500 bg-blue-50/50 shadow-sm`
+                    ? `border-blue-500 bg-blue-50/50 dark:bg-blue-900/20 shadow-sm`
                     : "border-border hover:border-border/80 hover:bg-muted"
                 )}
               >
@@ -266,6 +270,15 @@ export default function NewProjectPage() {
                   {...register("repositoryUrl")}
                   className="h-10"
                 />
+                
+                {createMutation.isPending && (
+                  <div className="mt-4 space-y-2 p-3 bg-blue-50/50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-800">
+                    <p className="text-xs text-blue-600 dark:text-blue-400 animate-pulse flex items-center justify-center gap-2">
+                      <Rocket className="w-3 h-3" />
+                      Sedang mem-build dari GitHub (Bisa memakan waktu 1-5 menit)...
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 
@@ -283,9 +296,9 @@ export default function NewProjectPage() {
                   onClick={() => fileRef.current?.click()}
                   className={cn(
                     "border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-150",
-                    dragOver ? "border-blue-400 bg-blue-50" :
-                    file ? "border-green-400 bg-green-50" :
-                    "border-border hover:border-blue-400 hover:bg-muted"
+                    dragOver ? "border-blue-400 bg-blue-50 dark:bg-blue-900/20" :
+                    file ? "border-green-400 bg-green-50 dark:bg-green-900/20" :
+                    "border-border hover:border-blue-400 hover:bg-muted dark:hover:bg-muted/50"
                   )}
                 >
                   <input
@@ -298,7 +311,7 @@ export default function NewProjectPage() {
                   {file ? (
                     <>
                       <CheckCircle2 className="w-10 h-10 text-green-500 mx-auto mb-3" />
-                      <p className="font-medium text-green-700">{file.name}</p>
+                      <p className="font-medium text-green-700 dark:text-green-400">{file.name}</p>
                       <p className="text-xs text-muted-foreground mt-1">
                         {(file.size / 1024 / 1024).toFixed(2)} MB
                       </p>
@@ -316,6 +329,26 @@ export default function NewProjectPage() {
                     </>
                   )}
                 </div>
+                
+                {createMutation.isPending && uploadProgress > 0 && deploymentType === "ZIP" && (
+                  <div className="mt-4 space-y-2">
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>Mengunggah file...</span>
+                      <span>{uploadProgress}%</span>
+                    </div>
+                    <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+                      <div 
+                        className="bg-blue-500 h-full transition-all duration-300" 
+                        style={{ width: `${uploadProgress}%` }}
+                      />
+                    </div>
+                    {uploadProgress === 100 && (
+                      <p className="text-xs text-center text-blue-500 animate-pulse mt-2">
+                        Memproses container dan SSL (ini mungkin memakan waktu beberapa menit)...
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
             )}
           </CardContent>

@@ -6,6 +6,7 @@ interface CreateLogDto {
   projectId?: string;
   action: string;
   description?: string;
+  ipAddress?: string;
 }
 
 @Injectable()
@@ -19,6 +20,7 @@ export class ActivityLogsService {
         projectId: dto.projectId,
         action: dto.action,
         description: dto.description,
+        ipAddress: dto.ipAddress,
       },
     });
   }
@@ -132,7 +134,8 @@ export class ActivityLogsService {
       log.action,
       log.project?.name || 'System',
       `"${(log.description || '').replace(/"/g, '""')}"`,
-      log.status || 'Success'
+      log.status || 'Success',
+      log.ipAddress || '-'
     ]);
 
     return [header.join(','), ...rows.map(r => r.join(','))].join('\n');

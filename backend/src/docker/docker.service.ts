@@ -42,13 +42,26 @@ export class DockerService implements OnModuleInit {
         await this.pullImage('nginx:alpine');
       }
 
+      const certbotConfDir = path.resolve(process.cwd(), 'certbot-conf');
+      const certbotWwwDir = path.resolve(process.cwd(), 'certbot-www');
+      
+      if (!fs.existsSync(certbotConfDir)) fs.mkdirSync(certbotConfDir, { recursive: true });
+      if (!fs.existsSync(certbotWwwDir)) fs.mkdirSync(certbotWwwDir, { recursive: true });
+
       const container = await this.createContainer({
         name: 'portdock-nginx',
         Image: 'nginx:alpine',
-        ExposedPorts: { '80/tcp': {} },
+        ExposedPorts: { '80/tcp': {}, '443/tcp': {} },
         HostConfig: {
-          PortBindings: { '80/tcp': [{ HostPort: '80' }] },
-          Binds: [`${confDir}:/etc/nginx/conf.d`],
+          PortBindings: { 
+            '80/tcp': [{ HostPort: '80' }],
+            '443/tcp': [{ HostPort: '443' }]
+          },
+          Binds: [
+            `${confDir}:/etc/nginx/conf.d`,
+            `${certbotConfDir}:/etc/letsencrypt`,
+            `${certbotWwwDir}:/var/www/certbot`
+          ],
           RestartPolicy: { Name: 'always' },
           NetworkMode: 'host', // For easier localhost routing, or bridge mapping
         },

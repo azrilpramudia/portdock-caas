@@ -85,7 +85,7 @@ export class ContainersService {
 
     const containers = await this.prisma.container.findMany({
       where,
-      include: { project: { select: { id: true, name: true } } },
+      include: { project: { select: { id: true, name: true, domain: true } } },
       orderBy: { createdAt: 'desc' },
     });
 
@@ -112,7 +112,7 @@ export class ContainersService {
   async findOne(id: string, userId: string) {
     const container = await this.prisma.container.findUnique({
       where: { id },
-      include: { project: { select: { id: true, name: true, userId: true } } },
+      include: { project: { select: { id: true, name: true, userId: true, domain: true } } },
     });
 
     if (!container) throw new NotFoundException('Container not found');

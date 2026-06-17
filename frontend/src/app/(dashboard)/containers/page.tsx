@@ -96,6 +96,7 @@ export default function ContainersPage() {
       name: c.name,
       image: `${c.imageName}:${c.imageTag}`,
       project: c.project?.name || '-',
+      domain: c.project?.domain || null,
       port: c.hostPort ? `${c.hostPort} -> ${c.internalPort}` : (c.internalPort || "-"),
       hostPort: c.hostPort,
       status: c.status === 'RUNNING' ? 'Running' : c.status === 'FAILED' ? 'Failed' : 'Stopped',

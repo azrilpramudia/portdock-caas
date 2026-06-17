@@ -106,7 +106,17 @@ export function ContainerTable({
                   <td className="px-5 py-4 font-medium text-muted-foreground">{c.createdAt}</td>
                   <td className="px-5 py-4">
                     <div className="flex items-center justify-center gap-2">
-                      {c.hostPort ? (
+                      {c.domain ? (
+                        <a 
+                          href={`http://${c.domain}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors border text-muted-foreground hover:bg-muted hover:text-foreground border-border bg-card"
+                          title={`Open ${c.domain}`}
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                        </a>
+                      ) : c.hostPort ? (
                         <a 
                           href={`http://localhost:${c.hostPort}`}
                           target="_blank"

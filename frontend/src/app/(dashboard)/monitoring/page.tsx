@@ -198,7 +198,7 @@ export default function MonitoringIndexPage() {
             <h3 className="text-[15px] font-bold text-foreground">Recent Resource Logs</h3>
           </div>
           
-          <div className="overflow-x-auto border border-border rounded-xl max-h-[300px] overflow-y-auto">
+          <div className="overflow-x-auto border border-border rounded-xl h-[268px] overflow-y-auto custom-scrollbar">
             <table className="w-full text-left">
               <thead className="bg-card sticky top-0 z-10 shadow-sm">
                 <tr className="border-b border-border text-[12px] font-semibold text-muted-foreground">
