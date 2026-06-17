@@ -193,9 +193,10 @@ export default function ContainersPage() {
         search={search}
         onSearchChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
         statusFilter={statusFilter}
-        onStatusFilterChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
+        setStatusFilter={setStatusFilter}
         projectFilter={projectFilter}
-        onProjectFilterChange={(e) => { setProjectFilter(e.target.value); setCurrentPage(1); }}
+        setProjectFilter={setProjectFilter}
+        setCurrentPage={setCurrentPage}
         uniqueProjects={uniqueProjects}
         isLoading={isLoading}
         onRefresh={handleRefresh}

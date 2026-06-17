@@ -14,6 +14,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 import api from "@/lib/api";
 import { useProjectsList, useDeleteProject } from "@/hooks/useProjects";
@@ -109,22 +110,25 @@ export default function ProjectsPage() {
               />
             </div>
             <div className="relative w-40">
-              <select 
-                className="w-full h-10 pl-10 pr-8 text-[13px] font-medium text-foreground bg-card border border-border rounded-xl appearance-none outline-none focus:border-blue-500 cursor-pointer"
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-              >
-                <option value="all">All Status</option>
-                <option value="ACTIVE">Running</option>
-                <option value="INACTIVE">Stopped</option>
-                <option value="FAILED">Failed</option>
-              </select>
-              <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                <Filter className="w-3.5 h-3.5 text-muted-foreground" />
-              </div>
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                <ChevronDown className="w-4 h-4 text-muted-foreground" />
-              </div>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full bg-card border-border text-foreground text-[13px] rounded-xl h-10 px-4 font-bold focus:ring-blue-500/20">
+                  <div className="flex items-center gap-2">
+                    <Filter className="w-3.5 h-3.5 text-muted-foreground" />
+                    <span className="truncate">
+                      {statusFilter === 'all' ? 'All Status' : 
+                       statusFilter === 'ACTIVE' ? 'Running' : 
+                       statusFilter === 'INACTIVE' ? 'Stopped' : 
+                       statusFilter === 'FAILED' ? 'Failed' : 'All Status'}
+                    </span>
+                  </div>
+                </SelectTrigger>
+                <SelectContent className="rounded-xl border-border bg-card">
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="ACTIVE">Running</SelectItem>
+                  <SelectItem value="INACTIVE">Stopped</SelectItem>
+                  <SelectItem value="FAILED">Failed</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>

@@ -4,12 +4,18 @@ import { useState, useEffect } from "react";
 import { ChevronDown, RefreshCw, Activity, CheckCircle2, Disc, Hash, Link2, Calendar, ArrowRight, ArrowUp, ArrowDown } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { containersService } from "@/services/containers.service";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useContainerMonitoring } from "@/hooks/useContainerMonitoring";
 import { MonitoringStats } from "@/components/monitoring/MonitoringStats";
 import { MonitoringCharts } from "@/components/monitoring/MonitoringCharts";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function MonitoringIndexPage() {
-  const [selectedContainerId, setSelectedContainerId] = useState<string>("");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const containerIdParam = searchParams.get("containerId");
+  
+  const [selectedContainerId, setSelectedContainerId] = useState<string>(containerIdParam || "");
   const [isRealTime, setIsRealTime] = useState(true);
 
   const { data: containersData } = useQuery({
@@ -20,15 +26,13 @@ export default function MonitoringIndexPage() {
   const containers = Array.isArray(containersData) ? containersData : (containersData?.data || []);
 
   useEffect(() => {
-    if (containers.length > 0 && !selectedContainerId) {
+    if (containerIdParam) {
+      setSelectedContainerId(containerIdParam);
+    } else if (containers.length > 0 && !selectedContainerId) {
       const running = containers.find((c: any) => c.status === "RUNNING");
-      if (running) {
-        setSelectedContainerId(running.id);
-      } else {
-        setSelectedContainerId(containers[0].id);
-      }
+      setSelectedContainerId(running ? running.id : containers[0].id);
     }
-  }, [containers, selectedContainerId]);
+  }, [containers, containerIdParam, selectedContainerId]);
 
   const {
     cpuPercent,
@@ -56,24 +60,25 @@ export default function MonitoringIndexPage() {
         <div>
           <p className="text-[12px] font-bold text-muted-foreground mb-2">Container Selection</p>
           <div className="relative w-full md:w-[320px]">
-            <select 
+            <Select 
               value={selectedContainerId} 
-              onChange={(e) => {
-                setSelectedContainerId(e.target.value);
+              onValueChange={(val) => {
+                setSelectedContainerId(val);
                 handleManualRefresh();
+                router.push(`/monitoring?containerId=${val}`);
               }}
-              className="flex items-center gap-2 w-full h-10 px-3 pr-10 text-[13px] font-bold text-foreground bg-card border border-border rounded-lg cursor-pointer hover:border-border/80 transition-colors appearance-none focus:outline-none focus:ring-2 focus:ring-emerald-500"
             >
-              <option value="" disabled>Select Container</option>
-              {containers.map((c: any) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-              <ChevronDown className="w-4 h-4 text-muted-foreground/70" />
-            </div>
+              <SelectTrigger className="w-full bg-card border-border text-foreground text-[13px] font-bold rounded-lg h-10 px-3">
+                <SelectValue placeholder="Select Container" />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl border-border bg-card">
+                {containers.map((c: any) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 

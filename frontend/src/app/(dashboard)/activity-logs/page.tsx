@@ -31,6 +31,7 @@ import { Activity } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { DateRange } from "react-day-picker";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 import { useQuery } from "@tanstack/react-query";
 import { activityService } from "@/services/activity.service";
@@ -113,7 +114,7 @@ export default function ActivityLogsPage() {
   const startCount = totalLogs === 0 ? 0 : (currentPage - 1) * 15 + 1;
   const endCount = Math.min(currentPage * 15, totalLogs);
   return (
-    <div className="bg-card border border-border rounded-2xl shadow-sm overflow-hidden flex flex-col h-[calc(100vh-144px)]">
+    <div className="bg-card border border-border rounded-2xl shadow-sm overflow-hidden flex flex-col h-[calc(100vh-12rem)] min-h-[500px]">
       
       {/* 1. TOP FILTER BAR */}
       <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 p-6 border-b border-border">
@@ -136,22 +137,18 @@ export default function ActivityLogsPage() {
 
           {/* Action Dropdown */}
           <div className="relative w-full sm:w-[180px]">
-            <select 
-              value={actionFilter}
-              onChange={(e) => {
-                setActionFilter(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="w-full appearance-none bg-card border border-border text-foreground text-[14px] rounded-xl px-4 py-2.5 outline-none font-bold pr-10 cursor-pointer"
-            >
-              <option value="All Actions">All Actions</option>
-              <option value="Start">Started</option>
-              <option value="Stop">Stopped</option>
-              <option value="Create">Created</option>
-              <option value="Delete">Deleted</option>
-              <option value="Deploy">Deployed</option>
-            </select>
-            <ChevronDown className="w-4 h-4 text-muted-foreground absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <Select value={actionFilter} onValueChange={(value) => { setActionFilter(value); setCurrentPage(1); }}>
+              <SelectTrigger className="w-full bg-card border-border text-foreground text-[14px] rounded-xl h-11 px-4 font-bold focus:ring-blue-500/20">
+                <SelectValue placeholder="All Actions" />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl border-border bg-card">
+                <SelectItem value="All Actions">All Actions</SelectItem>
+                <SelectItem value="Start">Started</SelectItem>
+                <SelectItem value="Stop">Stopped</SelectItem>
+                <SelectItem value="Create">Created</SelectItem>
+                <SelectItem value="Delete">Deleted</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Date Picker */}
@@ -191,21 +188,18 @@ export default function ActivityLogsPage() {
           </div>
 
           {/* Status Dropdown */}
-          <div className="relative w-full sm:w-[160px]">
-            <select 
-              value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="w-full appearance-none bg-card border border-border text-foreground text-[14px] rounded-xl px-4 py-2.5 outline-none font-bold pr-10 cursor-pointer"
-            >
-              <option value="All Status">All Status</option>
-              <option value="Success">Success</option>
-              <option value="Failed">Failed</option>
-              <option value="Pending">Pending</option>
-            </select>
-            <ChevronDown className="w-4 h-4 text-muted-foreground absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <div className="relative w-full sm:w-[150px]">
+            <Select value={statusFilter} onValueChange={(value) => { setStatusFilter(value); setCurrentPage(1); }}>
+              <SelectTrigger className="w-full bg-card border-border text-foreground text-[14px] rounded-xl h-11 px-4 font-bold focus:ring-blue-500/20">
+                <SelectValue placeholder="All Status" />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl border-border bg-card">
+                <SelectItem value="All Status">All Status</SelectItem>
+                <SelectItem value="Success">Success</SelectItem>
+                <SelectItem value="Failed">Failed</SelectItem>
+                <SelectItem value="Pending">Pending</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
         </div>
