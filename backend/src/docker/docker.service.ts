@@ -100,6 +100,16 @@ export class DockerService implements OnModuleInit {
     await container.remove({ force });
   }
 
+  async removeImage(imageName: string) {
+    try {
+      const image = this.docker.getImage(imageName);
+      await image.remove({ force: true });
+      this.logger.log(`Successfully removed image: ${imageName}`);
+    } catch (err) {
+      this.logger.warn(`Failed to remove image ${imageName}: ${err.message}`);
+    }
+  }
+
   async getContainerStats(dockerContainerId: string): Promise<any> {
     const container = this.docker.getContainer(dockerContainerId);
     return new Promise((resolve, reject) => {

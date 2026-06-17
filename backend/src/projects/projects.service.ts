@@ -117,6 +117,11 @@ export class ProjectsService {
           await dockerContainer.stop().catch(() => {});
           await dockerContainer.remove({ force: true }).catch(() => {});
         }
+        if (container.imageName) {
+          const imageTag = container.imageTag || 'latest';
+          const fullImageName = `${container.imageName}:${imageTag}`;
+          await this.docker.removeImage(fullImageName).catch(() => {});
+        }
       } catch (err) {
         this.logger.warn(`Failed to cleanup docker container ${container.dockerContainerId}: ${err.message}`);
       }

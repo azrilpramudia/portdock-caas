@@ -200,6 +200,15 @@ export class ContainersService {
         await this.docker.removeContainer(container.dockerContainerId, true);
       } catch {}
     }
+    
+    // Attempt to remove the image as well to prevent server bloat
+    if (container.imageName) {
+      try {
+        const imageTag = container.imageTag || 'latest';
+        const fullImageName = `${container.imageName}:${imageTag}`;
+        await this.docker.removeImage(fullImageName);
+      } catch {}
+    }
 
     await this.prisma.container.delete({ where: { id } });
 

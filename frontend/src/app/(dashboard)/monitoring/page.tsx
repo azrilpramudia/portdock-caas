@@ -110,12 +110,20 @@ export default function MonitoringIndexPage() {
 
       {/* 3. MAIN CHARTS */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <MonitoringCharts areaChartData={areaChartData} />
-        {/* Placeholder for the other side, can be separated if needed */}
-        <div className="bg-card border border-border rounded-2xl p-6 shadow-sm flex flex-col items-center justify-center min-h-[300px]">
-          <h3 className="text-[15px] font-bold text-foreground mb-4">Network & Disk Flow</h3>
-          <p className="text-muted-foreground text-sm">Detailed views can be expanded here.</p>
-        </div>
+        <MonitoringCharts 
+          title="CPU Usage (Timeline)"
+          dataKey="cpu"
+          color="#2563eb"
+          gradientId="colorCpu"
+          areaChartData={areaChartData} 
+        />
+        <MonitoringCharts 
+          title="RAM Usage (Timeline)"
+          dataKey="ram"
+          color="#10b981"
+          gradientId="colorRam"
+          areaChartData={areaChartData} 
+        />
       </div>
 
       {/* 4. BOTTOM PANELS */}
