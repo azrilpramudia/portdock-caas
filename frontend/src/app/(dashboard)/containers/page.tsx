@@ -10,6 +10,14 @@ import { useState } from "react";
 import { ContainerDetails } from "@/components/containers/ContainerDetails";
 import { ContainerFilters } from "@/components/containers/ContainerFilters";
 import { ContainerTable } from "@/components/containers/ContainerTable";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export default function ContainersPage() {
   const [search, setSearch] = useState("");
@@ -17,6 +25,7 @@ export default function ContainersPage() {
   const [projectFilter, setProjectFilter] = useState("All Projects");
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedContainer, setSelectedContainer] = useState<{id: string, name: string} | null>(null);
+  const [containerToDelete, setContainerToDelete] = useState<string | null>(null);
   
   const queryClient = useQueryClient();
   const ITEMS_PER_PAGE = 10;
@@ -59,8 +68,13 @@ export default function ContainersPage() {
     mutationFn: (id: string) => containersService.deleteContainer(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["containers"] });
-      toast.success("Container deleted");
+      toast.success("Container deleted successfully");
+      setContainerToDelete(null);
     },
+    onError: (err: any) => {
+      toast.error(err.message || "Failed to delete container");
+      setContainerToDelete(null);
+    }
   });
 
   const rawContainers = containersData || [];
@@ -83,6 +97,7 @@ export default function ContainersPage() {
       image: `${c.imageName}:${c.imageTag}`,
       project: c.project?.name || '-',
       port: c.hostPort ? `${c.hostPort} -> ${c.internalPort}` : (c.internalPort || "-"),
+      hostPort: c.hostPort,
       status: c.status === 'RUNNING' ? 'Running' : c.status === 'FAILED' ? 'Failed' : 'Stopped',
       uptime: c.status === 'RUNNING' ? 'Active' : '-',
       createdAt: format(new Date(c.createdAt), 'MMM dd, yyyy'),
@@ -195,7 +210,7 @@ export default function ContainersPage() {
         onStart={(id) => startMutation.mutate(id)}
         onStop={(id) => stopMutation.mutate(id)}
         onRestart={(id) => restartMutation.mutate(id)}
-        onDelete={(id) => deleteMutation.mutate(id)}
+        onDelete={(id) => setContainerToDelete(id)}
       />
 
       {/* 4. PAGINATION */}
@@ -229,6 +244,34 @@ export default function ContainersPage() {
           onClose={() => setSelectedContainer(null)} 
         />
       )}
+
+      {/* Delete Confirmation Modal */}
+      <Dialog open={!!containerToDelete} onOpenChange={(open) => !open && setContainerToDelete(null)}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Delete Container</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this container? This action cannot be undone and all data inside the container will be lost.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="mt-4">
+            <button
+              onClick={() => setContainerToDelete(null)}
+              className="px-4 py-2 text-sm font-medium text-muted-foreground bg-muted hover:bg-muted/80 rounded-md transition-colors"
+              disabled={deleteMutation.isPending}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => containerToDelete && deleteMutation.mutate(containerToDelete)}
+              className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors flex items-center gap-2"
+              disabled={deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? "Deleting..." : "Delete"}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

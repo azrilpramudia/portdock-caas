@@ -32,7 +32,6 @@ export function useTerminalSession(selectedContainerId: string) {
         isInitializing.current = true;
         try {
           const xtermModule = await import("xterm");
-          await import("xterm/css/xterm.css");
           const fitAddonModule = await import("xterm-addon-fit");
 
           if (xtermRef.current) return;

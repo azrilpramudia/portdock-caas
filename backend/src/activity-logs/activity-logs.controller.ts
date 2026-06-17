@@ -6,8 +6,10 @@ import {
   Request,
   ParseIntPipe,
   DefaultValuePipe,
+  Res,
 } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import type { Response } from 'express';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiProduces } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ActivityLogsService } from './activity-logs.service';
 
@@ -24,8 +26,31 @@ export class ActivityLogsController {
     @Request() req: any,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page?: number,
     @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit?: number,
+    @Query('search') search?: string,
+    @Query('action') action?: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+    @Query('status') status?: string,
   ) {
-    return this.activityLogsService.findAll(req.user.id, page, limit);
+    return this.activityLogsService.findAll(req.user.id, page, limit, search, action, startDate, endDate, status);
+  }
+
+  @Get('export')
+  @ApiOperation({ summary: 'Export activity logs to CSV' })
+  @ApiProduces('text/csv')
+  async export(
+    @Request() req: any,
+    @Res() res: Response,
+    @Query('search') search?: string,
+    @Query('action') action?: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+    @Query('status') status?: string,
+  ) {
+    const csv = await this.activityLogsService.exportLogs(req.user.id, search, action, startDate, endDate, status);
+    res.header('Content-Type', 'text/csv');
+    res.attachment('activity-logs.csv');
+    return res.send(csv);
   }
 
   @Get('recent')

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Trash2, Download, Maximize } from "lucide-react";
+import "xterm/css/xterm.css";
 
 interface TerminalWindowProps {
   terminalRef: React.RefObject<HTMLDivElement>;

@@ -33,7 +33,14 @@ export default function TerminalPage() {
     const fetchContainers = async () => {
       try {
         const data = await containersService.getContainers();
-        setContainers(data.filter((c: any) => c.status === "RUNNING"));
+        const running = data.filter((c: any) => c.status === "RUNNING");
+        setContainers(running);
+        
+        const params = new URLSearchParams(window.location.search);
+        const urlContainerId = params.get("containerId");
+        if (urlContainerId && running.some((c: any) => c.id === urlContainerId)) {
+          setSelectedContainerId(urlContainerId);
+        }
       } catch (err) {
         toast.error("Failed to fetch containers");
       }
@@ -43,15 +50,6 @@ export default function TerminalPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight text-foreground">Web Terminal</h2>
-          <p className="text-muted-foreground mt-1">
-            Access secure SSH sessions to your running containers
-          </p>
-        </div>
-      </div>
-
       <TerminalHeader 
         containers={containers}
         selectedContainerId={selectedContainerId}

@@ -1,5 +1,5 @@
 import React from "react";
-import { RefreshCw, Eye, Play, Square, RefreshCw as RestartIcon, Trash2, MoreVertical, TerminalSquare, FileText } from "lucide-react";
+import { RefreshCw, Eye, Play, Square, RefreshCw as RestartIcon, Trash2, MoreVertical, TerminalSquare, FileText, ExternalLink } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -7,6 +7,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { useRouter } from "next/navigation";
 
 interface ContainerTableProps {
   containers: any[];
@@ -31,6 +32,8 @@ export function ContainerTable({
   onRestart,
   onDelete,
 }: ContainerTableProps) {
+  const router = useRouter();
+
   return (
     <div className="bg-card border border-border rounded-2xl shadow-sm p-6 overflow-hidden">
       <h2 className="text-[15px] font-bold text-foreground mb-6">Containers List</h2>
@@ -103,12 +106,25 @@ export function ContainerTable({
                   <td className="px-5 py-4 font-medium text-muted-foreground">{c.createdAt}</td>
                   <td className="px-5 py-4">
                     <div className="flex items-center justify-center gap-2">
-                      <button 
-                        onClick={() => setSelectedContainer({ id: c.id, name: c.name })}
-                        className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors border ${selectedContainer?.id === c.id ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20' : 'text-muted-foreground hover:bg-muted hover:text-foreground border-border bg-card'}`}
-                      >
-                        <Eye className="w-4 h-4" />
-                      </button>
+                      {c.hostPort ? (
+                        <a 
+                          href={`http://localhost:${c.hostPort}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors border text-muted-foreground hover:bg-muted hover:text-foreground border-border bg-card"
+                          title="Open Application in Browser"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                        </a>
+                      ) : (
+                        <button 
+                          disabled
+                          className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors border text-muted-foreground/30 border-border bg-card cursor-not-allowed"
+                          title="No port exposed"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                        </button>
+                      )}
                       
                       {c.status === "Running" ? (
                         <>
@@ -130,11 +146,17 @@ export function ContainerTable({
                           <MoreVertical className="w-4 h-4" />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-48 bg-card border-border shadow-xl rounded-xl">
-                          <DropdownMenuItem className="flex items-center gap-2 py-2.5 cursor-pointer hover:bg-muted">
+                          <DropdownMenuItem 
+                            className="flex items-center gap-2 py-2.5 cursor-pointer hover:bg-muted"
+                            onClick={() => router.push(`/terminal?containerId=${c.id}`)}
+                          >
                             <TerminalSquare className="w-4 h-4 text-blue-500" />
                             <span className="font-medium text-[13px]">Open Terminal</span>
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="flex items-center gap-2 py-2.5 cursor-pointer hover:bg-muted">
+                          <DropdownMenuItem 
+                            className="flex items-center gap-2 py-2.5 cursor-pointer hover:bg-muted"
+                            onClick={() => setSelectedContainer({ id: c.id, name: c.name })}
+                          >
                             <FileText className="w-4 h-4 text-emerald-500" />
                             <span className="font-medium text-[13px]">View Logs</span>
                           </DropdownMenuItem>
@@ -142,9 +164,7 @@ export function ContainerTable({
                           <DropdownMenuItem 
                             className="flex items-center gap-2 py-2.5 cursor-pointer text-red-500 hover:text-red-600 hover:bg-red-500/10"
                             onClick={() => {
-                              if (window.confirm("Are you sure you want to delete this container?")) {
-                                onDelete(c.id);
-                              }
+                              onDelete(c.id);
                             }}
                           >
                             <Trash2 className="w-4 h-4" />

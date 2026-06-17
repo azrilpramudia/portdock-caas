@@ -71,6 +71,7 @@ model ActivityLog {
   projectId   String?  @map("project_id")
   action      String
   description String?
+  status      String   @default("Success")
   createdAt   DateTime @default(now()) @map("created_at")
 
   user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
