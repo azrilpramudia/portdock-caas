@@ -9,10 +9,14 @@ import { TerminalHeader } from "@/components/terminal/TerminalHeader";
 import { SessionInfoPanel } from "@/components/terminal/SessionInfoPanel";
 import { TerminalWindow } from "@/components/terminal/TerminalWindow";
 import { RecentCommandsSidebar } from "@/components/terminal/RecentCommandsSidebar";
+import { TerminalLogsTable } from "@/components/terminal/TerminalLogsTable";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TerminalSquare, ListTodo } from "lucide-react";
 
 export default function TerminalPage() {
   const [containers, setContainers] = useState<any[]>([]);
   const [selectedContainerId, setSelectedContainerId] = useState("");
+  const [activeTab, setActiveTab] = useState("live");
 
   const {
     terminalRef,
@@ -61,20 +65,47 @@ export default function TerminalPage() {
 
       <SessionInfoPanel sessionInfo={sessionInfo} isConnected={isConnected} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6">
-        <TerminalWindow 
-          terminalRef={terminalRef}
-          onClear={handleClear}
-          onDownloadLog={handleDownloadLog}
-          onMaximizeToggle={fitTerminal}
-        />
-        
-        <RecentCommandsSidebar 
-          commands={recentCommands}
-          onClear={() => setRecentCommands([])}
-          onExecute={executeCommand}
-        />
-      </div>
+      <Tabs value={activeTab} onValueChange={(val) => {
+        setActiveTab(val);
+        if (val === 'live') {
+          // Small delay to allow DOM to un-hide before fitting
+          setTimeout(() => fitTerminal(), 50);
+        }
+      }} className="w-full">
+        <div className="flex justify-between items-center mb-4">
+          <TabsList className="bg-muted/50 p-1 border border-border/50">
+            <TabsTrigger value="live" className="gap-2 px-6 data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm text-muted-foreground">
+              <TerminalSquare className="w-4 h-4" />
+              Live Terminal
+            </TabsTrigger>
+            <TabsTrigger value="logs" className="gap-2 px-6 data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm text-muted-foreground">
+              <ListTodo className="w-4 h-4" />
+              Command Logs
+            </TabsTrigger>
+          </TabsList>
+        </div>
+
+        <div className={activeTab === 'live' ? 'block' : 'hidden'}>
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6">
+            <TerminalWindow 
+              terminalRef={terminalRef}
+              onClear={handleClear}
+              onDownloadLog={handleDownloadLog}
+              onMaximizeToggle={fitTerminal}
+            />
+            
+            <RecentCommandsSidebar 
+              commands={recentCommands}
+              onClear={() => setRecentCommands([])}
+              onExecute={executeCommand}
+            />
+          </div>
+        </div>
+
+        <TabsContent value="logs" className="mt-0 focus-visible:outline-none focus-visible:ring-0 border-0 p-0">
+          <TerminalLogsTable containerId={selectedContainerId} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

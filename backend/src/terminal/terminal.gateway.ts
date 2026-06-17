@@ -24,6 +24,8 @@ export class TerminalGateway implements OnGatewayConnection, OnGatewayDisconnect
 
   private readonly logger = new Logger(TerminalGateway.name);
   private sessions: Map<string, { write: (data: string) => void; resize: (cols: number, rows: number) => void; kill: () => void }> = new Map();
+  private commandBuffers: Map<string, string> = new Map();
+  private containerInfo: Map<string, { containerId: string; projectId: string; userId: string }> = new Map();
 
   constructor(
     private terminalService: TerminalService,
@@ -50,12 +52,20 @@ export class TerminalGateway implements OnGatewayConnection, OnGatewayDisconnect
       // Find the docker container ID from our DB container ID
       const container = await this.prisma.container.findUnique({
         where: { id: data.containerId },
+        include: { project: true }
       });
 
       if (!container || !container.dockerContainerId) {
         client.emit('terminal_error', 'Container not found or docker ID missing');
         return;
       }
+
+      this.containerInfo.set(client.id, {
+        containerId: container.id,
+        projectId: container.projectId,
+        userId: container.project.userId
+      });
+      this.commandBuffers.set(client.id, "");
 
       // Cleanup any existing session for this client
       this.cleanupSession(client.id);
@@ -89,6 +99,34 @@ export class TerminalGateway implements OnGatewayConnection, OnGatewayDisconnect
     const session = this.sessions.get(client.id);
     if (session) {
       session.write(input);
+
+      // Skip arrow keys and other control sequences
+      if (input.startsWith('\x1b')) return;
+
+      const buffer = this.commandBuffers.get(client.id) || "";
+      if (input.includes('\r')) {
+        const parts = input.split('\r');
+        const finalCmd = (buffer + parts[0]).trim();
+        
+        if (finalCmd) {
+          const info = this.containerInfo.get(client.id);
+          if (info) {
+            this.prisma.terminalLog.create({
+              data: {
+                userId: info.userId,
+                projectId: info.projectId,
+                command: finalCmd,
+              }
+            }).catch(err => this.logger.error(`Failed to save terminal log: ${err.message}`));
+          }
+        }
+        this.commandBuffers.set(client.id, "");
+      } else if (input === '\u007F') { // Backspace
+        this.commandBuffers.set(client.id, buffer.slice(0, -1));
+      } else {
+        const printable = input.replace(/[\u0000-\u001F\u007F-\u009F]/g, '');
+        this.commandBuffers.set(client.id, buffer + printable);
+      }
     }
   }
 
@@ -105,6 +143,8 @@ export class TerminalGateway implements OnGatewayConnection, OnGatewayDisconnect
     if (session) {
       session.kill();
       this.sessions.delete(clientId);
+      this.commandBuffers.delete(clientId);
+      this.containerInfo.delete(clientId);
     }
   }
 }

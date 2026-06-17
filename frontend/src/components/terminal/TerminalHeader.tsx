@@ -48,7 +48,7 @@ export function TerminalHeader({
             </div>
             <ChevronDown className="w-4 h-4 text-muted-foreground" />
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-[320px] bg-card border-border shadow-xl rounded-xl">
+          <DropdownMenuContent className="w-[320px] bg-card border-border shadow-xl rounded-xl max-h-[200px] overflow-y-auto custom-scrollbar">
             {containers.map((c) => (
               <DropdownMenuItem
                 key={c.id}
