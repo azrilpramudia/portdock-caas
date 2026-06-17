@@ -173,7 +173,6 @@ export default function ActivityLogsPage() {
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="center">
                 <Calendar
-                  initialFocus
                   mode="range"
                   defaultMonth={date?.from}
                   selected={date}
@@ -244,7 +243,7 @@ export default function ActivityLogsPage() {
                 </td>
               </tr>
             ) : (
-              logs.map((log) => (
+              logs.map((log: any) => (
                 <tr key={log.id} className="hover:bg-muted/50 transition-colors group">
                   
                   {/* Time */}

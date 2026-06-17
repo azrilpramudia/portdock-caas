@@ -63,9 +63,9 @@ export default function MonitoringIndexPage() {
             <Select 
               value={selectedContainerId} 
               onValueChange={(val) => {
-                setSelectedContainerId(val);
+                setSelectedContainerId(val || "all");
                 handleManualRefresh();
-                router.push(`/monitoring?containerId=${val}`);
+                router.push(`/monitoring?containerId=${val || "all"}`);
               }}
             >
               <SelectTrigger className="w-full bg-card border-border text-foreground text-[13px] font-bold rounded-lg h-10 px-3">
