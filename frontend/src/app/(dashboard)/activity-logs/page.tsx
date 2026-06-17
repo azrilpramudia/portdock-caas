@@ -137,7 +137,7 @@ export default function ActivityLogsPage() {
 
           {/* Action Dropdown */}
           <div className="relative w-full sm:w-[180px]">
-            <Select value={actionFilter} onValueChange={(value) => { setActionFilter(value); setCurrentPage(1); }}>
+            <Select value={actionFilter} onValueChange={(value) => { setActionFilter(value || "All Actions"); setCurrentPage(1); }}>
               <SelectTrigger className="w-full bg-card border-border text-foreground text-[14px] rounded-xl h-11 px-4 font-bold focus:ring-blue-500/20">
                 <SelectValue placeholder="All Actions" />
               </SelectTrigger>
@@ -189,7 +189,7 @@ export default function ActivityLogsPage() {
 
           {/* Status Dropdown */}
           <div className="relative w-full sm:w-[150px]">
-            <Select value={statusFilter} onValueChange={(value) => { setStatusFilter(value); setCurrentPage(1); }}>
+            <Select value={statusFilter} onValueChange={(value) => { setStatusFilter(value || "All Status"); setCurrentPage(1); }}>
               <SelectTrigger className="w-full bg-card border-border text-foreground text-[14px] rounded-xl h-11 px-4 font-bold focus:ring-blue-500/20">
                 <SelectValue placeholder="All Status" />
               </SelectTrigger>
