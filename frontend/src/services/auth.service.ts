@@ -24,6 +24,11 @@ export const authService = {
     return res.data;
   },
 
+  logout: async (): Promise<{ message: string }> => {
+    const res = await api.post("/auth/logout");
+    return res.data;
+  },
+
   updateProfile: async (data: { name: string; email: string }): Promise<User> => {
     const res = await api.post("/auth/profile", data);
     return res.data;

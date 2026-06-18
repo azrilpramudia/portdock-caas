@@ -3,7 +3,7 @@ import { Trash2, Download, Maximize } from "lucide-react";
 import "xterm/css/xterm.css";
 
 interface TerminalWindowProps {
-  terminalRef: React.RefObject<HTMLDivElement>;
+  terminalRef: React.RefObject<HTMLDivElement | null>;
   onClear: () => void;
   onDownloadLog: () => void;
   onMaximizeToggle: () => void;

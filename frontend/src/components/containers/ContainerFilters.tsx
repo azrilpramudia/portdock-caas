@@ -43,7 +43,7 @@ export function ContainerFilters({
       
       {/* Status Filter */}
       <div className="relative w-full sm:w-[160px]">
-        <Select value={statusFilter} onValueChange={(val) => { setStatusFilter(val); setCurrentPage(1); }}>
+        <Select value={statusFilter} onValueChange={(val) => { setStatusFilter(val || "all"); setCurrentPage(1); }}>
           <SelectTrigger className="w-full bg-card border-border text-foreground text-[14px] rounded-xl h-11 px-4 font-bold focus:ring-blue-500/20">
             <div className="flex items-center gap-2">
               <Filter className="w-3.5 h-3.5 text-muted-foreground" />
@@ -61,7 +61,7 @@ export function ContainerFilters({
 
       {/* Project Filter */}
       <div className="relative w-full sm:w-[180px]">
-        <Select value={projectFilter} onValueChange={(val) => { setProjectFilter(val); setCurrentPage(1); }}>
+        <Select value={projectFilter} onValueChange={(val) => { setProjectFilter(val || "all"); setCurrentPage(1); }}>
           <SelectTrigger className="w-full bg-card border-border text-foreground text-[14px] rounded-xl h-11 px-4 font-bold focus:ring-blue-500/20">
             <div className="flex items-center gap-2">
               <Box className="w-3.5 h-3.5 text-muted-foreground" />

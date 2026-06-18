@@ -27,7 +27,9 @@ export class DockerService implements OnModuleInit {
       this.nginxContainerId = nginxContainer.Id;
       if (nginxContainer.State !== 'running') {
         this.logger.log('Starting portdock-nginx container...');
+      if (this.nginxContainerId) {
         await this.startContainer(this.nginxContainerId);
+      }
       }
     } else {
       this.logger.log('Creating portdock-nginx container...');

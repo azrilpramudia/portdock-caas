@@ -3,21 +3,13 @@ import axios from "axios";
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api",
   timeout: 300000, // Increased to 5 minutes to allow Docker builds to finish
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-// Request interceptor - add JWT token
-api.interceptors.request.use((config) => {
-  if (typeof window !== "undefined") {
-    const token = localStorage.getItem("portdock_token");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-  }
-  return config;
-});
+// Removed manual request interceptor for JWT since we use HttpOnly cookies
 
 // Response interceptor - handle 401
 api.interceptors.response.use(
@@ -28,8 +20,6 @@ api.interceptors.response.use(
         // Prevent refresh if we are already on login or register pages
         const currentPath = window.location.pathname;
         if (currentPath !== "/login" && currentPath !== "/register") {
-          localStorage.removeItem("portdock_token");
-          localStorage.removeItem("portdock_user");
           window.location.href = "/login";
         }
       }

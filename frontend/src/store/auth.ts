@@ -8,7 +8,7 @@ interface AuthState {
   isAuthenticated: boolean;
   setAuth: (user: User, token: string) => void;
   logout: () => void;
-  initialize: () => void;
+  initialize: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -17,34 +17,28 @@ export const useAuthStore = create<AuthState>((set) => ({
   isAuthenticated: false,
 
   setAuth: (user, token) => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("portdock_token", token);
-      localStorage.setItem("portdock_user", JSON.stringify(user));
-    }
     set({ user, token, isAuthenticated: true });
   },
 
-  logout: () => {
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("portdock_token");
-      localStorage.removeItem("portdock_user");
+  logout: async () => {
+    try {
+      const { authService } = await import("@/services/auth.service");
+      await authService.logout();
+    } catch (e) {
+      // ignore
     }
     set({ user: null, token: null, isAuthenticated: false });
   },
 
-  initialize: () => {
-    if (typeof window !== "undefined") {
-      const token = localStorage.getItem("portdock_token");
-      const userStr = localStorage.getItem("portdock_user");
-      if (token && userStr) {
-        try {
-          const user = JSON.parse(userStr);
-          set({ user, token, isAuthenticated: true });
-        } catch {
-          localStorage.removeItem("portdock_token");
-          localStorage.removeItem("portdock_user");
-        }
+  initialize: async () => {
+    try {
+      const { authService } = await import("@/services/auth.service");
+      const user = await authService.getMe();
+      if (user) {
+        set({ user, isAuthenticated: true, token: "cookie-based" });
       }
+    } catch (error) {
+      set({ user: null, token: null, isAuthenticated: false });
     }
   },
 }));

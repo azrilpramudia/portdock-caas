@@ -7,7 +7,9 @@ import {
   Request,
   Ip,
   Delete,
+  Res,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
@@ -23,14 +25,35 @@ export class AuthController {
 
   @Post('register')
   @ApiOperation({ summary: 'Register a new user' })
-  register(@Body() dto: RegisterDto, @Ip() ip: string) {
-    return this.authService.register(dto, ip);
+  async register(@Body() dto: RegisterDto, @Ip() ip: string, @Res({ passthrough: true }) res: Response) {
+    const data = await this.authService.register(dto, ip);
+    res.cookie('access_token', data.token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+    return data;
   }
 
   @Post('login')
   @ApiOperation({ summary: 'Login and get JWT token' })
-  login(@Body() dto: LoginDto, @Ip() ip: string) {
-    return this.authService.login(dto, ip);
+  async login(@Body() dto: LoginDto, @Ip() ip: string, @Res({ passthrough: true }) res: Response) {
+    const data = await this.authService.login(dto, ip);
+    res.cookie('access_token', data.token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+    return data;
+  }
+
+  @Post('logout')
+  @ApiOperation({ summary: 'Logout and clear cookie' })
+  logout(@Res({ passthrough: true }) res: Response) {
+    res.clearCookie('access_token');
+    return { message: 'Logged out successfully' };
   }
 
   @Get('me')

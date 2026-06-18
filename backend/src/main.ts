@@ -4,6 +4,7 @@ import { AppModule } from './app.module';
 import { ZodValidationPipe } from 'nestjs-zod';
 import helmet from 'helmet';
 import * as fs from 'fs';
+import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -13,6 +14,7 @@ async function bootstrap() {
 
   // Security
   app.use(helmet());
+  app.use(cookieParser());
 
   // CORS
   app.enableCors({

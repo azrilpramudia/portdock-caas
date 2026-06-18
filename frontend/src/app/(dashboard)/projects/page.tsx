@@ -127,7 +127,7 @@ export default function ProjectsPage() {
               />
             </div>
             <div className="relative w-40">
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <Select value={statusFilter} onValueChange={(val) => setStatusFilter(val || "All")}>
                 <SelectTrigger className="w-full bg-card border-border text-foreground text-[13px] rounded-xl h-10 px-4 font-bold focus:ring-blue-500/20">
                   <div className="flex items-center gap-2">
                     <Filter className="w-3.5 h-3.5 text-muted-foreground" />
