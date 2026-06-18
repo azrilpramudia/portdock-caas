@@ -9,13 +9,13 @@ import {
   UseGuards,
   Request,
 } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { ApiTags, ApiCookieAuth, ApiOperation } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ContainersService } from './containers.service';
 import { CreateContainerDto } from './dto/create-container.dto';
 
 @ApiTags('containers')
-@ApiBearerAuth()
+@ApiCookieAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('containers')
 export class ContainersController {

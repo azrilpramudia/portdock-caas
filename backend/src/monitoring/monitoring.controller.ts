@@ -1,10 +1,10 @@
 import { Controller, Get, Param, UseGuards, Request } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { ApiTags, ApiCookieAuth, ApiOperation } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { MonitoringService } from './monitoring.service';
 
 @ApiTags('monitoring')
-@ApiBearerAuth()
+@ApiCookieAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('monitoring')
 export class MonitoringController {

@@ -41,8 +41,10 @@ server {
 `;
     const confPath = path.join(this.confDir, `${domain}.conf`);
     fs.writeFileSync(confPath, confContent);
-    this.logger.log(`HTTP Nginx config created for ${domain} -> Port ${hostPort}`);
-    
+    this.logger.log(
+      `HTTP Nginx config created for ${domain} -> Port ${hostPort}`,
+    );
+
     await this.reloadNginx();
   }
 
@@ -56,14 +58,21 @@ server {
       const certbotWwwDir = path.resolve(process.cwd(), 'certbot-www');
 
       // Check if certificate already exists
-      const certPath = path.join(certbotConfDir, 'live', domain, 'fullchain.pem');
+      const certPath = path.join(
+        certbotConfDir,
+        'live',
+        domain,
+        'fullchain.pem',
+      );
       if (fs.existsSync(certPath)) {
         this.logger.log(`Certificate for ${domain} already exists.`);
         return true;
       }
 
       // Pastikan image certbot ada
-      const hasImage = await this.dockerService.imageExists('certbot/certbot:latest');
+      const hasImage = await this.dockerService.imageExists(
+        'certbot/certbot:latest',
+      );
       if (!hasImage) {
         this.logger.log('Pulling certbot/certbot:latest image...');
         await this.dockerService.pullImage('certbot/certbot:latest');
@@ -74,26 +83,35 @@ server {
         Cmd: [
           'certonly',
           '--webroot',
-          '-w', '/var/www/certbot',
-          '-d', domain,
-          '--email', email,
+          '-w',
+          '/var/www/certbot',
+          '-d',
+          domain,
+          '--email',
+          email,
           '--agree-tos',
           '--non-interactive',
         ],
         HostConfig: {
           Binds: [
             `${certbotConfDir}:/etc/letsencrypt`,
-            `${certbotWwwDir}:/var/www/certbot`
+            `${certbotWwwDir}:/var/www/certbot`,
           ],
         },
       });
 
       await container.start();
-      const stream = await container.logs({ follow: true, stdout: true, stderr: true });
-      stream.on('data', (chunk) => this.logger.debug(`Certbot: ${chunk.toString('utf8')}`));
+      const stream = await container.logs({
+        follow: true,
+        stdout: true,
+        stderr: true,
+      });
+      stream.on('data', (chunk) =>
+        this.logger.debug(`Certbot: ${chunk.toString('utf8')}`),
+      );
 
       const result = await container.wait();
-      
+
       try {
         await container.remove();
       } catch (e) {}
@@ -149,13 +167,15 @@ server {
 `;
     const confPath = path.join(this.confDir, `${domain}.conf`);
     fs.writeFileSync(confPath, confContent);
-    this.logger.log(`HTTPS Nginx config created for ${domain} -> Port ${hostPort}`);
-    
+    this.logger.log(
+      `HTTPS Nginx config created for ${domain} -> Port ${hostPort}`,
+    );
+
     await this.reloadNginx();
   }
 
   /**
-   * Fungsi wrapper untuk backwards compatibility. 
+   * Fungsi wrapper untuk backwards compatibility.
    * Ini dulu dipanggil langsung, sekarang hanya nama alias.
    */
   async generateConfig(domain: string, hostPort: number): Promise<void> {

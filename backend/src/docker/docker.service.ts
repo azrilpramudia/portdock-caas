@@ -21,15 +21,17 @@ export class DockerService implements OnModuleInit {
   private async ensureSystemContainers() {
     this.logger.log('Ensuring system containers are running...');
     const containers = await this.listContainers(true);
-    const nginxContainer = containers.find((c) => c.Names.includes('/portdock-nginx'));
+    const nginxContainer = containers.find((c) =>
+      c.Names.includes('/portdock-nginx'),
+    );
 
     if (nginxContainer) {
       this.nginxContainerId = nginxContainer.Id;
       if (nginxContainer.State !== 'running') {
         this.logger.log('Starting portdock-nginx container...');
-      if (this.nginxContainerId) {
-        await this.startContainer(this.nginxContainerId);
-      }
+        if (this.nginxContainerId) {
+          await this.startContainer(this.nginxContainerId);
+        }
       }
     } else {
       this.logger.log('Creating portdock-nginx container...');
@@ -46,23 +48,25 @@ export class DockerService implements OnModuleInit {
 
       const certbotConfDir = path.resolve(process.cwd(), 'certbot-conf');
       const certbotWwwDir = path.resolve(process.cwd(), 'certbot-www');
-      
-      if (!fs.existsSync(certbotConfDir)) fs.mkdirSync(certbotConfDir, { recursive: true });
-      if (!fs.existsSync(certbotWwwDir)) fs.mkdirSync(certbotWwwDir, { recursive: true });
+
+      if (!fs.existsSync(certbotConfDir))
+        fs.mkdirSync(certbotConfDir, { recursive: true });
+      if (!fs.existsSync(certbotWwwDir))
+        fs.mkdirSync(certbotWwwDir, { recursive: true });
 
       const container = await this.createContainer({
         name: 'portdock-nginx',
         Image: 'nginx:alpine',
         ExposedPorts: { '80/tcp': {}, '443/tcp': {} },
         HostConfig: {
-          PortBindings: { 
+          PortBindings: {
             '80/tcp': [{ HostPort: '80' }],
-            '443/tcp': [{ HostPort: '443' }]
+            '443/tcp': [{ HostPort: '443' }],
           },
           Binds: [
             `${confDir}:/etc/nginx/conf.d`,
             `${certbotConfDir}:/etc/letsencrypt`,
-            `${certbotWwwDir}:/var/www/certbot`
+            `${certbotWwwDir}:/var/www/certbot`,
           ],
           RestartPolicy: { Name: 'always' },
           NetworkMode: 'host', // For easier localhost routing, or bridge mapping
@@ -153,7 +157,7 @@ export class DockerService implements OnModuleInit {
             return;
           }
           this.docker.modem.followProgress(
-            stream!,
+            stream,
             (err2, output) => {
               if (err2) {
                 this.logger.error('Docker Build Error', err2);
@@ -166,17 +170,23 @@ export class DockerService implements OnModuleInit {
               if (event.stream) {
                 process.stdout.write(event.stream);
               } else if (event.errorDetail) {
-                this.logger.error(`Docker Build Event Error: ${event.errorDetail.message}`);
+                this.logger.error(
+                  `Docker Build Event Error: ${event.errorDetail.message}`,
+                );
                 reject(new Error(event.errorDetail.message));
               }
-            }
+            },
           );
         },
       );
     });
   }
 
-  async buildWithNixpacks(dir: string, imageName: string, imageTag = 'latest'): Promise<void> {
+  async buildWithNixpacks(
+    dir: string,
+    imageName: string,
+    imageTag = 'latest',
+  ): Promise<void> {
     return new Promise((resolve, reject) => {
       const tag = `${imageName}:${imageTag}`;
       this.logger.log(`Starting Nixpacks build for ${tag}`);
@@ -198,9 +208,11 @@ export class DockerService implements OnModuleInit {
           reject(new Error(`Nixpacks build failed with exit code ${code}`));
         }
       });
-      
+
       child.on('error', (err) => {
-        this.logger.error(`Failed to start Nixpacks. Is it installed? Error: ${err.message}`);
+        this.logger.error(
+          `Failed to start Nixpacks. Is it installed? Error: ${err.message}`,
+        );
         reject(err);
       });
     });

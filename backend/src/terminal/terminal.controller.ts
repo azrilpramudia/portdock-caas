@@ -11,7 +11,7 @@ export class TerminalController {
   async getTerminalLogs(@Param('containerId') containerId: string) {
     const container = await this.prisma.container.findUnique({
       where: { id: containerId },
-      include: { project: true }
+      include: { project: true },
     });
 
     if (!container) {

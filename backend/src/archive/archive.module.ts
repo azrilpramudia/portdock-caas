@@ -3,6 +3,6 @@ import { ArchiveService } from './archive.service';
 
 @Module({
   providers: [ArchiveService],
-  exports: [ArchiveService]
+  exports: [ArchiveService],
 })
 export class ArchiveModule {}

@@ -10,13 +10,18 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
-import { ApiTags, ApiBearerAuth, ApiOperation, ApiConsumes } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiCookieAuth,
+  ApiOperation,
+  ApiConsumes,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { DeploymentsService } from './deployments.service';
 import * as path from 'path';
 
 @ApiTags('deployments')
-@ApiBearerAuth()
+@ApiCookieAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('deployments')
 export class DeploymentsController {
@@ -35,7 +40,10 @@ export class DeploymentsController {
         },
       }),
       fileFilter: (_req, file, cb) => {
-        if (file.mimetype === 'application/zip' || file.originalname.endsWith('.zip')) {
+        if (
+          file.mimetype === 'application/zip' ||
+          file.originalname.endsWith('.zip')
+        ) {
           cb(null, true);
         } else {
           cb(new Error('Only ZIP files are allowed'), false);

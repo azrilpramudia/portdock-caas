@@ -18,14 +18,26 @@ import { PrismaService } from '../prisma/prisma.service';
   },
   namespace: '/terminal',
 })
-export class TerminalGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class TerminalGateway
+  implements OnGatewayConnection, OnGatewayDisconnect
+{
   @WebSocketServer()
   server: Server;
 
   private readonly logger = new Logger(TerminalGateway.name);
-  private sessions: Map<string, { write: (data: string) => void; resize: (cols: number, rows: number) => void; kill: () => void }> = new Map();
+  private sessions: Map<
+    string,
+    {
+      write: (data: string) => void;
+      resize: (cols: number, rows: number) => void;
+      kill: () => void;
+    }
+  > = new Map();
   private commandBuffers: Map<string, string> = new Map();
-  private containerInfo: Map<string, { containerId: string; projectId: string; userId: string }> = new Map();
+  private containerInfo: Map<
+    string,
+    { containerId: string; projectId: string; userId: string }
+  > = new Map();
 
   constructor(
     private terminalService: TerminalService,
@@ -46,33 +58,42 @@ export class TerminalGateway implements OnGatewayConnection, OnGatewayDisconnect
     @ConnectedSocket() client: Socket,
     @MessageBody() data: { containerId: string },
   ) {
-    this.logger.log(`Terminal connection request for container ${data.containerId} from client ${client.id}`);
-    
+    this.logger.log(
+      `Terminal connection request for container ${data.containerId} from client ${client.id}`,
+    );
+
     try {
       // Find the docker container ID from our DB container ID
       const container = await this.prisma.container.findUnique({
         where: { id: data.containerId },
-        include: { project: true }
+        include: { project: true },
       });
 
       if (!container || !container.dockerContainerId) {
-        client.emit('terminal_error', 'Container not found or docker ID missing');
+        client.emit(
+          'terminal_error',
+          'Container not found or docker ID missing',
+        );
         return;
       }
 
       this.containerInfo.set(client.id, {
         containerId: container.id,
         projectId: container.projectId,
-        userId: container.project.userId
+        userId: container.project.userId,
       });
-      this.commandBuffers.set(client.id, "");
+      this.commandBuffers.set(client.id, '');
 
       // Cleanup any existing session for this client
       this.cleanupSession(client.id);
 
       const session = await this.terminalService.spawnTerminal(
         container.dockerContainerId,
-        ['sh', '-c', 'export PROMPT_COMMAND=\'PS1="\\[\\e[1;32m\\]\\u@\\h\\[\\e[m\\]:\\[\\e[1;34m\\]\\w\\[\\e[m\\]\\$ "\'; if command -v bash >/dev/null 2>&1; then exec bash; else exec sh; fi'],
+        [
+          'sh',
+          '-c',
+          'export PROMPT_COMMAND=\'PS1="\\[\\e[1;32m\\]\\u@\\h\\[\\e[m\\]:\\[\\e[1;34m\\]\\w\\[\\e[m\\]\\$ "\'; if command -v bash >/dev/null 2>&1; then exec bash; else exec sh; fi',
+        ],
         (chunk) => {
           client.emit('terminal_output', chunk.toString());
         },
@@ -88,14 +109,16 @@ export class TerminalGateway implements OnGatewayConnection, OnGatewayDisconnect
 
       this.sessions.set(client.id, session);
       client.emit('terminal_ready', { host: container.name });
-      
     } catch (err) {
       client.emit('terminal_error', err.message);
     }
   }
 
   @SubscribeMessage('terminal_input')
-  handleTerminalInput(@ConnectedSocket() client: Socket, @MessageBody() input: string) {
+  handleTerminalInput(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() input: string,
+  ) {
     const session = this.sessions.get(client.id);
     if (session) {
       session.write(input);
@@ -103,25 +126,32 @@ export class TerminalGateway implements OnGatewayConnection, OnGatewayDisconnect
       // Skip arrow keys and other control sequences
       if (input.startsWith('\x1b')) return;
 
-      const buffer = this.commandBuffers.get(client.id) || "";
+      const buffer = this.commandBuffers.get(client.id) || '';
       if (input.includes('\r')) {
         const parts = input.split('\r');
         const finalCmd = (buffer + parts[0]).trim();
-        
+
         if (finalCmd) {
           const info = this.containerInfo.get(client.id);
           if (info) {
-            this.prisma.terminalLog.create({
-              data: {
-                userId: info.userId,
-                projectId: info.projectId,
-                command: finalCmd,
-              }
-            }).catch(err => this.logger.error(`Failed to save terminal log: ${err.message}`));
+            this.prisma.terminalLog
+              .create({
+                data: {
+                  userId: info.userId,
+                  projectId: info.projectId,
+                  command: finalCmd,
+                },
+              })
+              .catch((err) =>
+                this.logger.error(
+                  `Failed to save terminal log: ${err.message}`,
+                ),
+              );
           }
         }
-        this.commandBuffers.set(client.id, "");
-      } else if (input === '\u007F') { // Backspace
+        this.commandBuffers.set(client.id, '');
+      } else if (input === '\u007F') {
+        // Backspace
         this.commandBuffers.set(client.id, buffer.slice(0, -1));
       } else {
         const printable = input.replace(/[\u0000-\u001F\u007F-\u009F]/g, '');
@@ -131,9 +161,17 @@ export class TerminalGateway implements OnGatewayConnection, OnGatewayDisconnect
   }
 
   @SubscribeMessage('terminal_resize')
-  handleTerminalResize(@ConnectedSocket() client: Socket, @MessageBody() data: { cols: number; rows: number }) {
+  handleTerminalResize(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: { cols: number; rows: number },
+  ) {
     const session = this.sessions.get(client.id);
-    if (session && data && typeof data.cols === 'number' && typeof data.rows === 'number') {
+    if (
+      session &&
+      data &&
+      typeof data.cols === 'number' &&
+      typeof data.rows === 'number'
+    ) {
       session.resize(data.cols, data.rows);
     }
   }

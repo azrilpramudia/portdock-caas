@@ -61,7 +61,7 @@ export class AuthService {
       },
     });
 
-    const token = this.generateToken(user as any);
+    const token = this.generateToken(user);
     return { user, token };
   }
 
@@ -149,7 +149,10 @@ export class AuthService {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new UnauthorizedException('User not found');
 
-    const passwordMatch = await bcrypt.compare(dto.currentPassword, user.password);
+    const passwordMatch = await bcrypt.compare(
+      dto.currentPassword,
+      user.password,
+    );
     if (!passwordMatch) {
       throw new BadRequestException('Current password is incorrect');
     }
@@ -176,7 +179,9 @@ export class AuthService {
   async generateSshKey(userId: string, ip: string) {
     const keyPath = `/tmp/key_${userId}_${Date.now()}`;
     try {
-      await execAsync(`ssh-keygen -t ed25519 -C "portdock_${userId}" -N "" -f ${keyPath}`);
+      await execAsync(
+        `ssh-keygen -t ed25519 -C "portdock_${userId}" -N "" -f ${keyPath}`,
+      );
       const privateKey = await fs.readFile(keyPath, 'utf8');
       const publicKey = await fs.readFile(`${keyPath}.pub`, 'utf8');
 
@@ -209,17 +214,17 @@ export class AuthService {
   async connectGithub(userId: string, token: string, ip: string) {
     try {
       const res = await fetch('https://api.github.com/user', {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error('Invalid token');
       const data = await res.json();
-      
+
       const user = await this.prisma.user.update({
         where: { id: userId },
         data: {
           githubToken: token,
           githubUsername: data.login,
-        }
+        },
       });
 
       await this.prisma.activityLog.create({
@@ -233,7 +238,9 @@ export class AuthService {
 
       return { githubUsername: user.githubUsername };
     } catch (err) {
-      throw new BadRequestException('Failed to connect GitHub: Invalid Personal Access Token');
+      throw new BadRequestException(
+        'Failed to connect GitHub: Invalid Personal Access Token',
+      );
     }
   }
 
@@ -270,21 +277,24 @@ export class AuthService {
     if (process.env.NODE_ENV !== 'development' && !token) {
       throw new UnauthorizedException('Turnstile verification required');
     }
-    
+
     const secretKey = process.env.TURNSTILE_SECRET_KEY;
     if (!secretKey || !token) return;
 
     try {
-      const response = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await fetch(
+        'https://challenges.cloudflare.com/turnstile/v0/siteverify',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            secret: secretKey,
+            response: token,
+          }),
         },
-        body: JSON.stringify({
-          secret: secretKey,
-          response: token,
-        }),
-      });
+      );
 
       const data = await response.json();
       if (!data.success) {

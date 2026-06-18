@@ -10,7 +10,7 @@ import {
   Res,
 } from '@nestjs/common';
 import type { Response } from 'express';
-import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiCookieAuth } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -25,7 +25,11 @@ export class AuthController {
 
   @Post('register')
   @ApiOperation({ summary: 'Register a new user' })
-  async register(@Body() dto: RegisterDto, @Ip() ip: string, @Res({ passthrough: true }) res: Response) {
+  async register(
+    @Body() dto: RegisterDto,
+    @Ip() ip: string,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     const data = await this.authService.register(dto, ip);
     res.cookie('access_token', data.token, {
       httpOnly: true,
@@ -38,7 +42,11 @@ export class AuthController {
 
   @Post('login')
   @ApiOperation({ summary: 'Login and get JWT token' })
-  async login(@Body() dto: LoginDto, @Ip() ip: string, @Res({ passthrough: true }) res: Response) {
+  async login(
+    @Body() dto: LoginDto,
+    @Ip() ip: string,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     const data = await this.authService.login(dto, ip);
     res.cookie('access_token', data.token, {
       httpOnly: true,
@@ -58,7 +66,7 @@ export class AuthController {
 
   @Get('me')
   @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
+  @ApiCookieAuth()
   @ApiOperation({ summary: 'Get current user profile' })
   getMe(@Request() req: any) {
     return this.authService.getMe(req.user.id);
@@ -66,23 +74,31 @@ export class AuthController {
 
   @Post('profile')
   @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
+  @ApiCookieAuth()
   @ApiOperation({ summary: 'Update user profile' })
-  updateProfile(@Request() req: any, @Body() dto: UpdateProfileDto, @Ip() ip: string) {
+  updateProfile(
+    @Request() req: any,
+    @Body() dto: UpdateProfileDto,
+    @Ip() ip: string,
+  ) {
     return this.authService.updateProfile(req.user.id, dto, ip);
   }
 
   @Post('password')
   @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
+  @ApiCookieAuth()
   @ApiOperation({ summary: 'Update user password' })
-  updatePassword(@Request() req: any, @Body() dto: UpdatePasswordDto, @Ip() ip: string) {
+  updatePassword(
+    @Request() req: any,
+    @Body() dto: UpdatePasswordDto,
+    @Ip() ip: string,
+  ) {
     return this.authService.updatePassword(req.user.id, dto, ip);
   }
 
   @Post('ssh-key')
   @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
+  @ApiCookieAuth()
   @ApiOperation({ summary: 'Generate a new SSH key pair' })
   generateSshKey(@Request() req: any, @Ip() ip: string) {
     return this.authService.generateSshKey(req.user.id, ip);
@@ -90,15 +106,19 @@ export class AuthController {
 
   @Post('github')
   @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
+  @ApiCookieAuth()
   @ApiOperation({ summary: 'Connect GitHub via Personal Access Token' })
-  connectGithub(@Request() req: any, @Body('token') token: string, @Ip() ip: string) {
+  connectGithub(
+    @Request() req: any,
+    @Body('token') token: string,
+    @Ip() ip: string,
+  ) {
     return this.authService.connectGithub(req.user.id, token, ip);
   }
 
   @Delete('github')
   @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
+  @ApiCookieAuth()
   @ApiOperation({ summary: 'Disconnect GitHub account' })
   disconnectGithub(@Request() req: any, @Ip() ip: string) {
     return this.authService.disconnectGithub(req.user.id, ip);

@@ -39,7 +39,10 @@ export class DeploymentsService {
   ) {
     const project = await this.verifyProject(projectId, userId);
 
-    const uploadDir = path.resolve(process.cwd(), this.config.get<string>('UPLOAD_DIR', './uploads'));
+    const uploadDir = path.resolve(
+      process.cwd(),
+      this.config.get<string>('UPLOAD_DIR', './uploads'),
+    );
     const extractDir = path.join(uploadDir, projectId, Date.now().toString());
 
     fs.mkdirSync(extractDir, { recursive: true });
@@ -72,7 +75,9 @@ export class DeploymentsService {
 
       // Find available port
       const hostPort = await this.getAvailablePort();
-      const internalPort = await this.docker.getExposedPort(`${imageName}:${imageTag}`);
+      const internalPort = await this.docker.getExposedPort(
+        `${imageName}:${imageTag}`,
+      );
 
       // Create Docker container
       const dockerContainer = await this.docker.createContainer({
@@ -121,15 +126,18 @@ export class DeploymentsService {
       if (project.domain) {
         const domain = project.domain;
         await this.nginx.generateHttpConfig(domain, hostPort);
-        
-        // Attempt Let's Encrypt SSL in the background! 
+
+        // Attempt Let's Encrypt SSL in the background!
         // Do not block the HTTP response waiting for certbot to finish.
         const userEmail = project.user?.email || 'admin@portdock.my.id';
-        this.nginx.requestSsl(domain, userEmail).then(async (sslSuccess) => {
-          if (sslSuccess) {
-            await this.nginx.generateHttpsConfig(domain, hostPort);
-          }
-        }).catch(err => this.logger.error('Background SSL Error', err));
+        this.nginx
+          .requestSsl(domain, userEmail)
+          .then(async (sslSuccess) => {
+            if (sslSuccess) {
+              await this.nginx.generateHttpsConfig(domain, hostPort);
+            }
+          })
+          .catch((err) => this.logger.error('Background SSL Error', err));
       }
 
       // Cleanup
@@ -165,7 +173,10 @@ export class DeploymentsService {
   ) {
     const project = await this.verifyProject(projectId, userId);
 
-    const uploadDir = path.resolve(process.cwd(), this.config.get<string>('UPLOAD_DIR', './uploads'));
+    const uploadDir = path.resolve(
+      process.cwd(),
+      this.config.get<string>('UPLOAD_DIR', './uploads'),
+    );
     const cloneDir = path.join(uploadDir, projectId, `github-${Date.now()}`);
 
     fs.mkdirSync(path.dirname(cloneDir), { recursive: true });
@@ -184,7 +195,7 @@ export class DeploymentsService {
 
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { sshPrivateKey: true, githubToken: true }
+      select: { sshPrivateKey: true, githubToken: true },
     });
 
     try {
@@ -206,7 +217,9 @@ export class DeploymentsService {
       }
 
       const hostPort = await this.getAvailablePort();
-      const internalPort = await this.docker.getExposedPort(`${imageName}:${imageTag}`);
+      const internalPort = await this.docker.getExposedPort(
+        `${imageName}:${imageTag}`,
+      );
 
       const containerName = `${project.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${Date.now()}`;
       const dockerContainer = await this.docker.createContainer({
@@ -254,14 +267,17 @@ export class DeploymentsService {
       if (project.domain) {
         const domain = project.domain;
         await this.nginx.generateHttpConfig(domain, hostPort);
-        
+
         // Attempt Let's Encrypt SSL in the background!
         const userEmail = project.user?.email || 'admin@portdock.my.id';
-        this.nginx.requestSsl(domain, userEmail).then(async (sslSuccess) => {
-          if (sslSuccess) {
-            await this.nginx.generateHttpsConfig(domain, hostPort);
-          }
-        }).catch(err => this.logger.error('Background SSL Error', err));
+        this.nginx
+          .requestSsl(domain, userEmail)
+          .then(async (sslSuccess) => {
+            if (sslSuccess) {
+              await this.nginx.generateHttpsConfig(domain, hostPort);
+            }
+          })
+          .catch((err) => this.logger.error('Background SSL Error', err));
       }
 
       this.archive.cleanup(cloneDir);

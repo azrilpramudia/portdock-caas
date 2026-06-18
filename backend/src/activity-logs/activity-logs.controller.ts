@@ -9,12 +9,17 @@ import {
   Res,
 } from '@nestjs/common';
 import type { Response } from 'express';
-import { ApiTags, ApiBearerAuth, ApiOperation, ApiProduces } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiCookieAuth,
+  ApiOperation,
+  ApiProduces,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ActivityLogsService } from './activity-logs.service';
 
 @ApiTags('activity-logs')
-@ApiBearerAuth()
+@ApiCookieAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('activity-logs')
 export class ActivityLogsController {
@@ -32,7 +37,16 @@ export class ActivityLogsController {
     @Query('endDate') endDate?: string,
     @Query('status') status?: string,
   ) {
-    return this.activityLogsService.findAll(req.user.id, page, limit, search, action, startDate, endDate, status);
+    return this.activityLogsService.findAll(
+      req.user.id,
+      page,
+      limit,
+      search,
+      action,
+      startDate,
+      endDate,
+      status,
+    );
   }
 
   @Get('export')
@@ -47,7 +61,14 @@ export class ActivityLogsController {
     @Query('endDate') endDate?: string,
     @Query('status') status?: string,
   ) {
-    const csv = await this.activityLogsService.exportLogs(req.user.id, search, action, startDate, endDate, status);
+    const csv = await this.activityLogsService.exportLogs(
+      req.user.id,
+      search,
+      action,
+      startDate,
+      endDate,
+      status,
+    );
     res.header('Content-Type', 'text/csv');
     res.attachment('activity-logs.csv');
     return res.send(csv);

@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, ForbiddenException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  Logger,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
@@ -22,14 +27,20 @@ export class ProjectsService {
 
   async create(userId: string, dto: CreateProjectDto) {
     let domain = dto.domain;
-    
+
     if (!domain) {
       const baseDomain = this.configService.get<string>('BASE_DOMAIN');
       if (baseDomain) {
-        const slug = dto.name.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+        const slug = dto.name
+          .toLowerCase()
+          .replace(/[^a-z0-9-]/g, '-')
+          .replace(/-+/g, '-')
+          .replace(/^-|-$/g, '');
         let potentialDomain = `${slug}.${baseDomain}`;
-        
-        let existing = await this.prisma.project.findFirst({ where: { domain: potentialDomain } });
+
+        const existing = await this.prisma.project.findFirst({
+          where: { domain: potentialDomain },
+        });
         if (existing) {
           const suffix = randomBytes(2).toString('hex');
           potentialDomain = `${slug}-${suffix}.${baseDomain}`;
@@ -134,7 +145,9 @@ export class ProjectsService {
     for (const container of project.containers) {
       try {
         if (container.dockerContainerId) {
-          const dockerContainer = await this.docker.getContainer(container.dockerContainerId);
+          const dockerContainer = await this.docker.getContainer(
+            container.dockerContainerId,
+          );
           await dockerContainer.stop().catch(() => {});
           await dockerContainer.remove({ force: true }).catch(() => {});
         }
@@ -144,7 +157,9 @@ export class ProjectsService {
           await this.docker.removeImage(fullImageName).catch(() => {});
         }
       } catch (err) {
-        this.logger.warn(`Failed to cleanup docker container ${container.dockerContainerId}: ${err.message}`);
+        this.logger.warn(
+          `Failed to cleanup docker container ${container.dockerContainerId}: ${err.message}`,
+        );
       }
     }
 
@@ -164,19 +179,26 @@ export class ProjectsService {
   }
 
   async getStats(userId: string) {
-    const [totalProjects, totalContainers, runningContainers, totalDeployments] =
-      await Promise.all([
-        this.prisma.project.count({ where: { userId } }),
-        this.prisma.container.count({
-          where: { project: { userId } },
-        }),
-        this.prisma.container.count({
-          where: { project: { userId }, status: 'RUNNING' },
-        }),
-        this.prisma.activityLog.count({
-          where: { userId, action: { in: ['DEPLOYMENT_SUCCESS', 'DEPLOYMENT_STARTED'] } },
-        }),
-      ]);
+    const [
+      totalProjects,
+      totalContainers,
+      runningContainers,
+      totalDeployments,
+    ] = await Promise.all([
+      this.prisma.project.count({ where: { userId } }),
+      this.prisma.container.count({
+        where: { project: { userId } },
+      }),
+      this.prisma.container.count({
+        where: { project: { userId }, status: 'RUNNING' },
+      }),
+      this.prisma.activityLog.count({
+        where: {
+          userId,
+          action: { in: ['DEPLOYMENT_SUCCESS', 'DEPLOYMENT_STARTED'] },
+        },
+      }),
+    ]);
 
     return {
       totalProjects,

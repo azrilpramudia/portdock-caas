@@ -25,17 +25,26 @@ export class ActivityLogsService {
     });
   }
 
-  async findAll(userId: string, page = 1, limit = 20, search?: string, actionFilter?: string, startDate?: string, endDate?: string, status?: string) {
+  async findAll(
+    userId: string,
+    page = 1,
+    limit = 20,
+    search?: string,
+    actionFilter?: string,
+    startDate?: string,
+    endDate?: string,
+    status?: string,
+  ) {
     const whereClause: any = { userId };
-    
+
     if (search) {
       whereClause.OR = [
         { action: { contains: search, mode: 'insensitive' } },
         { description: { contains: search, mode: 'insensitive' } },
-        { project: { name: { contains: search, mode: 'insensitive' } } }
+        { project: { name: { contains: search, mode: 'insensitive' } } },
       ];
     }
-    
+
     if (actionFilter && actionFilter !== 'All Actions') {
       whereClause.action = { contains: actionFilter, mode: 'insensitive' };
     }
@@ -89,17 +98,24 @@ export class ActivityLogsService {
     });
   }
 
-  async exportLogs(userId: string, search?: string, actionFilter?: string, startDate?: string, endDate?: string, status?: string): Promise<string> {
+  async exportLogs(
+    userId: string,
+    search?: string,
+    actionFilter?: string,
+    startDate?: string,
+    endDate?: string,
+    status?: string,
+  ): Promise<string> {
     const whereClause: any = { userId };
-    
+
     if (search) {
       whereClause.OR = [
         { action: { contains: search, mode: 'insensitive' } },
         { description: { contains: search, mode: 'insensitive' } },
-        { project: { name: { contains: search, mode: 'insensitive' } } }
+        { project: { name: { contains: search, mode: 'insensitive' } } },
       ];
     }
-    
+
     if (actionFilter && actionFilter !== 'All Actions') {
       whereClause.action = { contains: actionFilter, mode: 'insensitive' };
     }
@@ -127,17 +143,24 @@ export class ActivityLogsService {
       },
     });
 
-    const header = ['Time', 'User', 'Action', 'Target', 'Description', 'Status'];
-    const rows = logs.map(log => [
+    const header = [
+      'Time',
+      'User',
+      'Action',
+      'Target',
+      'Description',
+      'Status',
+    ];
+    const rows = logs.map((log) => [
       log.createdAt.toISOString(),
       log.user?.name || 'User',
       log.action,
       log.project?.name || 'System',
       `"${(log.description || '').replace(/"/g, '""')}"`,
       log.status || 'Success',
-      log.ipAddress || '-'
+      log.ipAddress || '-',
     ]);
 
-    return [header.join(','), ...rows.map(r => r.join(','))].join('\n');
+    return [header.join(','), ...rows.map((r) => r.join(','))].join('\n');
   }
 }

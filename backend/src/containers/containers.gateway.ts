@@ -46,7 +46,9 @@ export class ContainersGateway
     @MessageBody() data: { containerId: string },
   ) {
     const { containerId } = data;
-    this.logger.log(`Client ${client.id} subscribing to logs for ${containerId}`);
+    this.logger.log(
+      `Client ${client.id} subscribing to logs for ${containerId}`,
+    );
 
     try {
       const dbContainer = await this.prisma.container.findUnique({
@@ -58,8 +60,10 @@ export class ContainersGateway
         return;
       }
 
-      const dockerContainer = await this.docker.getContainer(dbContainer.dockerContainerId);
-      
+      const dockerContainer = await this.docker.getContainer(
+        dbContainer.dockerContainerId,
+      );
+
       const stream = await dockerContainer.logs({
         follow: true,
         stdout: true,
@@ -96,7 +100,6 @@ export class ContainersGateway
         }
         this.logStreams.delete(streamId);
       });
-
     } catch (err) {
       this.logger.error(`Logs error: ${err.message}`);
       client.emit('error', `Failed to stream logs: ${err.message}`);
@@ -121,8 +124,10 @@ export class ContainersGateway
         return;
       }
 
-      const dockerContainer = await this.docker.getContainer(dbContainer.dockerContainerId);
-      
+      const dockerContainer = await this.docker.getContainer(
+        dbContainer.dockerContainerId,
+      );
+
       const exec = await dockerContainer.exec({
         AttachStdin: true,
         AttachStdout: true,
@@ -149,7 +154,6 @@ export class ContainersGateway
         }
         this.execStreams.delete(execId);
       });
-
     } catch (err) {
       this.logger.error(`Terminal error: ${err.message}`);
       client.emit('error', `Failed to start terminal: ${err.message}`);

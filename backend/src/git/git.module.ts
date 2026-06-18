@@ -3,6 +3,6 @@ import { GitService } from './git.service';
 
 @Module({
   providers: [GitService],
-  exports: [GitService]
+  exports: [GitService],
 })
 export class GitModule {}

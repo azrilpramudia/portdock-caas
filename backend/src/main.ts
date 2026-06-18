@@ -18,7 +18,12 @@ async function bootstrap() {
 
   // CORS
   app.enableCors({
-    origin: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:3001', 'http://127.0.0.1:3001'],
+    origin: [
+      'http://localhost:3000',
+      'http://127.0.0.1:3000',
+      'http://localhost:3001',
+      'http://127.0.0.1:3001',
+    ],
     credentials: true,
   });
 
@@ -28,14 +33,12 @@ async function bootstrap() {
   // API prefix
   app.setGlobalPrefix('api');
 
-
-
   // Swagger docs
   const config = new DocumentBuilder()
     .setTitle('Portdock API')
     .setDescription('Portdock - Docker Deployment Platform API')
     .setVersion('1.0')
-    .addBearerAuth()
+    .addCookieAuth('access_token')
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);

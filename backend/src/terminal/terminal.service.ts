@@ -16,18 +16,22 @@ export class TerminalService {
     onData: (data: Buffer) => void,
     onExit: (code: number) => void,
     onError: (err: Error) => void,
-  ): Promise<{ write: (data: string) => void; resize: (cols: number, rows: number) => void; kill: () => void }> {
+  ): Promise<{
+    write: (data: string) => void;
+    resize: (cols: number, rows: number) => void;
+    kill: () => void;
+  }> {
     try {
       const docker = this.dockerService.getDocker();
       const container = docker.getContainer(dockerContainerId);
-      
+
       const exec = await container.exec({
         AttachStdin: true,
         AttachStdout: true,
         AttachStderr: true,
         Tty: true,
         Cmd: command,
-        Env: ["TERM=xterm-256color", "FORCE_COLOR_PROMPT=yes"],
+        Env: ['TERM=xterm-256color', 'FORCE_COLOR_PROMPT=yes'],
       });
 
       const stream = await exec.start({
@@ -41,13 +45,18 @@ export class TerminalService {
       });
 
       stream.on('end', () => {
-        exec.inspect().then((data) => {
-          onExit(data.ExitCode || 0);
-        }).catch(() => onExit(0));
+        exec
+          .inspect()
+          .then((data) => {
+            onExit(data.ExitCode || 0);
+          })
+          .catch(() => onExit(0));
       });
 
       stream.on('error', (err) => {
-        this.logger.error(`Terminal stream error for ${dockerContainerId}: ${err.message}`);
+        this.logger.error(
+          `Terminal stream error for ${dockerContainerId}: ${err.message}`,
+        );
         onError(err);
       });
 
@@ -67,7 +76,9 @@ export class TerminalService {
         },
       };
     } catch (err) {
-      this.logger.error(`Failed to spawn terminal for ${dockerContainerId}: ${err.message}`);
+      this.logger.error(
+        `Failed to spawn terminal for ${dockerContainerId}: ${err.message}`,
+      );
       onError(err);
       throw err;
     }

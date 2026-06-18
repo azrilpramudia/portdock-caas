@@ -22,7 +22,9 @@ export class ContainersService {
 
   async create(userId: string, projectId: string, dto: CreateContainerDto) {
     // Verify project ownership
-    const project = await this.prisma.project.findUnique({ where: { id: projectId } });
+    const project = await this.prisma.project.findUnique({
+      where: { id: projectId },
+    });
     if (!project) throw new NotFoundException('Project not found');
     if (project.userId !== userId) throw new ForbiddenException();
 
@@ -75,7 +77,9 @@ export class ContainersService {
       return container;
     } catch (err) {
       this.logger.error('Failed to create container', err);
-      throw new InternalServerErrorException(`Failed to create container: ${err.message}`);
+      throw new InternalServerErrorException(
+        `Failed to create container: ${err.message}`,
+      );
     }
   }
 
@@ -94,7 +98,9 @@ export class ContainersService {
       containers.map(async (c) => {
         if (!c.dockerContainerId) return { ...c, dockerStatus: null };
         try {
-          const inspect = await this.docker.inspectContainer(c.dockerContainerId);
+          const inspect = await this.docker.inspectContainer(
+            c.dockerContainerId,
+          );
           return {
             ...c,
             dockerStatus: inspect.State.Status,
@@ -112,7 +118,11 @@ export class ContainersService {
   async findOne(id: string, userId: string) {
     const container = await this.prisma.container.findUnique({
       where: { id },
-      include: { project: { select: { id: true, name: true, userId: true, domain: true } } },
+      include: {
+        project: {
+          select: { id: true, name: true, userId: true, domain: true },
+        },
+      },
     });
 
     if (!container) throw new NotFoundException('Container not found');
@@ -120,7 +130,9 @@ export class ContainersService {
 
     if (container.dockerContainerId) {
       try {
-        const inspect = await this.docker.inspectContainer(container.dockerContainerId);
+        const inspect = await this.docker.inspectContainer(
+          container.dockerContainerId,
+        );
         return { ...container, dockerInspect: inspect };
       } catch {
         return container;
@@ -131,7 +143,8 @@ export class ContainersService {
 
   async start(id: string, userId: string) {
     const container = await this.findOne(id, userId);
-    if (!container.dockerContainerId) throw new NotFoundException('Docker container not found');
+    if (!container.dockerContainerId)
+      throw new NotFoundException('Docker container not found');
 
     await this.docker.startContainer(container.dockerContainerId);
     const updated = await this.prisma.container.update({
@@ -151,7 +164,8 @@ export class ContainersService {
 
   async stop(id: string, userId: string) {
     const container = await this.findOne(id, userId);
-    if (!container.dockerContainerId) throw new NotFoundException('Docker container not found');
+    if (!container.dockerContainerId)
+      throw new NotFoundException('Docker container not found');
 
     await this.docker.stopContainer(container.dockerContainerId);
     const updated = await this.prisma.container.update({
@@ -171,7 +185,8 @@ export class ContainersService {
 
   async restart(id: string, userId: string) {
     const container = await this.findOne(id, userId);
-    if (!container.dockerContainerId) throw new NotFoundException('Docker container not found');
+    if (!container.dockerContainerId)
+      throw new NotFoundException('Docker container not found');
 
     await this.docker.restartContainer(container.dockerContainerId);
     const updated = await this.prisma.container.update({
@@ -200,7 +215,7 @@ export class ContainersService {
         await this.docker.removeContainer(container.dockerContainerId, true);
       } catch {}
     }
-    
+
     // Attempt to remove the image as well to prevent server bloat
     if (container.imageName) {
       try {
