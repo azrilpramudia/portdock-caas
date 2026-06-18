@@ -18,8 +18,12 @@ export const useContainersList = (search: string, statusFilter: string) => {
 export const useContainerAction = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, action }: { id: string; action: string }) => 
-      containersService.actionContainer(id, action),
+    mutationFn: ({ id, action }: { id: string; action: string }) => {
+      if (action === 'start') return containersService.startContainer(id);
+      if (action === 'stop') return containersService.stopContainer(id);
+      if (action === 'restart') return containersService.restartContainer(id);
+      throw new Error(`Invalid action: ${action}`);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["containers"] });
       toast.success("Aksi container berhasil");

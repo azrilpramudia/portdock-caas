@@ -71,6 +71,9 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
             {pageTitle === "Activity Logs" && (
               <p className="text-[13px] text-muted-foreground mt-0.5">View all system activities and user actions</p>
             )}
+            {pageTitle === "Settings" && (
+              <p className="text-[13px] text-muted-foreground mt-0.5">Manage your account and platform preferences</p>
+            )}
           </div>
         </div>
         
