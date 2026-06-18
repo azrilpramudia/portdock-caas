@@ -44,15 +44,19 @@ function getContainerStatusBadge(status: string) {
 
 export default function ProjectDetailPage() {
   const { id: projectId } = useParams();
-  const [selectedContainer, setSelectedContainer] = useState<any>(null);
+  const [selectedContainerId, setSelectedContainerId] = useState<string | null>(null);
 
-  const { data: project, isLoading } = useQuery({
+  const { data: project, isLoading, refetch } = useQuery({
     queryKey: ["project", projectId],
     queryFn: async () => {
       const res = await api.get(`/projects/${projectId}`);
       return res.data;
     },
   });
+
+  const selectedContainer = selectedContainerId 
+    ? project?.containers?.find((c: any) => c.id === selectedContainerId) 
+    : null;
 
   if (isLoading) {
     return (
@@ -115,7 +119,7 @@ export default function ProjectDetailPage() {
                   {project.containers.map((container: any) => (
                     <div
                       key={container.id}
-                      onClick={() => setSelectedContainer(container)}
+                      onClick={() => setSelectedContainerId(container.id)}
                       className="flex items-center gap-4 px-6 py-4 hover:bg-muted/50 transition-colors cursor-pointer"
                     >
                       <div className="w-9 h-9 bg-muted rounded-lg flex items-center justify-center">
@@ -248,9 +252,9 @@ export default function ProjectDetailPage() {
       {/* Container Details Modal */}
       {selectedContainer && (
         <ContainerDetails 
-          containerId={selectedContainer.id}
-          containerName={selectedContainer.name}
-          onClose={() => setSelectedContainer(null)}
+          container={selectedContainer}
+          onClose={() => setSelectedContainerId(null)}
+          onRefresh={refetch}
         />
       )}
     </div>

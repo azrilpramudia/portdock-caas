@@ -57,6 +57,16 @@ export default function TerminalPage() {
         if (urlContainerId && running.some((c: any) => c.id === urlContainerId)) {
           setSelectedContainerId(urlContainerId);
         }
+        
+        const urlTab = params.get("tab");
+        if (urlTab === "app-logs" || urlTab === "logs" || urlTab === "live") {
+          setActiveTab(urlTab);
+          if (urlTab === "app-logs") {
+            setTimeout(() => fitAppLogsTerminal(), 300);
+          } else if (urlTab === "live") {
+            setTimeout(() => fitTerminal(), 300);
+          }
+        }
       } catch (err) {
         toast.error("Failed to fetch containers");
       }
