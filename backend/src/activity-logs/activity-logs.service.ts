@@ -1,4 +1,5 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../prisma/prisma.service';
 
 interface CreateLogDto {
@@ -11,7 +12,34 @@ interface CreateLogDto {
 
 @Injectable()
 export class ActivityLogsService {
+  private readonly logger = new Logger(ActivityLogsService.name);
+
   constructor(private prisma: PrismaService) {}
+
+  // Runs automatically every day at midnight (00:00)
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  async deleteOldLogs() {
+    this.logger.log('Starting scheduled cleanup for old activity logs...');
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    try {
+      const { count } = await this.prisma.activityLog.deleteMany({
+        where: {
+          createdAt: {
+            lt: thirtyDaysAgo,
+          },
+        },
+      });
+      if (count > 0) {
+        this.logger.log(`Successfully deleted ${count} old activity log(s) older than 30 days.`);
+      } else {
+        this.logger.log('No old activity logs found to delete.');
+      }
+    } catch (error) {
+      this.logger.error('Failed to execute daily cleanup for activity logs', error);
+    }
+  }
 
   async create(dto: CreateLogDto) {
     return this.prisma.activityLog.create({

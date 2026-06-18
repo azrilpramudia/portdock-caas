@@ -28,8 +28,8 @@ export class TerminalGateway
   private sessions: Map<
     string,
     {
-      write: (data: string) => void;
-      resize: (cols: number, rows: number) => void;
+      write?: (data: string) => void;
+      resize?: (cols: number, rows: number) => void;
       kill: () => void;
     }
   > = new Map();
@@ -114,13 +114,56 @@ export class TerminalGateway
     }
   }
 
+  @SubscribeMessage('connect_app_logs')
+  async handleConnectAppLogs(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: { containerId: string },
+  ) {
+    this.logger.log(
+      `App Logs connection request for container ${data.containerId} from client ${client.id}`,
+    );
+
+    try {
+      const container = await this.prisma.container.findUnique({
+        where: { id: data.containerId },
+      });
+
+      if (!container || !container.dockerContainerId) {
+        client.emit(
+          'app_logs_error',
+          'Container not found or docker ID missing',
+        );
+        return;
+      }
+
+      // Cleanup any existing session for this client
+      this.cleanupSession(client.id);
+
+      const session = await this.terminalService.streamApplicationLogs(
+        container.dockerContainerId,
+        (chunk) => {
+          client.emit('app_logs_output', chunk);
+        },
+        (err) => {
+          client.emit('app_logs_error', err.message);
+          this.cleanupSession(client.id);
+        },
+      );
+
+      this.sessions.set(client.id, session);
+      client.emit('app_logs_ready', { host: container.name });
+    } catch (err) {
+      client.emit('app_logs_error', err.message);
+    }
+  }
+
   @SubscribeMessage('terminal_input')
   handleTerminalInput(
     @ConnectedSocket() client: Socket,
     @MessageBody() input: string,
   ) {
     const session = this.sessions.get(client.id);
-    if (session) {
+    if (session && session.write) {
       session.write(input);
 
       // Skip arrow keys and other control sequences
@@ -170,7 +213,8 @@ export class TerminalGateway
       session &&
       data &&
       typeof data.cols === 'number' &&
-      typeof data.rows === 'number'
+      typeof data.rows === 'number' &&
+      session.resize
     ) {
       session.resize(data.cols, data.rows);
     }

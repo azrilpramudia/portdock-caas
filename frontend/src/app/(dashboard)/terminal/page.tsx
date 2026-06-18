@@ -4,14 +4,16 @@ import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { containersService } from "@/services/containers.service";
 import { useTerminalSession } from "@/hooks/useTerminalSession";
+import { useAppLogsSession } from "@/hooks/useAppLogsSession";
 
 import { TerminalHeader } from "@/components/terminal/TerminalHeader";
 import { SessionInfoPanel } from "@/components/terminal/SessionInfoPanel";
 import { TerminalWindow } from "@/components/terminal/TerminalWindow";
 import { RecentCommandsSidebar } from "@/components/terminal/RecentCommandsSidebar";
 import { TerminalLogsTable } from "@/components/terminal/TerminalLogsTable";
+import { ApplicationLogsWindow } from "@/components/terminal/ApplicationLogsWindow";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TerminalSquare, ListTodo } from "lucide-react";
+import { TerminalSquare, ListTodo, ScrollText } from "lucide-react";
 
 export default function TerminalPage() {
   const [containers, setContainers] = useState<any[]>([]);
@@ -31,6 +33,16 @@ export default function TerminalPage() {
     executeCommand,
     fitTerminal
   } = useTerminalSession(selectedContainerId);
+
+  const {
+    appLogsTerminalRef,
+    isAppLogsConnected,
+    handleConnectAppLogs,
+    handleDisconnectAppLogs,
+    handleClearAppLogs,
+    handleDownloadAppLogs,
+    fitAppLogsTerminal
+  } = useAppLogsSession(selectedContainerId);
 
   // Load containers
   useEffect(() => {
@@ -68,8 +80,9 @@ export default function TerminalPage() {
       <Tabs value={activeTab} onValueChange={(val) => {
         setActiveTab(val);
         if (val === 'live') {
-          // Small delay to allow DOM to un-hide before fitting
           setTimeout(() => fitTerminal(), 50);
+        } else if (val === 'app-logs') {
+          setTimeout(() => fitAppLogsTerminal(), 50);
         }
       }} className="w-full">
         <div className="flex justify-between items-center mb-4">
@@ -81,6 +94,10 @@ export default function TerminalPage() {
             <TabsTrigger value="logs" className="gap-2 px-6 data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm text-muted-foreground">
               <ListTodo className="w-4 h-4" />
               Command Logs
+            </TabsTrigger>
+            <TabsTrigger value="app-logs" className="gap-2 px-6 data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm text-muted-foreground">
+              <ScrollText className="w-4 h-4" />
+              Application Logs
             </TabsTrigger>
           </TabsList>
         </div>
@@ -105,6 +122,18 @@ export default function TerminalPage() {
         <TabsContent value="logs" className="mt-0 focus-visible:outline-none focus-visible:ring-0 border-0 p-0">
           <TerminalLogsTable containerId={selectedContainerId} />
         </TabsContent>
+
+        <div className={activeTab === 'app-logs' ? 'block' : 'hidden'}>
+          <ApplicationLogsWindow 
+            terminalRef={appLogsTerminalRef}
+            isConnected={isAppLogsConnected}
+            onConnect={handleConnectAppLogs}
+            onDisconnect={handleDisconnectAppLogs}
+            onClear={handleClearAppLogs}
+            onDownloadLog={handleDownloadAppLogs}
+            onMaximizeToggle={fitAppLogsTerminal}
+          />
+        </div>
       </Tabs>
     </div>
   );

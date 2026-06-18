@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { DockerService } from '../docker/docker.service';
+import * as stream from 'stream';
 
 @Injectable()
 export class TerminalService {
@@ -78,6 +79,62 @@ export class TerminalService {
     } catch (err) {
       this.logger.error(
         `Failed to spawn terminal for ${dockerContainerId}: ${err.message}`,
+      );
+      onError(err);
+      throw err;
+    }
+  }
+
+  /**
+   * Streams application logs (stdout/stderr) from a docker container.
+   */
+  async streamApplicationLogs(
+    dockerContainerId: string,
+    onData: (data: string) => void,
+    onError: (err: Error) => void,
+  ): Promise<{ kill: () => void }> {
+    try {
+      const docker = this.dockerService.getDocker();
+      const container = docker.getContainer(dockerContainerId);
+      
+      const logStream = await container.logs({
+        follow: true,
+        stdout: true,
+        stderr: true,
+        tail: 100,
+      });
+
+      // Docker returns a multiplexed stream (stdout/stderr with 8-byte headers)
+      // We use demuxStream to cleanly extract the text output
+      const stdoutStream = new stream.PassThrough();
+      const stderrStream = new stream.PassThrough();
+
+      stdoutStream.on('data', (chunk: Buffer) => {
+        onData(chunk.toString('utf8'));
+      });
+      stderrStream.on('data', (chunk: Buffer) => {
+        onData(chunk.toString('utf8'));
+      });
+
+      docker.modem.demuxStream(logStream, stdoutStream, stderrStream);
+
+      logStream.on('error', (err: Error) => {
+        this.logger.error(`Application log stream error for ${dockerContainerId}: ${err.message}`);
+        onError(err);
+      });
+
+      return {
+        kill: () => {
+          try {
+            logStream.destroy();
+          } catch (e) {
+            // Ignore if already dead
+          }
+        },
+      };
+    } catch (err) {
+      this.logger.error(
+        `Failed to stream application logs for ${dockerContainerId}: ${err.message}`,
       );
       onError(err);
       throw err;

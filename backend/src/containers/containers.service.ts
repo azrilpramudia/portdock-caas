@@ -48,6 +48,13 @@ export class ContainersService {
             [`${dto.internalPort}/tcp`]: [{ HostPort: `${hostPort}` }],
           },
           RestartPolicy: { Name: 'unless-stopped' },
+          LogConfig: {
+            Type: 'json-file',
+            Config: {
+              'max-size': '10m',
+              'max-file': '3',
+            },
+          },
         },
       });
 

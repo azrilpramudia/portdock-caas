@@ -70,6 +70,13 @@ export class DockerService implements OnModuleInit {
           ],
           RestartPolicy: { Name: 'always' },
           NetworkMode: 'host', // For easier localhost routing, or bridge mapping
+          LogConfig: {
+            Type: 'json-file',
+            Config: {
+              'max-size': '10m',
+              'max-file': '3',
+            },
+          },
         },
       });
       this.nginxContainerId = container.id;

@@ -90,6 +90,13 @@ export class DeploymentsService {
             [`${internalPort}/tcp`]: [{ HostPort: `${hostPort}` }],
           },
           RestartPolicy: { Name: 'unless-stopped' },
+          LogConfig: {
+            Type: 'json-file',
+            Config: {
+              'max-size': '10m',
+              'max-file': '3',
+            },
+          },
         },
       });
 
@@ -232,6 +239,13 @@ export class DeploymentsService {
             [`${internalPort}/tcp`]: [{ HostPort: `${hostPort}` }],
           },
           RestartPolicy: { Name: 'unless-stopped' },
+          LogConfig: {
+            Type: 'json-file',
+            Config: {
+              'max-size': '10m',
+              'max-file': '3',
+            },
+          },
         },
       });
 
