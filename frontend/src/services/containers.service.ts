@@ -20,5 +20,9 @@ export const containersService = {
   deleteContainer: async (id: string) => {
     const res = await api.delete(`/containers/${id}`);
     return res.data;
+  },
+  updateResources: async (id: string, data: { memoryLimit?: number | null; cpuLimit?: number | null; restartPolicy?: string; volumeMountPath?: string | null }) => {
+    const res = await api.patch(`/containers/${id}/resources`, data);
+    return res.data;
   }
 };

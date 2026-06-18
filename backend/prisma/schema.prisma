@@ -61,6 +61,10 @@ model Container {
   subdomain         String?
   internalPort      Int             @map("internal_port")
   hostPort          Int?            @map("host_port")
+  memoryLimit       Int?            @map("memory_limit")
+  cpuLimit          Float?          @map("cpu_limit")
+  restartPolicy     String          @default("unless-stopped") @map("restart_policy")
+  volumeMountPath   String?         @map("volume_mount_path")
   status            ContainerStatus @default(STOPPED)
   createdAt         DateTime        @default(now()) @map("created_at")
   updatedAt         DateTime        @updatedAt @map("updated_at")

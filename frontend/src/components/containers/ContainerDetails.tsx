@@ -18,6 +18,14 @@ interface ContainerDetailsProps {
 export function ContainerDetails({ container, onClose, onRefresh }: ContainerDetailsProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  
+  // Resource Limits & Policies State
+  const [memoryLimit, setMemoryLimit] = useState<number | null>(container.memoryLimit || null);
+  const [cpuLimit, setCpuLimit] = useState<number | null>(container.cpuLimit || null);
+  const [restartPolicy, setRestartPolicy] = useState<string>(container.restartPolicy || 'unless-stopped');
+  const [volumeMountPath, setVolumeMountPath] = useState<string>(container.volumeMountPath || '');
+  const [isSavingResources, setIsSavingResources] = useState(false);
+
   const router = useRouter();
 
   const handleAction = async (action: 'start' | 'stop' | 'restart' | 'delete') => {
@@ -39,6 +47,24 @@ export function ContainerDetails({ container, onClose, onRefresh }: ContainerDet
       toast.error(error.response?.data?.message || `Failed to ${action} container`);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleSaveResources = async () => {
+    setIsSavingResources(true);
+    try {
+      await containersService.updateResources(container.id, { 
+        memoryLimit, 
+        cpuLimit, 
+        restartPolicy,
+        volumeMountPath: volumeMountPath.trim() === '' ? null : volumeMountPath.trim() 
+      });
+      toast.success("Settings updated successfully");
+      if (onRefresh) onRefresh();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Failed to update settings");
+    } finally {
+      setIsSavingResources(false);
     }
   };
 
@@ -156,11 +182,11 @@ export function ContainerDetails({ container, onClose, onRefresh }: ContainerDet
             </TabsContent>
 
             <TabsContent value="logs" className="mt-0">
-              <div className="bg-[#111827] border border-slate-800 rounded-xl p-8 flex flex-col items-center justify-center text-center shadow-inner relative overflow-hidden group">
+              <div className="bg-muted/20 dark:bg-[#111827] border border-border dark:border-slate-800 rounded-xl p-8 flex flex-col items-center justify-center text-center shadow-inner relative overflow-hidden group">
                 <div className="absolute inset-0 bg-gradient-to-b from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
                 <TerminalSquare className="w-16 h-16 text-blue-500/40 mb-4" />
-                <h3 className="text-lg font-bold text-slate-200 mb-2">View Application Logs</h3>
-                <p className="text-sm text-slate-400 max-w-md mb-6">
+                <h3 className="text-lg font-bold text-foreground dark:text-slate-200 mb-2">View Application Logs</h3>
+                <p className="text-sm text-muted-foreground dark:text-slate-400 max-w-md mb-6">
                   Log aplikasi dari container ini sangat panjang dan berjalan secara real-time. Untuk pengalaman debugging terbaik, silakan buka di layar penuh Terminal.
                 </p>
                 <button 
@@ -174,10 +200,124 @@ export function ContainerDetails({ container, onClose, onRefresh }: ContainerDet
             </TabsContent>
 
             <TabsContent value="settings" className="mt-0">
-              <div className="p-8 rounded-xl border border-dashed border-border flex flex-col items-center justify-center text-center bg-muted/10">
-                <Settings className="w-12 h-12 text-muted-foreground/30 mb-4" />
-                <h3 className="text-base font-semibold text-foreground mb-1">Advanced Settings</h3>
-                <p className="text-sm text-muted-foreground">Konfigurasi environment variables dan resource limit akan segera hadir.</p>
+              <div className="bg-muted/20 dark:bg-[#111827] border border-border dark:border-slate-800 rounded-xl p-6 shadow-inner text-left">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
+                    <Settings className="w-5 h-5 text-emerald-600 dark:text-emerald-500" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-foreground dark:text-slate-200">Hardware Allocation</h3>
+                    <p className="text-xs text-muted-foreground dark:text-slate-400">Limit the maximum resources this container can consume.</p>
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  {/* Memory Limits */}
+                  <div className="space-y-3">
+                    <label className="text-sm font-semibold text-foreground/80 dark:text-slate-300">Memory Limit (RAM)</label>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      {[null, 256, 512, 1024].map((val) => (
+                        <button
+                          key={val || 'unlimited'}
+                          onClick={() => setMemoryLimit(val)}
+                          className={`py-2 px-3 rounded-lg text-sm font-medium border transition-all ${
+                            memoryLimit === val 
+                              ? 'bg-emerald-500/10 border-emerald-500 text-emerald-600 dark:text-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.1)]' 
+                              : 'bg-background dark:bg-slate-900 border-border dark:border-slate-800 text-muted-foreground dark:text-slate-400 hover:border-foreground/30 dark:hover:border-slate-700 hover:text-foreground dark:hover:text-slate-300'
+                          }`}
+                        >
+                          {val === null ? 'Unlimited' : val >= 1024 ? `${val / 1024} GB` : `${val} MB`}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* CPU Limits */}
+                  <div className="space-y-3">
+                    <label className="text-sm font-semibold text-foreground/80 dark:text-slate-300">CPU Core Limit</label>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      {[null, 0.25, 0.5, 1].map((val) => (
+                        <button
+                          key={val || 'unlimited'}
+                          onClick={() => setCpuLimit(val)}
+                          className={`py-2 px-3 rounded-lg text-sm font-medium border transition-all ${
+                            cpuLimit === val 
+                              ? 'bg-emerald-500/10 border-emerald-500 text-emerald-600 dark:text-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.1)]' 
+                              : 'bg-background dark:bg-slate-900 border-border dark:border-slate-800 text-muted-foreground dark:text-slate-400 hover:border-foreground/30 dark:hover:border-slate-700 hover:text-foreground dark:hover:text-slate-300'
+                          }`}
+                        >
+                          {val === null ? 'Unlimited' : `${val} Core${val > 1 ? 's' : ''}`}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Restart Policies */}
+                  <div className="space-y-3">
+                    <label className="text-sm font-semibold text-foreground/80 dark:text-slate-300">Restart Policy</label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {[
+                        { value: 'no', label: 'No (Off)', desc: 'Never restart automatically' },
+                        { value: 'always', label: 'Always', desc: 'Always restart if it stops' },
+                        { value: 'on-failure', label: 'On Failure', desc: 'Restart only if it crashes' },
+                        { value: 'unless-stopped', label: 'Unless Stopped', desc: 'Restart unless manually stopped' },
+                      ].map((policy) => (
+                        <button
+                          key={policy.value}
+                          onClick={() => setRestartPolicy(policy.value)}
+                          className={`flex flex-col items-start p-3 rounded-lg text-left border transition-all ${
+                            restartPolicy === policy.value 
+                              ? 'bg-emerald-500/10 border-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.1)]' 
+                              : 'bg-background dark:bg-slate-900 border-border dark:border-slate-800 hover:border-foreground/30 dark:hover:border-slate-700'
+                          }`}
+                        >
+                          <span className={`text-sm font-medium ${restartPolicy === policy.value ? 'text-emerald-600 dark:text-emerald-400' : 'text-foreground dark:text-slate-300'}`}>
+                            {policy.label}
+                          </span>
+                          <span className={`text-xs mt-0.5 ${restartPolicy === policy.value ? 'text-emerald-600/80 dark:text-emerald-400/80' : 'text-muted-foreground dark:text-slate-500'}`}>
+                            {policy.desc}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Volume Mounts */}
+                  <div className="space-y-3">
+                    <label className="text-sm font-semibold text-foreground/80 dark:text-slate-300">
+                      Persistent Volume Mount (Max 2GB)
+                    </label>
+                    <div className="relative">
+                      <input 
+                        type="text" 
+                        placeholder="/app/data" 
+                        value={volumeMountPath}
+                        onChange={(e) => setVolumeMountPath(e.target.value)}
+                        className="w-full bg-background dark:bg-slate-900 border border-border dark:border-slate-800 rounded-lg px-4 py-2.5 text-sm text-foreground dark:text-slate-200 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all placeholder:text-muted-foreground/50"
+                      />
+                      <p className="text-xs text-muted-foreground dark:text-slate-500 mt-2">
+                        Specify a folder path inside the container to make its contents persistent across restarts. Leave blank for no persistent volume. Note: changing this will recreate the container.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="pt-4 flex justify-end border-t border-border dark:border-slate-800">
+                    <button 
+                      onClick={handleSaveResources}
+                      disabled={isSavingResources || (memoryLimit === container.memoryLimit && cpuLimit === container.cpuLimit && restartPolicy === (container.restartPolicy || 'unless-stopped') && volumeMountPath === (container.volumeMountPath || ''))}
+                      className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold transition-all shadow-lg shadow-emerald-900/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    >
+                      {isSavingResources ? (
+                        <>
+                          <RefreshCw className="w-4 h-4 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        'Save Settings'
+                      )}
+                    </button>
+                  </div>
+                </div>
               </div>
             </TabsContent>
           </Tabs>

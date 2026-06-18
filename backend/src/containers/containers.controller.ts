@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Patch,
   Delete,
   Body,
   Param,
@@ -13,6 +14,7 @@ import { ApiTags, ApiCookieAuth, ApiOperation } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ContainersService } from './containers.service';
 import { CreateContainerDto } from './dto/create-container.dto';
+import { UpdateResourcesDto } from './dto/update-resources.dto';
 
 @ApiTags('containers')
 @ApiCookieAuth()
@@ -65,5 +67,15 @@ export class ContainersController {
   @ApiOperation({ summary: 'Delete a container' })
   remove(@Request() req: any, @Param('id') id: string) {
     return this.containersService.remove(id, req.user.id);
+  }
+
+  @Patch(':id/resources')
+  @ApiOperation({ summary: 'Update container resource limits' })
+  updateResources(
+    @Request() req: any,
+    @Param('id') id: string,
+    @Body() dto: UpdateResourcesDto,
+  ) {
+    return this.containersService.updateResources(id, req.user.id, dto);
   }
 }

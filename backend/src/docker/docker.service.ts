@@ -136,6 +136,23 @@ export class DockerService implements OnModuleInit {
     }
   }
 
+  async createVolume(volumeName: string) {
+    try {
+      // Check if volume already exists
+      const volumeInfo = await this.docker.getVolume(volumeName).inspect().catch(() => null);
+      if (volumeInfo) return volumeInfo;
+      
+      // Create new volume
+      const volume = await this.docker.createVolume({
+        Name: volumeName,
+      });
+      return volume;
+    } catch (error) {
+      this.logger.error(`Failed to create volume ${volumeName}: ${error.message}`);
+      throw error;
+    }
+  }
+
   async getContainerStats(dockerContainerId: string): Promise<any> {
     const container = this.docker.getContainer(dockerContainerId);
     return new Promise((resolve, reject) => {

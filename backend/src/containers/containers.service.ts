@@ -9,6 +9,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { DockerService } from '../docker/docker.service';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { CreateContainerDto } from './dto/create-container.dto';
+import { UpdateResourcesDto } from './dto/update-resources.dto';
 
 @Injectable()
 export class ContainersService {
@@ -242,6 +243,115 @@ export class ContainersService {
     });
 
     return { message: 'Container deleted successfully' };
+  }
+
+  async updateResources(id: string, userId: string, dto: UpdateResourcesDto) {
+    const container = await this.findOne(id, userId);
+    
+    // Convert memory (MB) to bytes and CPU (cores) to nanoCPUs
+    const memoryBytes = dto.memoryLimit ? Math.floor(dto.memoryLimit * 1024 * 1024) : 0;
+    const nanoCPUs = dto.cpuLimit ? Math.floor(dto.cpuLimit * 1e9) : 0;
+
+    const volumeChanged = dto.volumeMountPath !== undefined && dto.volumeMountPath !== container.volumeMountPath;
+
+    if (volumeChanged && container.dockerContainerId) {
+      const volumeName = `portdock-vol-${container.id}`;
+      let binds: string[] = [];
+      
+      if (dto.volumeMountPath) {
+        await this.docker.createVolume(volumeName);
+        binds = [`${volumeName}:${dto.volumeMountPath}`];
+      }
+
+      try {
+        await this.docker.stopContainer(container.dockerContainerId);
+      } catch {}
+      try {
+        await this.docker.removeContainer(container.dockerContainerId, true);
+      } catch {}
+      // Fallback: also try to remove by name to clear any orphaned containers blocking the name
+      try {
+        await this.docker.removeContainer(container.name, true);
+      } catch {}
+
+      const imageTag = container.imageTag || 'latest';
+      const fullImage = `${container.imageName}:${imageTag}`;
+      
+      const newDockerContainer = await this.docker.createContainer({
+        name: container.name,
+        Image: fullImage,
+        ExposedPorts: { [`${container.internalPort}/tcp`]: {} },
+        HostConfig: {
+          PortBindings: {
+            [`${container.internalPort}/tcp`]: [{ HostPort: `${container.hostPort}` }],
+          },
+          RestartPolicy: { Name: dto.restartPolicy || container.restartPolicy || 'unless-stopped' },
+          Binds: binds,
+          Memory: memoryBytes,
+          MemorySwap: memoryBytes,
+          NanoCPUs: nanoCPUs,
+          LogConfig: {
+            Type: 'json-file',
+            Config: {
+              'max-size': '10m',
+              'max-file': '3',
+            },
+          },
+        },
+      });
+
+      if (container.status === 'RUNNING') {
+        await this.docker.startContainer(newDockerContainer.id);
+      }
+
+      await this.prisma.container.update({
+        where: { id: container.id },
+        data: { dockerContainerId: newDockerContainer.id }
+      });
+    } else if (container.dockerContainerId) {
+      try {
+        const dockerContainer = await this.docker.getContainer(container.dockerContainerId);
+        const updateOptions: any = {
+          Memory: memoryBytes,
+          MemorySwap: memoryBytes, // Set swap equal to memory to prevent swapping (or customize as needed)
+          NanoCPUs: nanoCPUs,
+        };
+
+        if (dto.restartPolicy) {
+          updateOptions.RestartPolicy = { Name: dto.restartPolicy };
+        }
+
+        await dockerContainer.update(updateOptions);
+      } catch (err) {
+        this.logger.error(`Failed to update docker container resources: ${err.message}`, err.stack);
+        throw new InternalServerErrorException(`Failed to update docker container resources: ${err.message}`);
+      }
+    }
+
+    const updateData: any = {
+      memoryLimit: dto.memoryLimit,
+      cpuLimit: dto.cpuLimit,
+    };
+    if (dto.restartPolicy !== undefined) {
+      updateData.restartPolicy = dto.restartPolicy;
+    }
+    if (dto.volumeMountPath !== undefined) {
+      updateData.volumeMountPath = dto.volumeMountPath;
+    }
+
+    const updated = await this.prisma.container.update({
+      where: { id },
+      data: updateData,
+    });
+
+    await this.activityLogs.create({
+      userId,
+      projectId: container.projectId,
+      action: 'CONTAINER_RESOURCES_UPDATED',
+      description: `Updated resources for container "${container.name}" (RAM: ${dto.memoryLimit || 'Unlimited'}MB, CPU: ${dto.cpuLimit || 'Unlimited'} Cores)`,
+    });
+
+    return updated;
   }
 
   private async getAvailablePort(): Promise<number> {
