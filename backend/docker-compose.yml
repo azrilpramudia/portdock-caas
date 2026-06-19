@@ -9,7 +9,7 @@ services:
       POSTGRES_PASSWORD: MeowHX01
       POSTGRES_DB: portdock_db
     ports:
-      - "5433:5432"
+      - "127.0.0.1:5433:5432"
     volumes:
       - portdock_db_data:/var/lib/postgresql/data
     restart: unless-stopped
