@@ -13,7 +13,9 @@ async function bootstrap() {
   fs.mkdirSync('./uploads/tmp', { recursive: true });
 
   // Security
-  app.use(helmet());
+  app.use(helmet({
+    contentSecurityPolicy: false, // Disabling this because it blocks Swagger UI
+  }));
   app.use(cookieParser());
 
   // CORS
