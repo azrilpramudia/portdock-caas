@@ -108,7 +108,15 @@ export class DockerService implements OnModuleInit {
 
   async startContainer(dockerContainerId: string) {
     const container = this.docker.getContainer(dockerContainerId);
-    await container.start();
+    try {
+      await container.start();
+    } catch (error) {
+      if (error.statusCode === 304) {
+        this.logger.log(`Container ${dockerContainerId} is already running.`);
+        return;
+      }
+      throw error;
+    }
   }
 
   async stopContainer(dockerContainerId: string) {
