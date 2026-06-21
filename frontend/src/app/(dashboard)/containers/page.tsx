@@ -239,10 +239,9 @@ export default function ContainersPage() {
       )}
 
       {/* Container Details Sidebar/Modal */}
-      {!!selectedContainer && (
+      {!!selectedContainer && rawContainers.find((c: any) => c.id === selectedContainer.id) && (
         <ContainerDetails 
-          containerId={selectedContainer.id} 
-          containerName={selectedContainer.name}
+          container={rawContainers.find((c: any) => c.id === selectedContainer.id)} 
           onClose={() => setSelectedContainer(null)} 
         />
       )}
