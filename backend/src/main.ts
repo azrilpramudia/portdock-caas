@@ -1,4 +1,5 @@
 import { NestFactory } from '@nestjs/core';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { ZodValidationPipe } from 'nestjs-zod';
@@ -7,7 +8,10 @@ import * as fs from 'fs';
 import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  // Trust proxy is required to get the real IP address of users when deployed behind Nginx or Cloudflare
+  app.set('trust proxy', 1);
 
   // Ensure uploads directory exists
   fs.mkdirSync('./uploads/tmp', { recursive: true });
