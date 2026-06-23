@@ -5,6 +5,7 @@ import { PasswordSettings } from "@/components/settings/PasswordSettings";
 import { GithubSettings } from "@/components/settings/GithubSettings";
 import { SshKeySettings } from "@/components/settings/SshKeySettings";
 import { NotificationSettings } from "@/components/settings/NotificationSettings";
+import { DeleteAccountSettings } from "@/components/settings/DeleteAccountSettings";
 
 export default function SettingsPage() {
   return (
@@ -19,6 +20,9 @@ export default function SettingsPage() {
 
       {/* Full Width Bottom Section */}
       <NotificationSettings />
+
+      {/* Danger Zone */}
+      <DeleteAccountSettings />
     </div>
   );
 }

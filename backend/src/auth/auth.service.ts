@@ -7,6 +7,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
+import { ProjectsService } from '../projects/projects.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
@@ -24,6 +25,7 @@ export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
+    private projectsService: ProjectsService,
   ) {}
 
   async register(dto: RegisterDto, ip: string) {
@@ -304,5 +306,34 @@ export class AuthService {
       if (error instanceof UnauthorizedException) throw error;
       throw new UnauthorizedException('Failed to verify Turnstile token');
     }
+  }
+
+  async deleteAccount(userId: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new BadRequestException('User not found');
+
+    const projects = await this.prisma.project.findMany({ where: { userId } });
+    for (const project of projects) {
+      await this.projectsService.remove(project.id, userId);
+    }
+
+    await this.prisma.user.delete({ where: { id: userId } });
+    return { message: 'User account and all associated resources deleted successfully' };
+  }
+
+  async deleteAllUsers() {
+    const users = await this.prisma.user.findMany();
+    let deletedCount = 0;
+    
+    for (const user of users) {
+      try {
+        await this.deleteAccount(user.id);
+        deletedCount++;
+      } catch (error) {
+        console.error(`Failed to delete user ${user.id}:`, error);
+      }
+    }
+    
+    return { message: `Successfully deleted ${deletedCount} users and their resources` };
   }
 }

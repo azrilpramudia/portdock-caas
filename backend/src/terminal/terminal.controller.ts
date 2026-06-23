@@ -1,13 +1,17 @@
 import { Controller, Get, Param, UseGuards } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { ApiTags, ApiCookieAuth, ApiOperation } from '@nestjs/swagger';
 
+@ApiTags('terminal-logs')
+@ApiCookieAuth()
 @Controller('terminal-logs')
 @UseGuards(JwtAuthGuard)
 export class TerminalController {
   constructor(private prisma: PrismaService) {}
 
   @Get(':containerId')
+  @ApiOperation({ summary: 'Get terminal logs for a container' })
   async getTerminalLogs(@Param('containerId') containerId: string) {
     const container = await this.prisma.container.findUnique({
       where: { id: containerId },

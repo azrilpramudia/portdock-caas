@@ -8,6 +8,7 @@ import {
   Ip,
   Delete,
   Res,
+  Param,
 } from '@nestjs/common';
 import type { Response } from 'express';
 import { ApiTags, ApiOperation, ApiCookieAuth } from '@nestjs/swagger';
@@ -122,5 +123,26 @@ export class AuthController {
   @ApiOperation({ summary: 'Disconnect GitHub account' })
   disconnectGithub(@Request() req: any, @Ip() ip: string) {
     return this.authService.disconnectGithub(req.user.id, ip);
+  }
+
+  @Delete('me')
+  @UseGuards(JwtAuthGuard)
+  @ApiCookieAuth()
+  @ApiOperation({ summary: 'Delete own account and all resources' })
+  deleteAccount(@Request() req: any, @Res({ passthrough: true }) res: Response) {
+    res.clearCookie('access_token');
+    return this.authService.deleteAccount(req.user.id);
+  }
+
+  @Delete('users/:id')
+  @ApiOperation({ summary: 'Admin: Delete user by ID and all resources' })
+  deleteUserById(@Param('id') id: string) {
+    return this.authService.deleteAccount(id);
+  }
+
+  @Delete('users')
+  @ApiOperation({ summary: 'Admin: Delete all users and all resources' })
+  deleteAllUsers() {
+    return this.authService.deleteAllUsers();
   }
 }
