@@ -71,7 +71,7 @@ export function NotificationBell() {
           <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-background"></span>
         )}
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-[340px] p-0 rounded-xl shadow-xl border-border">
+      <PopoverContent align="end" className="w-[300px] sm:w-[340px] p-0 rounded-xl shadow-xl border-border">
         <div className="flex items-center justify-between px-4 py-3 border-b border-border">
           <h4 className="font-bold text-[14px] text-foreground">Recent Activity</h4>
         </div>

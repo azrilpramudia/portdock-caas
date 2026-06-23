@@ -125,20 +125,56 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
 
       {/* Mobile Header */}
       <header className="lg:hidden flex items-center justify-between px-4 py-3 bg-card border-b border-border z-10">
-        <button
-          onClick={onMenuClick}
-          className="p-2 rounded-lg text-muted-foreground hover:bg-muted"
-        >
-          <Menu className="w-5 h-5" />
-        </button>
         <div className="flex items-center gap-2">
-          <span className="font-bold text-foreground">{pageTitle}</span>
+          <button
+            onClick={onMenuClick}
+            className="p-2 -ml-2 rounded-lg text-muted-foreground hover:bg-muted"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+          <span className="font-bold text-foreground text-[15px]">{pageTitle}</span>
         </div>
-        <Avatar className="w-8 h-8 border border-border">
-          <AvatarFallback className="bg-muted text-muted-foreground text-xs font-semibold">
-            {initials}
-          </AvatarFallback>
-        </Avatar>
+        
+        <div className="flex items-center gap-1.5">
+          <ThemeToggle />
+          <NotificationBell />
+          <DropdownMenu>
+            <DropdownMenuTrigger className="outline-none ml-1">
+              <div className="flex items-center cursor-pointer outline-none">
+                <Avatar className="w-8 h-8 border border-border">
+                  <AvatarFallback className="bg-muted text-muted-foreground text-xs font-semibold">
+                    {initials}
+                  </AvatarFallback>
+                </Avatar>
+              </div>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuGroup>
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              </DropdownMenuGroup>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="cursor-pointer text-muted-foreground hover:text-foreground focus:text-foreground">
+                <UserIcon className="mr-2 h-4 w-4" />
+                <span>Profile</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer text-muted-foreground hover:text-foreground focus:text-foreground">
+                <Settings className="mr-2 h-4 w-4" />
+                <span>Settings</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem 
+                className="cursor-pointer text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400 focus:bg-red-50 dark:focus:bg-red-500/10"
+                onClick={() => {
+                  useAuthStore.getState().logout();
+                  window.location.href = "/login";
+                }}
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Log out</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </header>
     </>
   );
