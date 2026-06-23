@@ -22,14 +22,23 @@ async function bootstrap() {
   }));
   app.use(cookieParser());
 
+  // Enterprise-level strict CORS policy
+  const isProduction = process.env.NODE_ENV === 'production';
+  const allowedOrigins = isProduction
+    ? [
+        'https://portdock.my.id',
+        'https://www.portdock.my.id',
+      ]
+    : [
+        'http://localhost:3000',
+        'http://127.0.0.1:3000',
+        'http://localhost:3001',
+        'http://127.0.0.1:3001',
+      ];
+
   // CORS
   app.enableCors({
-    origin: [
-      'http://localhost:3000',
-      'http://127.0.0.1:3000',
-      'http://localhost:3001',
-      'http://127.0.0.1:3001',
-    ],
+    origin: allowedOrigins,
     credentials: true,
   });
 
