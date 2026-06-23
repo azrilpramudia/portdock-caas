@@ -33,6 +33,7 @@ import {
 import Link from "next/link";
 import api from "@/lib/api";
 import { cn } from "@/lib/utils";
+import { DeploymentLogsTerminal } from "@/components/projects/DeploymentLogsTerminal";
 
 const schema = z.object({
   name: z.string().min(2, "Nama minimal 2 karakter").max(100),
@@ -89,6 +90,7 @@ export default function NewProjectPage() {
   const [file, setFile] = useState<File | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [deployedProjectId, setDeployedProjectId] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handleFileDrop = (e: React.DragEvent) => {
@@ -141,8 +143,9 @@ export default function NewProjectPage() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["projects"] });
-      toast.success("Deployment sedang berjalan!");
-      router.push(`/projects/${data.id}`);
+      setDeployedProjectId(data.id);
+      // We don't redirect immediately so they can see the success UI!
+      // router.push(`/projects/${data.id}`);
     },
     onError: (error: any) => {
       // Prioritize backend error message over generic axios error message
@@ -166,9 +169,21 @@ export default function NewProjectPage() {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit((data) => createMutation.mutate(data))} className="space-y-6">
-        {/* Basic Info */}
-        <Card className="bg-card border border-border shadow-sm">
+      {createMutation.isPending || createMutation.isSuccess || createMutation.isError ? (
+        <DeploymentLogsTerminal
+          isDeploying={createMutation.isPending}
+          isSuccess={createMutation.isSuccess}
+          isError={createMutation.isError}
+          uploadProgress={uploadProgress}
+          deploymentType={deploymentType}
+          projectName={watch("name")}
+          projectId={deployedProjectId || undefined}
+          errorMessage={createMutation.error ? (createMutation.error as any).response?.data?.message || (createMutation.error as any).message : undefined}
+        />
+      ) : (
+        <form onSubmit={handleSubmit((data) => createMutation.mutate(data))} className="space-y-6">
+          {/* Basic Info */}
+          <Card className="bg-card border border-border shadow-sm">
           <CardHeader>
             <CardTitle className="text-base">Informasi Project</CardTitle>
             <CardDescription>Detail dasar project Anda</CardDescription>
@@ -380,6 +395,7 @@ export default function NewProjectPage() {
           </Button>
         </div>
       </form>
+      )}
     </div>
   );
 }

@@ -96,7 +96,7 @@ export default function ProjectDetailPage() {
         <Link href={`/projects/${projectId}/deploy`}>
           <Button className="portdock-gradient text-white shadow-lg shadow-blue-500/25 hover:opacity-90">
             <Rocket className="w-4 h-4 mr-2" />
-            Deploy
+            Redeploy / Update
           </Button>
         </Link>
       </div>
@@ -148,7 +148,8 @@ export default function ProjectDetailPage() {
                   <p className="text-sm text-muted-foreground">Belum ada container</p>
                   <Link href={`/projects/${projectId}/deploy`} className="mt-3">
                     <Button size="sm" className="portdock-gradient text-white hover:opacity-90">
-                      <Rocket className="w-3 h-3 mr-1.5" /> Deploy sekarang
+                      <Rocket className="w-3.5 h-3.5 mr-1.5" />
+                      Redeploy Project
                     </Button>
                   </Link>
                 </div>

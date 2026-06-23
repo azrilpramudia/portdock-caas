@@ -2,7 +2,7 @@ import axios from "axios";
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api",
-  timeout: 300000, // Increased to 5 minutes to allow Docker builds to finish
+  timeout: 0, // No timeout to allow heavy Docker builds to finish without dropping connection
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
