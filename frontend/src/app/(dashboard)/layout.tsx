@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/auth";
 import { DashboardSidebar } from "@/components/layout/DashboardSidebar";
 import { DashboardHeader } from "@/components/layout/DashboardHeader";
+import { WelcomeModal } from "@/components/dashboard/WelcomeModal";
+import { FloatingSupport } from "@/components/dashboard/FloatingSupport";
 
 export default function DashboardLayout({
   children,
@@ -56,6 +58,10 @@ export default function DashboardLayout({
           <div className="p-4 lg:p-8 animate-fade-in">{children}</div>
         </main>
       </div>
+
+      {/* Global Dashboard Elements */}
+      <WelcomeModal />
+      <FloatingSupport />
     </div>
   );
 }

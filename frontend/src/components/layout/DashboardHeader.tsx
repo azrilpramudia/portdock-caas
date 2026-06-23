@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Menu, Bell, ChevronDown } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -24,6 +24,7 @@ interface DashboardHeaderProps {
 
 export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const { user } = useAuthStore();
 
   const initials = user?.name
@@ -99,11 +100,17 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="cursor-pointer text-muted-foreground hover:text-foreground focus:text-foreground">
+              <DropdownMenuItem 
+                className="cursor-pointer text-muted-foreground hover:text-foreground focus:text-foreground"
+                onClick={() => router.push("/settings")}
+              >
                 <UserIcon className="mr-2 h-4 w-4" />
                 <span>Profile</span>
               </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer text-muted-foreground hover:text-foreground focus:text-foreground">
+              <DropdownMenuItem 
+                className="cursor-pointer text-muted-foreground hover:text-foreground focus:text-foreground"
+                onClick={() => router.push("/settings")}
+              >
                 <Settings className="mr-2 h-4 w-4" />
                 <span>Settings</span>
               </DropdownMenuItem>
@@ -153,14 +160,20 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="cursor-pointer text-muted-foreground hover:text-foreground focus:text-foreground">
-                <UserIcon className="mr-2 h-4 w-4" />
-                <span>Profile</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer text-muted-foreground hover:text-foreground focus:text-foreground">
-                <Settings className="mr-2 h-4 w-4" />
-                <span>Settings</span>
-              </DropdownMenuItem>
+                <DropdownMenuItem 
+                  className="cursor-pointer text-muted-foreground hover:text-foreground focus:text-foreground py-2.5"
+                  onClick={() => router.push("/settings")}
+                >
+                  <UserIcon className="mr-2 h-4 w-4" />
+                  <span>Profile</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  className="cursor-pointer text-muted-foreground hover:text-foreground focus:text-foreground py-2.5"
+                  onClick={() => router.push("/settings")}
+                >
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>Settings</span>
+                </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem 
                 className="cursor-pointer text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400 focus:bg-red-50 dark:focus:bg-red-500/10"
