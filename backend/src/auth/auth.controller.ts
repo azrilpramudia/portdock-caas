@@ -11,7 +11,7 @@ import {
   Param,
 } from '@nestjs/common';
 import type { Response } from 'express';
-import { ApiTags, ApiOperation, ApiCookieAuth } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiCookieAuth, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -134,14 +134,33 @@ export class AuthController {
     return this.authService.deleteAccount(req.user.id);
   }
 
+  @Get('users')
+  @ApiOperation({ summary: 'Admin: Get all users' })
+  @ApiResponse({ status: 200, description: 'Returns an array of all users and their project counts.' })
+  getAllUsers() {
+    return this.authService.getAllUsers();
+  }
+
+  @Get('users/:id')
+  @ApiOperation({ summary: 'Admin: Get user by ID' })
+  @ApiParam({ name: 'id', description: 'The ID of the user' })
+  @ApiResponse({ status: 200, description: 'Returns detailed information of a specific user including their projects.' })
+  @ApiResponse({ status: 400, description: 'User not found.' })
+  getUserById(@Param('id') id: string) {
+    return this.authService.getUserById(id);
+  }
+
   @Delete('users/:id')
   @ApiOperation({ summary: 'Admin: Delete user by ID and all resources' })
+  @ApiParam({ name: 'id', description: 'The ID of the user to permanently delete' })
+  @ApiResponse({ status: 200, description: 'User and all associated containers/projects successfully deleted.' })
   deleteUserById(@Param('id') id: string) {
     return this.authService.deleteAccount(id);
   }
 
   @Delete('users')
-  @ApiOperation({ summary: 'Admin: Delete all users and all resources' })
+  @ApiOperation({ summary: 'Admin: Delete all users and all resources (Nuke)' })
+  @ApiResponse({ status: 200, description: 'All users and their containers successfully wiped from the server.' })
   deleteAllUsers() {
     return this.authService.deleteAllUsers();
   }

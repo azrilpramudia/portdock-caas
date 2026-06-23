@@ -308,6 +308,46 @@ export class AuthService {
     }
   }
 
+  async getAllUsers() {
+    return this.prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        createdAt: true,
+        updatedAt: true,
+        _count: {
+          select: { projects: true }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+  }
+
+  async getUserById(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        createdAt: true,
+        updatedAt: true,
+        projects: {
+          select: {
+            id: true,
+            name: true,
+            domain: true,
+            status: true,
+          }
+        }
+      },
+    });
+
+    if (!user) throw new BadRequestException('User not found');
+    return user;
+  }
+
   async deleteAccount(userId: string) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new BadRequestException('User not found');
