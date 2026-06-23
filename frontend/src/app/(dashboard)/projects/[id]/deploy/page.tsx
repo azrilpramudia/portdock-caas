@@ -179,7 +179,7 @@ export default function DeployPage() {
                   onClick={() => {
                     if (file) zipMutation.mutate(file);
                   }}
-                  disabled={!file || zipMutation.isPending || deployStatus === "deploying"}
+                  disabled={!file || zipMutation.isPending}
                   className="w-full h-11 portdock-gradient text-white shadow-lg shadow-blue-500/25 hover:opacity-90"
                 >
                   {zipMutation.isPending ? (
@@ -232,7 +232,7 @@ export default function DeployPage() {
                 <Button
                   id="btn-deploy-github"
                   onClick={() => githubMutation.mutate({ repositoryUrl: githubUrl, branch })}
-                  disabled={!githubUrl || githubMutation.isPending || deployStatus === "deploying"}
+                  disabled={!githubUrl || githubMutation.isPending}
                   className="w-full h-11 portdock-gradient text-white shadow-lg shadow-blue-500/25 hover:opacity-90"
                 >
                   {githubMutation.isPending ? (
