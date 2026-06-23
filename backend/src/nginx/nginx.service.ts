@@ -2,13 +2,17 @@ import { Injectable, Logger } from '@nestjs/common';
 import * as fs from 'fs';
 import * as path from 'path';
 import { DockerService } from '../docker/docker.service';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class NginxService {
   private readonly logger = new Logger(NginxService.name);
   private readonly confDir: string;
 
-  constructor(private dockerService: DockerService) {
+  constructor(
+    private dockerService: DockerService,
+    private configService: ConfigService,
+  ) {
     this.confDir = path.resolve(process.cwd(), 'nginx-conf.d');
     if (!fs.existsSync(this.confDir)) {
       fs.mkdirSync(this.confDir, { recursive: true });
@@ -52,10 +56,25 @@ server {
    * Meminta sertifikat SSL dari Let's Encrypt
    */
   async requestSsl(domain: string, email: string): Promise<boolean> {
+    if (process.env.NODE_ENV === 'development') {
+      this.logger.log(`Skipping SSL request for ${domain} in development mode.`);
+      return false; // Skip SSL generation locally
+    }
+
     this.logger.log(`Requesting SSL for ${domain} with email ${email}...`);
     try {
       const certbotConfDir = path.resolve(process.cwd(), 'certbot-conf');
       const certbotWwwDir = path.resolve(process.cwd(), 'certbot-www');
+
+      // Check for Wildcard SSL Certificate first
+      const baseDomain = this.configService.get<string>('BASE_DOMAIN');
+      if (baseDomain && domain.endsWith(`.${baseDomain}`)) {
+        const wildcardPath = path.join(certbotConfDir, 'live', baseDomain, 'fullchain.pem');
+        if (fs.existsSync(wildcardPath)) {
+          this.logger.log(`Wildcard certificate for ${baseDomain} found. Using it for ${domain}.`);
+          return true;
+        }
+      }
 
       // Check if certificate already exists
       const certPath = path.join(
@@ -133,6 +152,19 @@ server {
    * Menghasilkan HTTPS file Nginx (port 443 + redirect) setelah SSL berhasil
    */
   async generateHttpsConfig(domain: string, hostPort: number): Promise<void> {
+    const baseDomain = this.configService.get<string>('BASE_DOMAIN');
+    let certPath = `/etc/letsencrypt/live/${domain}/fullchain.pem`;
+    let keyPath = `/etc/letsencrypt/live/${domain}/privkey.pem`;
+
+    if (baseDomain && domain.endsWith(`.${baseDomain}`)) {
+      const certbotConfDir = path.resolve(process.cwd(), 'certbot-conf');
+      const wildcardPath = path.join(certbotConfDir, 'live', baseDomain, 'fullchain.pem');
+      if (fs.existsSync(wildcardPath)) {
+        certPath = `/etc/letsencrypt/live/${baseDomain}/fullchain.pem`;
+        keyPath = `/etc/letsencrypt/live/${baseDomain}/privkey.pem`;
+      }
+    }
+
     const confContent = `
 server {
     listen 80;
@@ -151,8 +183,8 @@ server {
     listen 443 ssl;
     server_name ${domain};
 
-    ssl_certificate /etc/letsencrypt/live/${domain}/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/${domain}/privkey.pem;
+    ssl_certificate ${certPath};
+    ssl_certificate_key ${keyPath};
 
     location / {
         proxy_pass http://172.17.0.1:${hostPort};

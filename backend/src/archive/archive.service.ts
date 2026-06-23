@@ -31,9 +31,22 @@ export class ArchiveService {
   cleanup(extractDir: string, filePath?: string) {
     try {
       if (extractDir && fs.existsSync(extractDir)) {
+        // Hapus folder ekstrak (contoh: uploads/<projectId>/<timestamp>)
         fs.rmSync(extractDir, { recursive: true, force: true });
+
+        // Cek parent folder (contoh: uploads/<projectId>)
+        const parentDir = path.dirname(extractDir);
+        if (fs.existsSync(parentDir)) {
+          const items = fs.readdirSync(parentDir);
+          // Jika parent folder sudah kosong (tidak ada folder timestamp lain), hapus parent-nya juga
+          if (items.length === 0) {
+            fs.rmSync(parentDir, { recursive: true, force: true });
+            this.logger.log(`Cleaned up empty project folder: ${parentDir}`);
+          }
+        }
       }
       if (filePath && fs.existsSync(filePath)) {
+        // Hapus file ZIP asli
         fs.unlinkSync(filePath);
       }
     } catch (err) {

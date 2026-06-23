@@ -14,6 +14,7 @@ import { NginxModule } from './nginx/nginx.module';
 import { TerminalModule } from './terminal/terminal.module';
 import { GitModule } from './git/git.module';
 import { ArchiveModule } from './archive/archive.module';
+import { BackupModule } from './backup/backup.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { ArchiveModule } from './archive/archive.module';
     TerminalModule,
     GitModule,
     ArchiveModule,
+    BackupModule,
   ],
 })
 export class AppModule {}
