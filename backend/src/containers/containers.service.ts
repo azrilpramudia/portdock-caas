@@ -45,6 +45,8 @@ export class ContainersService {
         Image: fullImage,
         ExposedPorts: { [`${dto.internalPort}/tcp`]: {} },
         HostConfig: {
+          Memory: (dto.memoryLimit || 512) * 1024 * 1024,
+          CpuQuota: Math.floor((dto.cpuLimit || 0.5) * 100000),
           PortBindings: {
             [`${dto.internalPort}/tcp`]: [{ HostPort: `${hostPort}` }],
           },
@@ -72,6 +74,8 @@ export class ContainersService {
           hostPort,
           subdomain: dto.subdomain,
           status: 'STOPPED',
+          memoryLimit: dto.memoryLimit || 512,
+          cpuLimit: dto.cpuLimit || 0.5,
         },
       });
 

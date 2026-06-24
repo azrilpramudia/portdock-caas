@@ -50,6 +50,7 @@ export class AuthService {
         id: true,
         name: true,
         email: true,
+        role: true,
         createdAt: true,
       },
     });
@@ -267,11 +268,12 @@ export class AuthService {
     return { message: 'GitHub account disconnected' };
   }
 
-  private generateToken(user: { id: string; email: string; name: string }) {
+  private generateToken(user: { id: string; email: string; name: string; role?: string }) {
     return this.jwtService.sign({
       sub: user.id,
       email: user.email,
       name: user.name,
+      role: user.role || 'USER',
     });
   }
 
@@ -362,7 +364,9 @@ export class AuthService {
   }
 
   async deleteAllUsers() {
-    const users = await this.prisma.user.findMany();
+    const users = await this.prisma.user.findMany({
+      where: { role: 'USER' },
+    });
     let deletedCount = 0;
     
     for (const user of users) {

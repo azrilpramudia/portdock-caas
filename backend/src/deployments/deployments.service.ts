@@ -36,6 +36,8 @@ export class DeploymentsService {
     userId: string,
     projectId: string,
     file: Express.Multer.File,
+    memoryLimit: number = 512,
+    cpuLimit: number = 0.5,
   ) {
     const project = await this.verifyProject(projectId, userId);
 
@@ -86,6 +88,8 @@ export class DeploymentsService {
         Env: [`PORT=${internalPort}`],
         ExposedPorts: { [`${internalPort}/tcp`]: {} },
         HostConfig: {
+          Memory: Math.min(memoryLimit, 512) * 1024 * 1024,
+          CpuQuota: Math.floor(Math.min(cpuLimit, 0.5) * 100000),
           PortBindings: {
             [`${internalPort}/tcp`]: [{ HostPort: `${hostPort}` }],
           },
@@ -114,6 +118,8 @@ export class DeploymentsService {
           internalPort,
           hostPort,
           status: 'RUNNING',
+          memoryLimit,
+          cpuLimit,
         },
       });
 
@@ -176,7 +182,9 @@ export class DeploymentsService {
     userId: string,
     projectId: string,
     repositoryUrl: string,
-    branch = 'main',
+    branch: string = 'main',
+    memoryLimit: number = 512,
+    cpuLimit: number = 0.5,
   ) {
     const project = await this.verifyProject(projectId, userId);
 
@@ -235,6 +243,8 @@ export class DeploymentsService {
         Env: [`PORT=${internalPort}`],
         ExposedPorts: { [`${internalPort}/tcp`]: {} },
         HostConfig: {
+          Memory: Math.min(memoryLimit, 512) * 1024 * 1024,
+          CpuQuota: Math.floor(Math.min(cpuLimit, 0.5) * 100000),
           PortBindings: {
             [`${internalPort}/tcp`]: [{ HostPort: `${hostPort}` }],
           },
@@ -262,6 +272,8 @@ export class DeploymentsService {
           internalPort,
           hostPort,
           status: 'RUNNING',
+          memoryLimit: Math.min(memoryLimit, 512),
+          cpuLimit: Math.min(cpuLimit, 0.5),
         },
       });
 

@@ -5,9 +5,9 @@ services:
     image: postgres:15-alpine
     container_name: portdock_db
     environment:
-      POSTGRES_USER: portdock
-      POSTGRES_PASSWORD: MeowHX01
-      POSTGRES_DB: portdock_db
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     ports:
       - "127.0.0.1:5433:5432"
     volumes:

@@ -20,8 +20,8 @@ export function ContainerDetails({ container, onClose, onRefresh }: ContainerDet
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   
   // Resource Limits & Policies State
-  const [memoryLimit, setMemoryLimit] = useState<number | null>(container.memoryLimit || null);
-  const [cpuLimit, setCpuLimit] = useState<number | null>(container.cpuLimit || null);
+  const [memoryLimit, setMemoryLimit] = useState<number>(container.memoryLimit || 512);
+  const [cpuLimit, setCpuLimit] = useState<number>(container.cpuLimit || 0.5);
   const [restartPolicy, setRestartPolicy] = useState<string>(container.restartPolicy || 'unless-stopped');
   const [volumeMountPath, setVolumeMountPath] = useState<string>(container.volumeMountPath || '');
   const [isSavingResources, setIsSavingResources] = useState(false);
@@ -215,10 +215,10 @@ export function ContainerDetails({ container, onClose, onRefresh }: ContainerDet
                   {/* Memory Limits */}
                   <div className="space-y-3">
                     <label className="text-sm font-semibold text-foreground/80 dark:text-slate-300">Memory Limit (RAM)</label>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                      {[null, 256, 512, 1024].map((val) => (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {[128, 256, 512].map((val) => (
                         <button
-                          key={val || 'unlimited'}
+                          key={val}
                           onClick={() => setMemoryLimit(val)}
                           className={`py-2 px-3 rounded-lg text-sm font-medium border transition-all ${
                             memoryLimit === val 
@@ -226,7 +226,7 @@ export function ContainerDetails({ container, onClose, onRefresh }: ContainerDet
                               : 'bg-background dark:bg-slate-900 border-border dark:border-slate-800 text-muted-foreground dark:text-slate-400 hover:border-foreground/30 dark:hover:border-slate-700 hover:text-foreground dark:hover:text-slate-300'
                           }`}
                         >
-                          {val === null ? 'Unlimited' : val >= 1024 ? `${val / 1024} GB` : `${val} MB`}
+                          {`${val} MB`}
                         </button>
                       ))}
                     </div>
@@ -235,10 +235,10 @@ export function ContainerDetails({ container, onClose, onRefresh }: ContainerDet
                   {/* CPU Limits */}
                   <div className="space-y-3">
                     <label className="text-sm font-semibold text-foreground/80 dark:text-slate-300">CPU Core Limit</label>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                      {[null, 0.25, 0.5, 1].map((val) => (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {[0.1, 0.25, 0.5].map((val) => (
                         <button
-                          key={val || 'unlimited'}
+                          key={val}
                           onClick={() => setCpuLimit(val)}
                           className={`py-2 px-3 rounded-lg text-sm font-medium border transition-all ${
                             cpuLimit === val 
@@ -246,7 +246,7 @@ export function ContainerDetails({ container, onClose, onRefresh }: ContainerDet
                               : 'bg-background dark:bg-slate-900 border-border dark:border-slate-800 text-muted-foreground dark:text-slate-400 hover:border-foreground/30 dark:hover:border-slate-700 hover:text-foreground dark:hover:text-slate-300'
                           }`}
                         >
-                          {val === null ? 'Unlimited' : `${val} Core${val > 1 ? 's' : ''}`}
+                          {`${val} Core${val > 1 ? 's' : ''}`}
                         </button>
                       ))}
                     </div>

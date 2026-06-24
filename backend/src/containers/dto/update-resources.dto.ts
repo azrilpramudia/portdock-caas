@@ -3,13 +3,14 @@ import { IsNumber, IsOptional, Min, Max, IsIn, IsString } from 'class-validator'
 export class UpdateResourcesDto {
   @IsOptional()
   @IsNumber()
-  @Min(64) // minimum 64 MB
+  @Min(128) // minimum 128 MB
+  @Max(512) // maximum 512 MB
   memoryLimit?: number | null;
 
   @IsOptional()
   @IsNumber()
   @Min(0.1) // minimum 0.1 CPU core
-  @Max(8.0) // maximum 8.0 CPU cores
+  @Max(0.5) // maximum 0.5 CPU core
   cpuLimit?: number | null;
 
   @IsOptional()

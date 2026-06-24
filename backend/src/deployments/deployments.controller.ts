@@ -56,8 +56,10 @@ export class DeploymentsController {
     @Request() req: any,
     @Param('projectId') projectId: string,
     @UploadedFile() file: Express.Multer.File,
+    @Body('memoryLimit') memoryLimit?: string,
+    @Body('cpuLimit') cpuLimit?: string,
   ) {
-    return this.deploymentsService.deployZip(req.user.id, projectId, file);
+    return this.deploymentsService.deployZip(req.user.id, projectId, file, Number(memoryLimit) || 512, Number(cpuLimit) || 0.5);
   }
 
   @Post(':projectId/github')
@@ -65,13 +67,15 @@ export class DeploymentsController {
   deployGithub(
     @Request() req: any,
     @Param('projectId') projectId: string,
-    @Body() body: { repositoryUrl: string; branch?: string },
+    @Body() body: { repositoryUrl: string; branch?: string; memoryLimit?: number; cpuLimit?: number },
   ) {
     return this.deploymentsService.deployGithub(
       req.user.id,
       projectId,
       body.repositoryUrl,
       body.branch,
+      body.memoryLimit || 512,
+      body.cpuLimit || 0.5,
     );
   }
 }
