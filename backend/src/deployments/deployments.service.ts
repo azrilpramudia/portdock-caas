@@ -81,11 +81,19 @@ export class DeploymentsService {
         `${imageName}:${imageTag}`,
       );
 
+      // Parse environment variables
+      let dockerEnv = [`PORT=${internalPort}`];
+      if (project.envVars && typeof project.envVars === 'object') {
+        const envRecord = project.envVars as Record<string, string>;
+        const envArray = Object.entries(envRecord).map(([k, v]) => `${k}=${v}`);
+        dockerEnv = [...dockerEnv, ...envArray];
+      }
+
       // Create Docker container
       const dockerContainer = await this.docker.createContainer({
         name: `${project.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${Date.now()}`,
         Image: `${imageName}:${imageTag}`,
-        Env: [`PORT=${internalPort}`],
+        Env: dockerEnv,
         ExposedPorts: { [`${internalPort}/tcp`]: {} },
         HostConfig: {
           Memory: Math.min(memoryLimit, 512) * 1024 * 1024,
@@ -236,11 +244,19 @@ export class DeploymentsService {
         `${imageName}:${imageTag}`,
       );
 
+      // Parse environment variables
+      let dockerEnv = [`PORT=${internalPort}`];
+      if (project.envVars && typeof project.envVars === 'object') {
+        const envRecord = project.envVars as Record<string, string>;
+        const envArray = Object.entries(envRecord).map(([k, v]) => `${k}=${v}`);
+        dockerEnv = [...dockerEnv, ...envArray];
+      }
+
       const containerName = `${project.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${Date.now()}`;
       const dockerContainer = await this.docker.createContainer({
         name: containerName,
         Image: `${imageName}:${imageTag}`,
-        Env: [`PORT=${internalPort}`],
+        Env: dockerEnv,
         ExposedPorts: { [`${internalPort}/tcp`]: {} },
         HostConfig: {
           Memory: Math.min(memoryLimit, 512) * 1024 * 1024,
