@@ -85,11 +85,42 @@ export function useDeployments(projectId: string) {
     },
   });
 
+  const dockerfileMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await api.post(`/deployments/${projectId}/dockerfile`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      return res.data;
+    },
+    onMutate: () => {
+      setDeployStatus("deploying");
+      const interval = simulateProgress();
+      return interval;
+    },
+    onSuccess: (data, _, interval) => {
+      clearInterval(interval as any);
+      setProgress(100);
+      setDeployStatus("success");
+      setDeployMessage(data?.message || "Dockerfile deployment berhasil!");
+      toast.success("Dockerfile deployment berhasil!");
+      setTimeout(() => router.push(`/projects/${projectId}`), 2000);
+    },
+    onError: (error: any, _, interval) => {
+      clearInterval(interval as any);
+      setDeployStatus("error");
+      setDeployMessage(error.response?.data?.message || "Deployment gagal");
+      toast.error("Deployment gagal");
+    },
+  });
+
   return {
     deployStatus,
     progress,
     deployMessage,
     zipMutation,
     githubMutation,
+    dockerfileMutation,
   };
 }

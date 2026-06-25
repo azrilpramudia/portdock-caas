@@ -37,7 +37,9 @@ export class DeploymentsService {
     projectId: string,
     file: Express.Multer.File,
     memoryLimit: number = 512,
-    cpuLimit: number = 0.5,
+    cpuLimit: number = 1.0,
+    customInternalPort?: number,
+    ip?: string,
   ) {
     const project = await this.verifyProject(projectId, userId);
 
@@ -54,6 +56,7 @@ export class DeploymentsService {
       projectId,
       action: 'DEPLOYMENT_STARTED',
       description: `Deployment started for "${project.name}" via ZIP`,
+      ipAddress: ip,
     });
 
     await this.prisma.project.update({
@@ -77,9 +80,10 @@ export class DeploymentsService {
 
       // Find available port
       const hostPort = await this.getAvailablePort();
-      const internalPort = await this.docker.getExposedPort(
+      const detectedPort = await this.docker.getExposedPort(
         `${imageName}:${imageTag}`,
       );
+      const internalPort = customInternalPort || detectedPort;
 
       // Parse environment variables
       let dockerEnv = [`PORT=${internalPort}`];
@@ -97,7 +101,7 @@ export class DeploymentsService {
         ExposedPorts: { [`${internalPort}/tcp`]: {} },
         HostConfig: {
           Memory: Math.min(memoryLimit, 512) * 1024 * 1024,
-          CpuQuota: Math.floor(Math.min(cpuLimit, 0.5) * 100000),
+          CpuQuota: Math.floor(Math.min(cpuLimit, 1.0) * 100000),
           PortBindings: {
             [`${internalPort}/tcp`]: [{ HostPort: `${hostPort}` }],
           },
@@ -141,6 +145,7 @@ export class DeploymentsService {
         projectId,
         action: 'DEPLOYMENT_SUCCESS',
         description: `Deployment succeeded for "${project.name}"`,
+        ipAddress: ip,
       });
 
       // Generate Nginx config if domain exists
@@ -178,6 +183,7 @@ export class DeploymentsService {
         projectId,
         action: 'DEPLOYMENT_FAILED',
         description: `Deployment failed: ${err.message}`,
+        ipAddress: ip,
       });
 
       this.archive.cleanup(extractDir, file.path);
@@ -192,7 +198,9 @@ export class DeploymentsService {
     repositoryUrl: string,
     branch: string = 'main',
     memoryLimit: number = 512,
-    cpuLimit: number = 0.5,
+    cpuLimit: number = 1.0,
+    customInternalPort?: number,
+    ip?: string,
   ) {
     const project = await this.verifyProject(projectId, userId);
 
@@ -209,6 +217,7 @@ export class DeploymentsService {
       projectId,
       action: 'DEPLOYMENT_STARTED',
       description: `Deployment started for "${project.name}" via GitHub`,
+      ipAddress: ip,
     });
 
     await this.prisma.project.update({
@@ -232,6 +241,17 @@ export class DeploymentsService {
       const imageName = `portdock-${projectId}`.toLowerCase();
       const imageTag = `v${Date.now()}`;
 
+      if (project.templateId === 'STATIC_NGINX') {
+        fs.writeFileSync(dockerfilePath, `FROM nginx:alpine\nCOPY . /usr/share/nginx/html\nEXPOSE 80\n`);
+        this.logger.log(`Generated STATIC_NGINX Dockerfile for ${project.name}`);
+      } else if (project.templateId === 'STATIC_APACHE') {
+        fs.writeFileSync(dockerfilePath, `FROM httpd:alpine\nCOPY . /usr/local/apache2/htdocs/\nEXPOSE 80\n`);
+        this.logger.log(`Generated STATIC_APACHE Dockerfile for ${project.name}`);
+      } else if (project.templateId === 'PHP_APACHE') {
+        fs.writeFileSync(dockerfilePath, `FROM php:8.2-apache\nCOPY . /var/www/html/\nEXPOSE 80\n`);
+        this.logger.log(`Generated PHP_APACHE Dockerfile for ${project.name}`);
+      }
+
       if (fs.existsSync(dockerfilePath)) {
         const tarStream = tar.pack(cloneDir);
         await this.docker.buildImage(tarStream, imageName, imageTag);
@@ -240,9 +260,10 @@ export class DeploymentsService {
       }
 
       const hostPort = await this.getAvailablePort();
-      const internalPort = await this.docker.getExposedPort(
+      const detectedPort = await this.docker.getExposedPort(
         `${imageName}:${imageTag}`,
       );
+      const internalPort = customInternalPort || detectedPort;
 
       // Parse environment variables
       let dockerEnv = [`PORT=${internalPort}`];
@@ -260,7 +281,7 @@ export class DeploymentsService {
         ExposedPorts: { [`${internalPort}/tcp`]: {} },
         HostConfig: {
           Memory: Math.min(memoryLimit, 512) * 1024 * 1024,
-          CpuQuota: Math.floor(Math.min(cpuLimit, 0.5) * 100000),
+          CpuQuota: Math.floor(Math.min(cpuLimit, 1.0) * 100000),
           PortBindings: {
             [`${internalPort}/tcp`]: [{ HostPort: `${hostPort}` }],
           },
@@ -289,7 +310,7 @@ export class DeploymentsService {
           hostPort,
           status: 'RUNNING',
           memoryLimit: Math.min(memoryLimit, 512),
-          cpuLimit: Math.min(cpuLimit, 0.5),
+          cpuLimit: Math.min(cpuLimit, 1.0),
         },
       });
 
@@ -303,6 +324,7 @@ export class DeploymentsService {
         projectId,
         action: 'DEPLOYMENT_SUCCESS',
         description: `GitHub deployment succeeded for "${project.name}"`,
+        ipAddress: ip,
       });
 
       // Generate Nginx config if domain exists
@@ -338,9 +360,157 @@ export class DeploymentsService {
         projectId,
         action: 'DEPLOYMENT_FAILED',
         description: `GitHub deployment failed: ${err.message}`,
+        ipAddress: ip,
       });
 
       this.archive.cleanup(cloneDir);
+
+      throw new BadRequestException(`Deployment failed: ${err.message}`);
+    }
+  }
+
+  async deployDockerfile(
+    userId: string,
+    projectId: string,
+    file: Express.Multer.File,
+    memoryLimit: number = 512,
+    cpuLimit: number = 1.0,
+    customInternalPort?: number,
+    ip?: string,
+  ) {
+    const project = await this.verifyProject(projectId, userId);
+
+    const uploadDir = path.resolve(
+      process.cwd(),
+      this.config.get<string>('UPLOAD_DIR', './uploads'),
+    );
+    const extractDir = path.join(uploadDir, projectId, `dockerfile-${Date.now()}`);
+
+    fs.mkdirSync(extractDir, { recursive: true });
+
+    await this.activityLogs.create({
+      userId,
+      projectId,
+      action: 'DEPLOYMENT_STARTED',
+      description: `Deployment started for "${project.name}" via Custom Dockerfile`,
+      ipAddress: ip,
+    });
+
+    await this.prisma.project.update({
+      where: { id: projectId },
+      data: { status: ProjectStatus.BUILDING },
+    });
+
+    try {
+      // Move uploaded Dockerfile to extractDir
+      const destPath = path.join(extractDir, 'Dockerfile');
+      fs.copyFileSync(file.path, destPath);
+
+      const imageName = `portdock-${projectId}`.toLowerCase();
+      const imageTag = `v${Date.now()}`;
+
+      // Build Image
+      const tarStream = tar.pack(extractDir);
+      await this.docker.buildImage(tarStream, imageName, imageTag);
+
+      // Find available port
+      const hostPort = await this.getAvailablePort();
+      const detectedPort = await this.docker.getExposedPort(
+        `${imageName}:${imageTag}`,
+      );
+      const internalPort = customInternalPort || detectedPort;
+
+      // Parse environment variables
+      let dockerEnv = [`PORT=${internalPort}`];
+      if (project.envVars && typeof project.envVars === 'object') {
+        const envRecord = project.envVars as Record<string, string>;
+        const envArray = Object.entries(envRecord).map(([k, v]) => `${k}=${v}`);
+        dockerEnv = [...dockerEnv, ...envArray];
+      }
+
+      // Create Docker container
+      const dockerContainer = await this.docker.createContainer({
+        name: `${project.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${Date.now()}`,
+        Image: `${imageName}:${imageTag}`,
+        Env: dockerEnv,
+        ExposedPorts: { [`${internalPort}/tcp`]: {} },
+        HostConfig: {
+          Memory: Math.min(memoryLimit, 512) * 1024 * 1024,
+          CpuQuota: Math.floor(Math.min(cpuLimit, 1.0) * 100000),
+          PortBindings: {
+            [`${internalPort}/tcp`]: [{ HostPort: `${hostPort}` }],
+          },
+          RestartPolicy: { Name: 'always' },
+        },
+      });
+
+      const inspect = await dockerContainer.inspect();
+      await dockerContainer.start();
+
+      const containerName = `${project.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${Date.now()}`;
+      await this.prisma.container.create({
+        data: {
+          projectId,
+          dockerContainerId: inspect.Id,
+          name: containerName,
+          imageName,
+          imageTag,
+          internalPort,
+          hostPort,
+          status: 'RUNNING',
+          memoryLimit,
+          cpuLimit,
+        },
+      });
+
+      await this.prisma.project.update({
+        where: { id: projectId },
+        data: { status: ProjectStatus.ACTIVE },
+      });
+
+      await this.activityLogs.create({
+        userId,
+        projectId,
+        action: 'DEPLOYMENT_SUCCESS',
+        description: `Custom Dockerfile deployment completed successfully for "${project.name}"`,
+        ipAddress: ip,
+      });
+
+      if (project.domain) {
+        const domain = project.domain;
+        await this.nginx.generateHttpConfig(domain, hostPort);
+
+        const userEmail = project.user?.email || 'admin@portdock.my.id';
+        this.nginx
+          .requestSsl(domain, userEmail)
+          .then(async (sslSuccess) => {
+            if (sslSuccess) {
+              await this.nginx.generateHttpsConfig(domain, hostPort);
+            }
+          })
+          .catch((err) => this.logger.error('Background SSL Error', err));
+      }
+
+      this.archive.cleanup(extractDir, file.path);
+
+      return { message: 'Deployment successful', container: dockerContainer.id };
+    } catch (err) {
+      this.logger.error('Custom Dockerfile deployment failed', err);
+
+      await this.prisma.project.update({
+        where: { id: projectId },
+        data: { status: ProjectStatus.FAILED },
+      });
+
+      await this.activityLogs.create({
+        userId,
+        projectId,
+        action: 'DEPLOYMENT_FAILED',
+        description: `Custom Dockerfile deployment failed: ${err.message}`,
+        ipAddress: ip,
+      });
+
+      this.archive.cleanup(extractDir, file.path);
 
       throw new BadRequestException(`Deployment failed: ${err.message}`);
     }

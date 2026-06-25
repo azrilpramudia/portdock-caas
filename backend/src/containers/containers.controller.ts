@@ -9,6 +9,7 @@ import {
   Query,
   UseGuards,
   Request,
+  Ip,
 } from '@nestjs/common';
 import { ApiTags, ApiCookieAuth, ApiOperation } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -29,8 +30,9 @@ export class ContainersController {
     @Request() req: any,
     @Param('projectId') projectId: string,
     @Body() dto: CreateContainerDto,
+    @Ip() ip: string,
   ) {
-    return this.containersService.create(req.user.id, projectId, dto);
+    return this.containersService.create(req.user.id, projectId, dto, ip);
   }
 
   @Get()
@@ -47,26 +49,26 @@ export class ContainersController {
 
   @Post(':id/start')
   @ApiOperation({ summary: 'Start a container' })
-  start(@Request() req: any, @Param('id') id: string) {
-    return this.containersService.start(id, req.user.id);
+  start(@Request() req: any, @Param('id') id: string, @Ip() ip: string) {
+    return this.containersService.start(id, req.user.id, ip);
   }
 
   @Post(':id/stop')
   @ApiOperation({ summary: 'Stop a container' })
-  stop(@Request() req: any, @Param('id') id: string) {
-    return this.containersService.stop(id, req.user.id);
+  stop(@Request() req: any, @Param('id') id: string, @Ip() ip: string) {
+    return this.containersService.stop(id, req.user.id, ip);
   }
 
   @Post(':id/restart')
   @ApiOperation({ summary: 'Restart a container' })
-  restart(@Request() req: any, @Param('id') id: string) {
-    return this.containersService.restart(id, req.user.id);
+  restart(@Request() req: any, @Param('id') id: string, @Ip() ip: string) {
+    return this.containersService.restart(id, req.user.id, ip);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a container' })
-  remove(@Request() req: any, @Param('id') id: string) {
-    return this.containersService.remove(id, req.user.id);
+  remove(@Request() req: any, @Param('id') id: string, @Ip() ip: string) {
+    return this.containersService.remove(id, req.user.id, ip);
   }
 
   @Patch(':id/resources')
@@ -75,7 +77,8 @@ export class ContainersController {
     @Request() req: any,
     @Param('id') id: string,
     @Body() dto: UpdateResourcesDto,
+    @Ip() ip: string,
   ) {
-    return this.containersService.updateResources(id, req.user.id, dto);
+    return this.containersService.updateResources(id, req.user.id, dto, ip);
   }
 }

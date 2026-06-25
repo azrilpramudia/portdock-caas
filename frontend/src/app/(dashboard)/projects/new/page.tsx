@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -30,47 +30,27 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Link from "next/link";
 import api from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { DeploymentLogsTerminal } from "@/components/projects/DeploymentLogsTerminal";
+import { DeploymentMethodSelector } from "@/components/projects/forms/DeploymentMethodSelector";
+import { GithubRepoField } from "@/components/projects/forms/GithubRepoField";
+import { ZipUploadField } from "@/components/projects/forms/ZipUploadField";
+import { DockerfileField } from "@/components/projects/forms/DockerfileField";
 
 const schema = z.object({
   name: z.string().min(2, "Nama minimal 2 karakter").max(100),
   description: z.string().max(500).optional(),
   deploymentType: z.enum(["ZIP", "GITHUB", "DOCKERFILE"]),
+  templateId: z.enum(["NIXPACKS", "STATIC_NGINX", "STATIC_APACHE", "PHP_APACHE"]),
   repositoryUrl: z.string().optional(),
   domain: z.string().optional(),
+  internalPort: z.string().optional(),
 });
 
 type FormData = z.infer<typeof schema>;
-
-const deployTypes = [
-  {
-    value: "ZIP" as const,
-    label: "ZIP Upload",
-    description: "Upload source code sebagai file ZIP",
-    icon: FileArchive,
-    color: "text-purple-600 dark:text-purple-400",
-    bg: "bg-purple-50 dark:bg-purple-500/20",
-  },
-  {
-    value: "GITHUB" as const,
-    label: "GitHub Repository",
-    description: "Deploy dari repositori GitHub",
-    icon: GitBranch,
-    color: "text-foreground dark:text-foreground",
-    bg: "bg-muted dark:bg-muted",
-  },
-  {
-    value: "DOCKERFILE" as const,
-    label: "Custom Dockerfile",
-    description: "Deploy menggunakan Dockerfile custom",
-    icon: FileCode,
-    color: "text-blue-600 dark:text-blue-400",
-    bg: "bg-blue-50 dark:bg-blue-500/20",
-  },
-];
 
 export default function NewProjectPage() {
   const router = useRouter();
@@ -81,10 +61,11 @@ export default function NewProjectPage() {
     handleSubmit,
     watch,
     setValue,
+    control,
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
-    defaultValues: { deploymentType: "ZIP" },
+    defaultValues: { deploymentType: "ZIP", templateId: "NIXPACKS" },
   });
 
   const [file, setFile] = useState<File | null>(null);
@@ -105,8 +86,8 @@ export default function NewProjectPage() {
 
   const createMutation = useMutation({
     mutationFn: async (data: FormData) => {
-      if (data.deploymentType === "ZIP" && !file) {
-        throw new Error("File ZIP belum dipilih!");
+      if ((data.deploymentType === "ZIP" || data.deploymentType === "DOCKERFILE") && !file) {
+        throw new Error("File belum dipilih!");
       }
 
       // Clean up empty string payloads so backend optional validation works
@@ -121,8 +102,16 @@ export default function NewProjectPage() {
 
       // 2. Upload ZIP
       if (data.deploymentType === "ZIP" && file) {
+        if (!file.name.toLowerCase().endsWith('.zip')) {
+          throw new Error("File yang diunggah harus berformat .zip!");
+        }
+        if (file.size > 50 * 1024 * 1024) { // 50MB
+          throw new Error("Ukuran file ZIP tidak boleh lebih dari 50MB!");
+        }
+
         const formData = new FormData();
         formData.append("file", file);
+        if (data.internalPort) formData.append("internalPort", data.internalPort.toString());
         await api.post(`/deployments/${project.id}/zip`, formData, {
           headers: { "Content-Type": "multipart/form-data" },
           onUploadProgress: (progressEvent) => {
@@ -136,6 +125,27 @@ export default function NewProjectPage() {
         await api.post(`/deployments/${project.id}/github`, {
           repositoryUrl: data.repositoryUrl,
           branch: "main",
+          internalPort: data.internalPort,
+        });
+      } else if (data.deploymentType === "DOCKERFILE" && file) {
+        if (!file.name.toLowerCase().includes('dockerfile')) {
+          throw new Error("File yang diunggah harus bernama Dockerfile!");
+        }
+        if (file.size > 5 * 1024 * 1024) { // 5MB
+          throw new Error("Ukuran file Dockerfile tidak boleh lebih dari 5MB!");
+        }
+
+        const formData = new FormData();
+        formData.append("file", file);
+        if (data.internalPort) formData.append("internalPort", data.internalPort.toString());
+        await api.post(`/deployments/${project.id}/dockerfile`, formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+          onUploadProgress: (progressEvent) => {
+            if (progressEvent.total) {
+              const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+              setUploadProgress(percentCompleted);
+            }
+          },
         });
       }
 
@@ -222,6 +232,22 @@ export default function NewProjectPage() {
                 className="h-10"
               />
             </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Label htmlFor="internalPort">Custom Internal Port (opsional)</Label>
+              </div>
+              <Input
+                id="internalPort"
+                type="number"
+                placeholder="Biarkan kosong untuk deteksi otomatis (misal: 3000)"
+                {...register("internalPort")}
+                className="h-10"
+              />
+              <p className="text-xs text-muted-foreground">
+                Hanya isi jika Anda ingin menimpa port internal yang terdeteksi otomatis.
+              </p>
+            </div>
           </CardContent>
         </Card>
 
@@ -232,138 +258,60 @@ export default function NewProjectPage() {
             <CardDescription>Pilih cara Anda mendeploy aplikasi</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            {deployTypes.map((type) => (
-              <button
-                key={type.value}
-                type="button"
-                onClick={() => setValue("deploymentType", type.value)}
-                className={cn(
-                  "w-full flex items-center gap-4 p-4 rounded-xl border-2 text-left transition-all duration-150",
-                  deploymentType === type.value
-                    ? `border-blue-500 bg-blue-50/50 dark:bg-blue-900/20 shadow-sm`
-                    : "border-border hover:border-border/80 hover:bg-muted"
-                )}
-              >
-                <div
-                  className={cn(
-                    "w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0",
-                    deploymentType === type.value ? type.bg : "bg-muted"
-                  )}
-                >
-                  <type.icon
-                    className={cn(
-                      "w-5 h-5",
-                      deploymentType === type.value ? type.color : "text-muted-foreground"
-                    )}
-                  />
-                </div>
-                <div>
-                  <p
-                    className={cn(
-                      "font-medium text-sm",
-                      deploymentType === type.value ? "text-blue-700 dark:text-blue-500" : "text-foreground"
-                    )}
-                  >
-                    {type.label}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-0.5">{type.description}</p>
-                </div>
-                {deploymentType === type.value && (
-                  <div className="ml-auto w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
-                    <div className="w-2 h-2 bg-white rounded-full" />
-                  </div>
-                )}
-              </button>
-            ))}
+            <DeploymentMethodSelector 
+              deploymentType={deploymentType} 
+              setValue={setValue} 
+            />
 
             {deploymentType === "GITHUB" && (
-              <div className="space-y-2 pt-2 border-t border-border mt-4">
-                <Label htmlFor="repositoryUrl">Repository URL</Label>
-                <Input
-                  id="repositoryUrl"
-                  placeholder="https://github.com/username/repo"
-                  {...register("repositoryUrl")}
-                  className="h-10"
-                />
-                
-                {createMutation.isPending && (
-                  <div className="mt-4 space-y-2 p-3 bg-blue-50/50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-800">
-                    <p className="text-xs text-blue-600 dark:text-blue-400 animate-pulse flex items-center justify-center gap-2">
-                      <Rocket className="w-3 h-3" />
-                      Sedang mem-build dari GitHub (Bisa memakan waktu 1-5 menit)...
-                    </p>
-                  </div>
-                )}
-              </div>
+              <GithubRepoField register={register} isPending={createMutation.isPending} />
             )}
 
             {deploymentType === "ZIP" && (
-              <div className="space-y-3 pt-2 border-t border-border mt-4">
-                <div>
-                  <Label>Upload ZIP File</Label>
-                  <p className="text-xs text-muted-foreground mb-2">Upload source code aplikasi Anda dalam format ZIP. Max 50MB.</p>
-                </div>
-                
-                <div
-                  onDragOver={handleFileDrop}
-                  onDragLeave={() => setDragOver(false)}
-                  onDrop={handleFileDrop}
-                  onClick={() => fileRef.current?.click()}
-                  className={cn(
-                    "border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-150",
-                    dragOver ? "border-blue-400 bg-blue-50 dark:bg-blue-900/20" :
-                    file ? "border-green-400 bg-green-50 dark:bg-green-900/20" :
-                    "border-border hover:border-blue-400 hover:bg-muted dark:hover:bg-muted/50"
+              <ZipUploadField
+                file={file}
+                setFile={setFile}
+                dragOver={dragOver}
+                setDragOver={setDragOver}
+                handleFileDrop={handleFileDrop}
+                uploadProgress={uploadProgress}
+                isPending={createMutation.isPending}
+              />
+            )}
+
+            {deploymentType === "DOCKERFILE" && (
+              <DockerfileField
+                file={file}
+                setFile={setFile}
+                dragOver={dragOver}
+                setDragOver={setDragOver}
+                handleFileDrop={handleFileDrop}
+                uploadProgress={uploadProgress}
+                isPending={createMutation.isPending}
+              />
+            )}
+
+            {(deploymentType === "GITHUB" || deploymentType === "ZIP") && (
+              <div className="space-y-2 pt-4 border-t border-border mt-4">
+                <Label htmlFor="templateId">Web Server (App Template)</Label>
+                <Controller
+                  name="templateId"
+                  control={control}
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <SelectTrigger className="h-10 w-full rounded-xl">
+                        <SelectValue placeholder="Select App Template" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="NIXPACKS">Auto-Detect (Nixpacks)</SelectItem>
+                        <SelectItem value="STATIC_NGINX">Static HTML (Nginx)</SelectItem>
+                        <SelectItem value="STATIC_APACHE">Static HTML (Apache)</SelectItem>
+                        <SelectItem value="PHP_APACHE">PHP (Apache)</SelectItem>
+                      </SelectContent>
+                    </Select>
                   )}
-                >
-                  <input
-                    ref={fileRef}
-                    type="file"
-                    accept=".zip"
-                    className="hidden"
-                    onChange={(e) => setFile(e.target.files?.[0] || null)}
-                  />
-                  {file ? (
-                    <>
-                      <CheckCircle2 className="w-10 h-10 text-green-500 mx-auto mb-3" />
-                      <p className="font-medium text-green-700 dark:text-green-400">{file.name}</p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {(file.size / 1024 / 1024).toFixed(2)} MB
-                      </p>
-                      <p className="text-xs text-muted-foreground/70 mt-2">Klik untuk mengubah file</p>
-                    </>
-                  ) : (
-                    <>
-                      <FileArchive className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
-                      <p className="font-medium text-foreground mb-1">
-                        Drag & drop file ZIP di sini
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        atau klik untuk memilih file
-                      </p>
-                    </>
-                  )}
-                </div>
-                
-                {createMutation.isPending && uploadProgress > 0 && deploymentType === "ZIP" && (
-                  <div className="mt-4 space-y-2">
-                    <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>Mengunggah file...</span>
-                      <span>{uploadProgress}%</span>
-                    </div>
-                    <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
-                      <div 
-                        className="bg-blue-500 h-full transition-all duration-300" 
-                        style={{ width: `${uploadProgress}%` }}
-                      />
-                    </div>
-                    {uploadProgress === 100 && (
-                      <p className="text-xs text-center text-blue-500 animate-pulse mt-2">
-                        Memproses container dan SSL (ini mungkin memakan waktu beberapa menit)...
-                      </p>
-                    )}
-                  </div>
-                )}
+                />
+                <p className="text-xs text-muted-foreground mt-1">Pilih web server internal untuk menjalankan kode Anda.</p>
               </div>
             )}
           </CardContent>

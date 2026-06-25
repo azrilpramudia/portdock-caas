@@ -11,6 +11,7 @@ import {
   Request,
   ParseIntPipe,
   DefaultValuePipe,
+  Ip,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -32,8 +33,8 @@ export class ProjectsController {
 
   @Post()
   @ApiOperation({ summary: 'Create a new project' })
-  create(@Request() req: any, @Body() dto: CreateProjectDto) {
-    return this.projectsService.create(req.user.id, dto);
+  create(@Request() req: any, @Body() dto: CreateProjectDto, @Ip() ip: string) {
+    return this.projectsService.create(req.user.id, dto, ip);
   }
 
   @Get()
@@ -76,13 +77,14 @@ export class ProjectsController {
     @Request() req: any,
     @Param('id') id: string,
     @Body() dto: UpdateProjectDto,
+    @Ip() ip: string,
   ) {
-    return this.projectsService.update(id, req.user.id, dto);
+    return this.projectsService.update(id, req.user.id, dto, ip);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a project' })
-  remove(@Request() req: any, @Param('id') id: string) {
-    return this.projectsService.remove(id, req.user.id);
+  remove(@Request() req: any, @Param('id') id: string, @Ip() ip: string) {
+    return this.projectsService.remove(id, req.user.id, ip);
   }
 }

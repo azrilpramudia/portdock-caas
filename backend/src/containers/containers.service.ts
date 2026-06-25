@@ -21,7 +21,7 @@ export class ContainersService {
     private activityLogs: ActivityLogsService,
   ) {}
 
-  async create(userId: string, projectId: string, dto: CreateContainerDto) {
+  async create(userId: string, projectId: string, dto: CreateContainerDto, ip?: string) {
     // Verify project ownership
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },
@@ -84,6 +84,7 @@ export class ContainersService {
         projectId,
         action: 'CONTAINER_CREATED',
         description: `Container "${dto.name}" created`,
+        ipAddress: ip,
       });
 
       return container;
@@ -153,7 +154,7 @@ export class ContainersService {
     return container;
   }
 
-  async start(id: string, userId: string) {
+  async start(id: string, userId: string, ip?: string) {
     const container = await this.findOne(id, userId);
     if (!container.dockerContainerId)
       throw new NotFoundException('Docker container not found');
@@ -169,12 +170,13 @@ export class ContainersService {
       projectId: container.projectId,
       action: 'CONTAINER_STARTED',
       description: `Container "${container.name}" started`,
+      ipAddress: ip,
     });
 
     return updated;
   }
 
-  async stop(id: string, userId: string) {
+  async stop(id: string, userId: string, ip?: string) {
     const container = await this.findOne(id, userId);
     if (!container.dockerContainerId)
       throw new NotFoundException('Docker container not found');
@@ -190,12 +192,13 @@ export class ContainersService {
       projectId: container.projectId,
       action: 'CONTAINER_STOPPED',
       description: `Container "${container.name}" stopped`,
+      ipAddress: ip,
     });
 
     return updated;
   }
 
-  async restart(id: string, userId: string) {
+  async restart(id: string, userId: string, ip?: string) {
     const container = await this.findOne(id, userId);
     if (!container.dockerContainerId)
       throw new NotFoundException('Docker container not found');
@@ -211,12 +214,13 @@ export class ContainersService {
       projectId: container.projectId,
       action: 'CONTAINER_RESTARTED',
       description: `Container "${container.name}" restarted`,
+      ipAddress: ip,
     });
 
     return updated;
   }
 
-  async remove(id: string, userId: string) {
+  async remove(id: string, userId: string, ip?: string) {
     const container = await this.findOne(id, userId);
 
     if (container.dockerContainerId) {
@@ -244,12 +248,13 @@ export class ContainersService {
       projectId: container.projectId,
       action: 'CONTAINER_DELETED',
       description: `Container "${container.name}" deleted`,
+      ipAddress: ip,
     });
 
     return { message: 'Container deleted successfully' };
   }
 
-  async updateResources(id: string, userId: string, dto: UpdateResourcesDto) {
+  async updateResources(id: string, userId: string, dto: UpdateResourcesDto, ip?: string) {
     const container = await this.findOne(id, userId);
     
     // Convert memory (MB) to bytes and CPU (cores) to nanoCPUs
@@ -353,6 +358,7 @@ export class ContainersService {
       projectId: container.projectId,
       action: 'CONTAINER_RESOURCES_UPDATED',
       description: `Updated resources for container "${container.name}" (RAM: ${dto.memoryLimit || 'Unlimited'}MB, CPU: ${dto.cpuLimit || 'Unlimited'} Cores)`,
+      ipAddress: ip,
     });
 
     return updated;

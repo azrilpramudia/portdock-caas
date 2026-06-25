@@ -7,6 +7,7 @@ import {
   Request,
   UseInterceptors,
   UploadedFile,
+  Ip,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
@@ -58,8 +59,11 @@ export class DeploymentsController {
     @UploadedFile() file: Express.Multer.File,
     @Body('memoryLimit') memoryLimit?: string,
     @Body('cpuLimit') cpuLimit?: string,
+    @Body('internalPort') internalPort?: string,
+    @Ip() ip?: string,
   ) {
-    return this.deploymentsService.deployZip(req.user.id, projectId, file, Number(memoryLimit) || 512, Number(cpuLimit) || 0.5);
+    console.log('--- DEPLOY ZIP PAYLOAD ---', { memoryLimit, cpuLimit, internalPort, ip });
+    return this.deploymentsService.deployZip(req.user.id, projectId, file, Number(memoryLimit) || 512, Number(cpuLimit) || 1.0, internalPort ? Number(internalPort) : undefined, ip);
   }
 
   @Post(':projectId/github')
@@ -67,15 +71,62 @@ export class DeploymentsController {
   deployGithub(
     @Request() req: any,
     @Param('projectId') projectId: string,
-    @Body() body: { repositoryUrl: string; branch?: string; memoryLimit?: number; cpuLimit?: number },
+    @Body() body: { repositoryUrl: string; branch?: string; memoryLimit?: number; cpuLimit?: number; internalPort?: string },
+    @Body('internalPort') internalPort?: string,
+    @Ip() ip?: string,
   ) {
+    console.log('--- DEPLOY GITHUB PAYLOAD ---', { ...body, ip });
     return this.deploymentsService.deployGithub(
       req.user.id,
       projectId,
       body.repositoryUrl,
       body.branch,
       body.memoryLimit || 512,
-      body.cpuLimit || 0.5,
+      body.cpuLimit || 1.0,
+      internalPort ? Number(internalPort) : undefined,
+      ip,
+    );
+  }
+
+  @Post(':projectId/dockerfile')
+  @ApiOperation({ summary: 'Deploy from Custom Dockerfile' })
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: './uploads/tmp',
+        filename: (_req, file, cb) => {
+          cb(null, `dockerfile-${Date.now()}-${Math.round(Math.random() * 1e9)}`);
+        },
+      }),
+      fileFilter: (_req, file, cb) => {
+        if (file.originalname.toLowerCase().includes('dockerfile')) {
+          cb(null, true);
+        } else {
+          cb(new Error('Hanya file Dockerfile yang diizinkan!'), false);
+        }
+      },
+      limits: { fileSize: 5 * 1024 * 1024 }, // 5MB for Dockerfile
+    }),
+  )
+  deployDockerfile(
+    @Request() req: any,
+    @Param('projectId') projectId: string,
+    @UploadedFile() file: Express.Multer.File,
+    @Body('memoryLimit') memoryLimit?: string,
+    @Body('cpuLimit') cpuLimit?: string,
+    @Body('internalPort') internalPort?: string,
+    @Ip() ip?: string,
+  ) {
+    console.log('--- DEPLOY DOCKERFILE PAYLOAD ---', { memoryLimit, cpuLimit, internalPort, ip });
+    return this.deploymentsService.deployDockerfile(
+      req.user.id,
+      projectId,
+      file,
+      Number(memoryLimit) || 512,
+      Number(cpuLimit) || 1.0,
+      internalPort ? Number(internalPort) : undefined,
+      ip,
     );
   }
 }

@@ -25,7 +25,7 @@ export class ProjectsService {
     private configService: ConfigService,
   ) {}
 
-  async create(userId: string, dto: CreateProjectDto) {
+  async create(userId: string, dto: CreateProjectDto, ip?: string) {
     let domain = dto.domain;
 
     if (!domain) {
@@ -63,6 +63,7 @@ export class ProjectsService {
       projectId: project.id,
       action: 'PROJECT_CREATED',
       description: `Project "${project.name}" created`,
+      ipAddress: ip,
     });
 
     return project;
@@ -121,7 +122,7 @@ export class ProjectsService {
     return project;
   }
 
-  async update(id: string, userId: string, dto: UpdateProjectDto) {
+  async update(id: string, userId: string, dto: UpdateProjectDto, ip?: string) {
     await this.findOne(id, userId);
 
     const project = await this.prisma.project.update({
@@ -134,12 +135,13 @@ export class ProjectsService {
       projectId: id,
       action: 'PROJECT_UPDATED',
       description: `Project "${project.name}" updated`,
+      ipAddress: ip,
     });
 
     return project;
   }
 
-  async remove(id: string, userId: string) {
+  async remove(id: string, userId: string, ip?: string) {
     const project = await this.findOne(id, userId);
 
     for (const container of project.containers) {
@@ -173,6 +175,7 @@ export class ProjectsService {
       userId,
       action: 'PROJECT_DELETED',
       description: `Project deleted`,
+      ipAddress: ip,
     });
 
     return { message: 'Project deleted successfully' };

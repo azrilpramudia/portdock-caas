@@ -161,6 +161,16 @@ export class DockerService implements OnModuleInit {
     }
   }
 
+  async removeVolume(volumeName: string): Promise<void> {
+    try {
+      const volume = this.docker.getVolume(volumeName);
+      await volume.remove();
+    } catch (error) {
+      this.logger.error(`Failed to remove volume ${volumeName}: ${error.message}`);
+      throw error;
+    }
+  }
+
   async getContainerStats(dockerContainerId: string): Promise<any> {
     const container = this.docker.getContainer(dockerContainerId);
     return new Promise((resolve, reject) => {

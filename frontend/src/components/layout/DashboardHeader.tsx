@@ -60,6 +60,9 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
             {pageTitle === "Deploy" && (
               <p className="text-[13px] text-muted-foreground mt-0.5">Deploy your application to Docker in minutes</p>
             )}
+            {pageTitle === "Databases" && (
+              <p className="text-[13px] text-muted-foreground mt-0.5">Provision and manage your production databases</p>
+            )}
             {pageTitle === "Containers" && (
               <p className="text-[13px] text-muted-foreground mt-0.5">Manage and control your Docker containers</p>
             )}

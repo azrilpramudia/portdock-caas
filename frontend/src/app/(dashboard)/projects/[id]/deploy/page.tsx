@@ -27,6 +27,7 @@ import { Progress } from "@/components/ui/progress";
 import api from "@/lib/api";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { DockerfileField } from "@/components/projects/forms/DockerfileField";
 
 export default function DeployPage() {
   const params = useParams();
@@ -43,6 +44,7 @@ export default function DeployPage() {
     deployMessage,
     zipMutation,
     githubMutation,
+    dockerfileMutation,
   } = useDeployments(projectId);
 
   const { data: project } = useQuery({
@@ -67,6 +69,17 @@ export default function DeployPage() {
       setFile(dropped);
     } else {
       toast.error("Hanya file ZIP yang diizinkan");
+    }
+  };
+
+  const handleDockerfileDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
+    const dropped = e.dataTransfer.files[0];
+    if (dropped && dropped.name.toLowerCase().includes("dockerfile")) {
+      setFile(dropped);
+    } else {
+      toast.error("File yang diunggah harus bernama Dockerfile!");
     }
   };
 
@@ -249,17 +262,33 @@ export default function DeployPage() {
               <CardContent className="p-6 space-y-4">
                 <div>
                   <CardTitle className="text-base mb-1">Custom Dockerfile</CardTitle>
-                  <CardDescription>Upload ZIP yang berisi Dockerfile custom Anda.</CardDescription>
+                  <CardDescription>Upload Dockerfile Anda langsung ke server.</CardDescription>
                 </div>
-                <Alert className="bg-amber-500/10 border-amber-500/20">
-                  <FileCode className="w-4 h-4 text-amber-500" />
-                  <AlertDescription className="text-amber-600 dark:text-amber-400 text-xs">
-                    Upload file ZIP yang berisi Dockerfile di root directory. Sistem akan menggunakan Dockerfile tersebut untuk build image.
-                  </AlertDescription>
-                </Alert>
-                <p className="text-sm text-muted-foreground">
-                  Gunakan tab <strong>ZIP Upload</strong> dan pastikan file ZIP Anda berisi Dockerfile di root directory.
-                </p>
+                
+                <DockerfileField
+                  file={file}
+                  setFile={setFile}
+                  dragOver={dragOver}
+                  setDragOver={setDragOver}
+                  handleFileDrop={handleDockerfileDrop}
+                  uploadProgress={progress}
+                  isPending={dockerfileMutation.isPending}
+                />
+
+                <Button
+                  id="btn-deploy-dockerfile"
+                  onClick={() => {
+                    if (file) dockerfileMutation.mutate(file);
+                  }}
+                  disabled={!file || dockerfileMutation.isPending}
+                  className="w-full h-11 portdock-gradient text-white shadow-lg shadow-blue-500/25 hover:opacity-90"
+                >
+                  {dockerfileMutation.isPending ? (
+                    <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Deploying...</>
+                  ) : (
+                    <><Upload className="w-4 h-4 mr-2" />Deploy Dockerfile</>
+                  )}
+                </Button>
               </CardContent>
             </TabsContent>
           </Tabs>

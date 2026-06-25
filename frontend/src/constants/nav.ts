@@ -6,12 +6,14 @@ import {
   BarChart3, 
   TerminalSquare as TerminalIcon, 
   ScrollText, 
-  Settings 
+  Settings,
+  Database
 } from "lucide-react";
 
 export const navItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/projects", icon: FolderOpen, label: "Projects" },
+  { href: "/databases", icon: Database, label: "Databases" },
   { href: "/containers", icon: Container, label: "Containers" },
   { href: "/monitoring", icon: BarChart3, label: "Monitoring" },
   { href: "/terminal", icon: TerminalIcon, label: "Terminal" },

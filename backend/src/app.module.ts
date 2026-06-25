@@ -17,6 +17,7 @@ import { GitModule } from './git/git.module';
 import { ArchiveModule } from './archive/archive.module';
 import { BackupModule } from './backup/backup.module';
 import { WebhooksModule } from './webhooks/webhooks.module';
+import { DatabasesModule } from './databases/databases.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { WebhooksModule } from './webhooks/webhooks.module';
     ArchiveModule,
     BackupModule,
     WebhooksModule,
+    DatabasesModule,
   ],
   providers: [
     {

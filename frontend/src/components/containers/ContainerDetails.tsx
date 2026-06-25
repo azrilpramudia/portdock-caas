@@ -236,7 +236,7 @@ export function ContainerDetails({ container, onClose, onRefresh }: ContainerDet
                   <div className="space-y-3">
                     <label className="text-sm font-semibold text-foreground/80 dark:text-slate-300">CPU Core Limit</label>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                      {[0.1, 0.25, 0.5].map((val) => (
+                      {[0.25, 0.5, 1.0].map((val) => (
                         <button
                           key={val}
                           onClick={() => setCpuLimit(val)}

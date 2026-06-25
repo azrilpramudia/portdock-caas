@@ -1,6 +1,6 @@
 import { createZodDto } from 'nestjs-zod/dto';
 import { z } from 'zod';
-import { DeploymentType } from '@generated/prisma';
+import { DeploymentType, AppTemplate } from '@generated/prisma';
 
 export const CreateProjectSchema = z.object({
   name: z.string().min(1).max(100).describe('Project name'),
@@ -10,6 +10,7 @@ export const CreateProjectSchema = z.object({
     .string()
     .optional()
     .describe('GitHub repository URL (HTTPS or SSH)'),
+  templateId: z.nativeEnum(AppTemplate).optional().describe('App Template'),
   domain: z.string().optional().describe('Custom domain'),
   envVars: z
     .record(z.string(), z.string())
