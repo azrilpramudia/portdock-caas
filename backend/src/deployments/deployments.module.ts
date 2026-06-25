@@ -10,5 +10,6 @@ import { GitModule } from '../git/git.module';
   imports: [ActivityLogsModule, NginxModule, ArchiveModule, GitModule],
   providers: [DeploymentsService],
   controllers: [DeploymentsController],
+  exports: [DeploymentsService],
 })
 export class DeploymentsModule {}
