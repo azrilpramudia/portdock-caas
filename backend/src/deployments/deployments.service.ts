@@ -71,6 +71,17 @@ export class DeploymentsService {
       const imageTag = `v${Date.now()}`;
       const dockerfilePath = path.join(extractDir, 'Dockerfile');
 
+      if (project.templateId === 'STATIC_NGINX') {
+        fs.writeFileSync(dockerfilePath, `FROM nginx:latest\nCOPY . /usr/share/nginx/html\nEXPOSE 80\n`);
+        this.logger.log(`Generated STATIC_NGINX Dockerfile for ${project.name}`);
+      } else if (project.templateId === 'STATIC_APACHE') {
+        fs.writeFileSync(dockerfilePath, `FROM httpd:latest\nCOPY . /usr/local/apache2/htdocs/\nEXPOSE 80\n`);
+        this.logger.log(`Generated STATIC_APACHE Dockerfile for ${project.name}`);
+      } else if (project.templateId === 'PHP_APACHE') {
+        fs.writeFileSync(dockerfilePath, `FROM php:8.2-apache\nCOPY . /var/www/html/\nEXPOSE 80\n`);
+        this.logger.log(`Generated PHP_APACHE Dockerfile for ${project.name}`);
+      }
+
       if (fs.existsSync(dockerfilePath)) {
         const tarStream = tar.pack(extractDir);
         await this.docker.buildImage(tarStream, imageName, imageTag);
@@ -134,6 +145,8 @@ export class DeploymentsService {
           cpuLimit,
         },
       });
+
+      await this.cleanupOldContainers(projectId, container.id);
 
       await this.prisma.project.update({
         where: { id: projectId },
@@ -242,10 +255,10 @@ export class DeploymentsService {
       const imageTag = `v${Date.now()}`;
 
       if (project.templateId === 'STATIC_NGINX') {
-        fs.writeFileSync(dockerfilePath, `FROM nginx:alpine\nCOPY . /usr/share/nginx/html\nEXPOSE 80\n`);
+        fs.writeFileSync(dockerfilePath, `FROM nginx:latest\nCOPY . /usr/share/nginx/html\nEXPOSE 80\n`);
         this.logger.log(`Generated STATIC_NGINX Dockerfile for ${project.name}`);
       } else if (project.templateId === 'STATIC_APACHE') {
-        fs.writeFileSync(dockerfilePath, `FROM httpd:alpine\nCOPY . /usr/local/apache2/htdocs/\nEXPOSE 80\n`);
+        fs.writeFileSync(dockerfilePath, `FROM httpd:latest\nCOPY . /usr/local/apache2/htdocs/\nEXPOSE 80\n`);
         this.logger.log(`Generated STATIC_APACHE Dockerfile for ${project.name}`);
       } else if (project.templateId === 'PHP_APACHE') {
         fs.writeFileSync(dockerfilePath, `FROM php:8.2-apache\nCOPY . /var/www/html/\nEXPOSE 80\n`);
@@ -313,6 +326,8 @@ export class DeploymentsService {
           cpuLimit: Math.min(cpuLimit, 1.0),
         },
       });
+
+      await this.cleanupOldContainers(projectId, container.id);
 
       await this.prisma.project.update({
         where: { id: projectId },
@@ -448,7 +463,7 @@ export class DeploymentsService {
       await dockerContainer.start();
 
       const containerName = `${project.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${Date.now()}`;
-      await this.prisma.container.create({
+      const container = await this.prisma.container.create({
         data: {
           projectId,
           dockerContainerId: inspect.Id,
@@ -462,6 +477,8 @@ export class DeploymentsService {
           cpuLimit,
         },
       });
+
+      await this.cleanupOldContainers(projectId, container.id);
 
       await this.prisma.project.update({
         where: { id: projectId },
@@ -536,5 +553,33 @@ export class DeploymentsService {
       if (!used.has(port)) return port;
     }
     throw new Error('No available ports');
+  }
+
+  private async cleanupOldContainers(projectId: string, excludeContainerId: string) {
+    try {
+      const oldContainers = await this.prisma.container.findMany({
+        where: { 
+          projectId,
+          id: { not: excludeContainerId }
+        }
+      });
+      
+      for (const old of oldContainers) {
+        if (old.dockerContainerId) {
+          try {
+            await this.docker.removeContainer(old.dockerContainerId, true);
+            this.logger.log(`Cleaned up old container ${old.dockerContainerId}`);
+            if (old.imageName && old.imageTag) {
+              await this.docker.removeImage(`${old.imageName}:${old.imageTag}`);
+            }
+          } catch (e) {
+            this.logger.error(`Failed to remove old docker container or image: ${e.message}`);
+          }
+        }
+        await this.prisma.container.delete({ where: { id: old.id } });
+      }
+    } catch (err) {
+      this.logger.error(`Error during cleanup of old containers: ${err.message}`);
+    }
   }
 }

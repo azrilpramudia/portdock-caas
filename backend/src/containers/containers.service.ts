@@ -338,7 +338,7 @@ export class ContainersService {
     
     // Convert memory (MB) to bytes and CPU (cores) to nanoCPUs
     const memoryBytes = dto.memoryLimit ? Math.floor(dto.memoryLimit * 1024 * 1024) : 0;
-    const nanoCPUs = dto.cpuLimit ? Math.floor(dto.cpuLimit * 1e9) : 0;
+    const cpuQuota = dto.cpuLimit ? Math.floor(dto.cpuLimit * 100000) : 0;
 
     const volumeChanged = dto.volumeMountPath !== undefined && dto.volumeMountPath !== container.volumeMountPath;
     const internalPortChanged = dto.internalPort !== undefined && dto.internalPort !== container.internalPort;
@@ -381,7 +381,7 @@ export class ContainersService {
           Binds: binds,
           Memory: memoryBytes,
           MemorySwap: memoryBytes,
-          NanoCPUs: nanoCPUs,
+          CpuQuota: cpuQuota,
           LogConfig: {
             Type: 'json-file',
             Config: {
@@ -406,7 +406,7 @@ export class ContainersService {
         const updateOptions: any = {
           Memory: memoryBytes,
           MemorySwap: memoryBytes, // Set swap equal to memory to prevent swapping (or customize as needed)
-          NanoCPUs: nanoCPUs,
+          CpuQuota: cpuQuota,
         };
 
         if (dto.restartPolicy) {

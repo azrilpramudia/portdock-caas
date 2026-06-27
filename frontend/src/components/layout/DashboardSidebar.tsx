@@ -38,7 +38,7 @@ export function DashboardSidebar({ mobile = false, onClose }: { mobile?: boolean
       </div>
 
       {/* Nav items */}
-      <nav className="flex-1 px-4 py-2 space-y-1.5 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+      <nav className="flex-1 px-4 py-2 space-y-1.5">
         {navItems.map((item) => {
           const isActive =
             pathname === item.href || pathname.startsWith(item.href + "/");
