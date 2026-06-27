@@ -79,6 +79,28 @@ export class ContainersController {
     @Body() dto: UpdateResourcesDto,
     @Ip() ip: string,
   ) {
+    console.log("UPDATE RESOURCES DTO RECEIVED:", dto);
     return this.containersService.updateResources(id, req.user.id, dto, ip);
+  }
+
+  @Post(':id/allocate-port')
+  @ApiOperation({ summary: 'Allocate a specific host port' })
+  allocatePort(
+    @Request() req: any,
+    @Param('id') id: string,
+    @Body('port') port: number,
+    @Ip() ip: string,
+  ) {
+    return this.containersService.allocatePort(id, req.user.id, port, ip);
+  }
+
+  @Delete(':id/allocate-port')
+  @ApiOperation({ summary: 'Remove the allocated host port' })
+  removePort(
+    @Request() req: any,
+    @Param('id') id: string,
+    @Ip() ip: string,
+  ) {
+    return this.containersService.removePort(id, req.user.id, ip);
   }
 }

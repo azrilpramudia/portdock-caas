@@ -1,5 +1,6 @@
 import React from "react";
-import { Cpu, Server, HardDrive, Activity } from "lucide-react";
+import { Cpu, Server, HardDrive, Activity, HelpCircle } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ResponsiveContainer, LineChart, Line } from "recharts";
 import { DataPoint } from "@/hooks/useContainerMonitoring";
 
@@ -36,7 +37,19 @@ export function MonitoringStats({
             <Cpu className="w-6 h-6 text-blue-600 dark:text-blue-400" />
           </div>
           <div>
-            <p className="text-[12px] font-medium text-muted-foreground mb-0.5">CPU Usage</p>
+            <p className="text-[12px] font-medium text-muted-foreground mb-0.5 flex items-center gap-1">
+              CPU Usage
+              <TooltipProvider delayDuration={300}>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <HelpCircle className="w-3.5 h-3.5 text-muted-foreground/50 hover:text-muted-foreground cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-xs">Penggunaan prosesor (CPU) secara real-time.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </p>
             <h3 className="text-2xl font-bold text-foreground leading-tight">{cpuPercent}%</h3>
             <p className="text-[11px] font-medium text-muted-foreground mt-1">Real-time</p>
           </div>
@@ -57,7 +70,19 @@ export function MonitoringStats({
             <Server className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
           </div>
           <div>
-            <p className="text-[12px] font-medium text-muted-foreground mb-0.5">RAM Usage</p>
+            <p className="text-[12px] font-medium text-muted-foreground mb-0.5 flex items-center gap-1">
+              RAM Usage
+              <TooltipProvider delayDuration={300}>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <HelpCircle className="w-3.5 h-3.5 text-muted-foreground/50 hover:text-muted-foreground cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-xs">Batas maksimal kontainer Anda adalah {memLimitMb} MB.<br/>Konsumsi mendekati 100% dapat menyebabkan aplikasi terhenti (OOM).</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </p>
             <h3 className="text-2xl font-bold text-foreground leading-tight">{memPercent}%</h3>
             <p className="text-[11px] font-medium text-muted-foreground mt-1">{memUsageMb} MB / {memLimitMb} MB</p>
           </div>
@@ -99,7 +124,19 @@ export function MonitoringStats({
             <Activity className="w-6 h-6 text-orange-600 dark:text-orange-400" />
           </div>
           <div>
-            <p className="text-[12px] font-medium text-muted-foreground mb-0.5">Network I/O</p>
+            <p className="text-[12px] font-medium text-muted-foreground mb-0.5 flex items-center gap-1">
+              Network I/O
+              <TooltipProvider delayDuration={300}>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <HelpCircle className="w-3.5 h-3.5 text-muted-foreground/50 hover:text-muted-foreground cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-xs">Total data jaringan yang masuk (RX) dan keluar (TX).</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </p>
             <div className="flex items-center gap-2">
               <h3 className="text-xl font-bold text-foreground leading-tight">{parseFloat((netRxMb + netTxMb).toFixed(2))}</h3>
               <span className="text-[11px] font-bold text-muted-foreground">MB</span>

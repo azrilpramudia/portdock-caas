@@ -21,8 +21,16 @@ export const containersService = {
     const res = await api.delete(`/containers/${id}`);
     return res.data;
   },
-  updateResources: async (id: string, data: { memoryLimit?: number | null; cpuLimit?: number | null; restartPolicy?: string; volumeMountPath?: string | null }) => {
+  updateResources: async (id: string, data: { memoryLimit?: number | null; cpuLimit?: number | null; restartPolicy?: string; volumeMountPath?: string | null; internalPort?: number }) => {
     const res = await api.patch(`/containers/${id}/resources`, data);
+    return res.data;
+  },
+  allocatePort: async (id: string, port: number) => {
+    const res = await api.post(`/containers/${id}/allocate-port`, { port });
+    return res.data;
+  },
+  removePort: async (id: string) => {
+    const res = await api.delete(`/containers/${id}/allocate-port`);
     return res.data;
   }
 };

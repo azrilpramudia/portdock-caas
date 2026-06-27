@@ -26,6 +26,8 @@ export default function ContainersPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedContainer, setSelectedContainer] = useState<{id: string, name: string} | null>(null);
   const [containerToDelete, setContainerToDelete] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isBulkProcessing, setIsBulkProcessing] = useState(false);
   
   const queryClient = useQueryClient();
   const ITEMS_PER_PAGE = 10;
@@ -78,6 +80,56 @@ export default function ContainersPage() {
   });
 
   const rawContainers = containersData || [];
+
+  const handleSelectToggle = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const handleSelectAll = () => {
+    if (selectedIds.size === paginatedContainers.length && paginatedContainers.length > 0) {
+      setSelectedIds(new Set()); // Deselect all on current page
+    } else {
+      const next = new Set(selectedIds);
+      paginatedContainers.forEach((c: any) => next.add(c.id));
+      setSelectedIds(next);
+    }
+  };
+
+  const handleBulkAction = async (action: 'start' | 'stop' | 'restart' | 'delete') => {
+    if (selectedIds.size === 0) return;
+    
+    // confirm delete
+    if (action === 'delete') {
+      if (!confirm(`Are you sure you want to delete ${selectedIds.size} containers?`)) return;
+    }
+
+    setIsBulkProcessing(true);
+    const toastId = toast.loading(`Processing ${action} on ${selectedIds.size} containers...`);
+    
+    try {
+      const promises = Array.from(selectedIds).map(id => {
+        if (action === 'start') return containersService.startContainer(id);
+        if (action === 'stop') return containersService.stopContainer(id);
+        if (action === 'restart') return containersService.restartContainer(id);
+        if (action === 'delete') return containersService.deleteContainer(id);
+      });
+
+      await Promise.allSettled(promises);
+      
+      toast.success(`Successfully executed ${action} on selected containers`, { id: toastId });
+      queryClient.invalidateQueries({ queryKey: ["containers"] });
+      setSelectedIds(new Set());
+    } catch (error: any) {
+      toast.error(`Some actions failed: ${error.message}`, { id: toastId });
+    } finally {
+      setIsBulkProcessing(false);
+    }
+  };
 
   const getIcon = (imageName: string) => {
     if (imageName.includes('nginx')) return { icon: SiNginx, color: 'text-emerald-500' };
@@ -202,6 +254,56 @@ export default function ContainersPage() {
         onRefresh={handleRefresh}
       />
 
+      {/* Bulk Action Bar */}
+      {selectedIds.size > 0 && (
+        <div className="bg-card border border-border shadow-md rounded-xl p-4 mb-6 flex items-center justify-between sticky top-4 z-10 animate-in fade-in slide-in-from-top-4">
+          <div className="flex items-center gap-3">
+            <span className="flex items-center justify-center bg-blue-500 text-white font-bold rounded-full w-6 h-6 text-xs">
+              {selectedIds.size}
+            </span>
+            <span className="text-[14px] font-semibold text-foreground">Containers Selected</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={() => handleBulkAction('start')}
+              disabled={isBulkProcessing}
+              className="px-3 py-1.5 text-xs font-semibold bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 rounded-md transition-colors disabled:opacity-50"
+            >
+              Start Selected
+            </button>
+            <button 
+              onClick={() => handleBulkAction('restart')}
+              disabled={isBulkProcessing}
+              className="px-3 py-1.5 text-xs font-semibold bg-blue-500/10 text-blue-600 hover:bg-blue-500/20 rounded-md transition-colors disabled:opacity-50"
+            >
+              Restart Selected
+            </button>
+            <button 
+              onClick={() => handleBulkAction('stop')}
+              disabled={isBulkProcessing}
+              className="px-3 py-1.5 text-xs font-semibold bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 rounded-md transition-colors disabled:opacity-50"
+            >
+              Stop Selected
+            </button>
+            <div className="w-px h-6 bg-border mx-1"></div>
+            <button 
+              onClick={() => handleBulkAction('delete')}
+              disabled={isBulkProcessing}
+              className="px-3 py-1.5 text-xs font-semibold bg-red-500/10 text-red-600 hover:bg-red-500/20 rounded-md transition-colors disabled:opacity-50"
+            >
+              Delete Selected
+            </button>
+            <button 
+              onClick={() => setSelectedIds(new Set())}
+              disabled={isBulkProcessing}
+              className="px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors ml-2"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* 3. DATA TABLE */}
       <ContainerTable 
         containers={paginatedContainers}
@@ -213,6 +315,9 @@ export default function ContainersPage() {
         onStop={(id) => stopMutation.mutate(id)}
         onRestart={(id) => restartMutation.mutate(id)}
         onDelete={(id) => setContainerToDelete(id)}
+        selectedIds={selectedIds}
+        onSelectToggle={handleSelectToggle}
+        onSelectAll={handleSelectAll}
       />
 
       {/* 4. PAGINATION */}

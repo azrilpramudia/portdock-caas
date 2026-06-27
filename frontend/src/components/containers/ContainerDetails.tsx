@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { X, Play, Square, RefreshCw, Trash2, Box, TerminalSquare, ExternalLink, Activity, Settings, Layout, ArrowRight } from "lucide-react";
+import { X, Play, Square, RefreshCw, Trash2, Box, TerminalSquare, ExternalLink, Activity, Settings, Layout, ArrowRight, Globe, Check, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { containersService } from "@/services/containers.service";
@@ -24,7 +24,17 @@ export function ContainerDetails({ container, onClose, onRefresh }: ContainerDet
   const [cpuLimit, setCpuLimit] = useState<number>(container.cpuLimit || 0.5);
   const [restartPolicy, setRestartPolicy] = useState<string>(container.restartPolicy || 'unless-stopped');
   const [volumeMountPath, setVolumeMountPath] = useState<string>(container.volumeMountPath || '');
+  const [internalPort, setInternalPort] = useState<number | ''>(container.internalPort || 80);
   const [isSavingResources, setIsSavingResources] = useState(false);
+
+  // Network Allocation State
+  const [newPort, setNewPort] = useState<string>('');
+  const [isCreatingAllocation, setIsCreatingAllocation] = useState(false);
+  const [allocations, setAllocations] = useState([{
+    hostPort: container.hostPort,
+    internalPort: container.internalPort || 80,
+    isPrimary: true
+  }].filter(a => a.hostPort));
 
   const router = useRouter();
 
@@ -57,7 +67,8 @@ export function ContainerDetails({ container, onClose, onRefresh }: ContainerDet
         memoryLimit, 
         cpuLimit, 
         restartPolicy,
-        volumeMountPath: volumeMountPath.trim() === '' ? null : volumeMountPath.trim() 
+        volumeMountPath: volumeMountPath.trim() === '' ? null : volumeMountPath.trim(),
+        internalPort: internalPort === '' ? undefined : Number(internalPort)
       });
       toast.success("Settings updated successfully");
       if (onRefresh) onRefresh();
@@ -70,6 +81,50 @@ export function ContainerDetails({ container, onClose, onRefresh }: ContainerDet
 
   const openInTerminal = () => {
     router.push(`/terminal?containerId=${container.id}&tab=app-logs`);
+  };
+
+  const handleCreateAllocation = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const portNumber = parseInt(newPort);
+    
+    if (isNaN(portNumber)) {
+      toast.error("Format port tidak valid");
+      return;
+    }
+
+    if (portNumber < 19000 || portNumber > 25999) {
+      toast.error("Port ditolak! Anda hanya diizinkan memilih port antara 19000 - 25999.");
+      return;
+    }
+
+    if (allocations.find(a => a.hostPort === portNumber)) {
+      toast.error("Port ini sudah Anda miliki.");
+      return;
+    }
+
+    setIsCreatingAllocation(true);
+    try {
+      await containersService.allocatePort(container.id, portNumber);
+      setAllocations([{ hostPort: portNumber, internalPort: container.internalPort || 80, isPrimary: true }]);
+      toast.success(`Port ${portNumber} berhasil dialokasikan!`);
+      setNewPort('');
+      if (onRefresh) onRefresh();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Gagal mengalokasikan port");
+    } finally {
+      setIsCreatingAllocation(false);
+    }
+  };
+
+  const handleRemovePort = async () => {
+    try {
+      await containersService.removePort(container.id);
+      setAllocations([]);
+      toast.success(`Port berhasil dihapus!`);
+      if (onRefresh) onRefresh();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Gagal menghapus port");
+    }
   };
 
   return (
@@ -148,8 +203,9 @@ export function ContainerDetails({ container, onClose, onRefresh }: ContainerDet
         {/* Body Tabs */}
         <div className="flex-1 overflow-y-auto p-6">
           <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-6 bg-muted/50 border border-border/50 h-11">
+            <TabsList className="grid w-full grid-cols-4 mb-6 bg-muted/50 border border-border/50 h-11">
               <TabsTrigger value="overview" className="gap-2 data-[state=active]:bg-card data-[state=active]:shadow-sm"><Layout className="w-4 h-4" /> Overview</TabsTrigger>
+              <TabsTrigger value="network" className="gap-2 data-[state=active]:bg-card data-[state=active]:shadow-sm"><Globe className="w-4 h-4" /> Network</TabsTrigger>
               <TabsTrigger value="logs" className="gap-2 data-[state=active]:bg-card data-[state=active]:shadow-sm"><TerminalSquare className="w-4 h-4" /> Logs</TabsTrigger>
               <TabsTrigger value="settings" className="gap-2 data-[state=active]:bg-card data-[state=active]:shadow-sm"><Settings className="w-4 h-4" /> Settings</TabsTrigger>
             </TabsList>
@@ -178,6 +234,99 @@ export function ContainerDetails({ container, onClose, onRefresh }: ContainerDet
                     <Activity className="w-4 h-4 text-emerald-500" /> Attached
                   </p>
                 </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="network" className="mt-0 space-y-6">
+              {/* Existing Allocations */}
+              <div className="bg-muted/20 dark:bg-[#111827] border border-border dark:border-slate-800 rounded-xl p-6 shadow-inner">
+                <div className="flex justify-between items-center mb-6">
+                  <div>
+                    <h3 className="text-lg font-bold text-foreground dark:text-slate-200">Network Allocation</h3>
+                    <p className="text-xs text-muted-foreground dark:text-slate-400">Kelola port eksternal yang terhubung ke kontainer Anda.</p>
+                  </div>
+                  <Badge variant="outline" className="bg-muted/50">{allocations.length} / 1 Port</Badge>
+                </div>
+                
+                <div className="space-y-3">
+                  {allocations.length === 0 ? (
+                    <div className="text-center py-6 border border-dashed border-border rounded-xl">
+                      <p className="text-sm text-muted-foreground">Belum ada port yang dialokasikan.</p>
+                    </div>
+                  ) : (
+                    allocations.map((alloc, idx) => (
+                      <div key={idx} className="flex items-center justify-between p-4 rounded-xl border border-border bg-card shadow-sm hover:border-border/80 transition-colors">
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
+                            <Activity className="w-5 h-5 text-muted-foreground" />
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="font-mono font-bold text-[15px]">{container.project?.domain || '185.207.166.227'}:<span className="text-emerald-500">{alloc.hostPort}</span></span>
+                              <Badge className="bg-blue-500/10 text-blue-600 hover:bg-blue-500/20 border-0 h-5 px-1.5 text-[10px]">DEDICATED</Badge>
+                            </div>
+                            <p className="text-xs text-muted-foreground font-mono flex items-center gap-1.5">
+                              Port Mapping: <span className="bg-muted px-1.5 rounded">{alloc.hostPort}</span> <ArrowRight className="w-3 h-3" /> <span className="bg-muted px-1.5 rounded">{alloc.internalPort}</span>
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button 
+                            onClick={handleRemovePort}
+                            className="w-8 h-8 rounded-md border border-border flex items-center justify-center hover:bg-red-500/10 hover:text-red-500 hover:border-red-500/20 transition-colors text-muted-foreground" 
+                            title="Revoke Port"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              {/* Create Allocation Form */}
+              <div className="bg-muted/20 dark:bg-[#111827] border border-border dark:border-slate-800 rounded-xl p-6 shadow-inner">
+                <h3 className="text-lg font-bold text-foreground dark:text-slate-200 mb-2">Create Allocation</h3>
+                <p className="text-xs text-muted-foreground dark:text-slate-400 mb-4">Choose a specific port for this server (allowed range: 19000-25999).</p>
+                
+                <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 mb-6 flex gap-3">
+                  <AlertCircle className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="text-sm font-bold text-blue-600 dark:text-blue-400 mb-1">NOTICE</h4>
+                    <p className="text-xs text-blue-600/80 dark:text-blue-400/80 leading-relaxed">
+                      Restart your container after creating an allocation to apply the new network settings.
+                    </p>
+                  </div>
+                </div>
+
+                <form onSubmit={handleCreateAllocation} className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-foreground">Requested Port</label>
+                    <input 
+                      type="number" 
+                      required
+                      min={19000}
+                      max={25999}
+                      value={newPort}
+                      onChange={(e) => setNewPort(e.target.value)}
+                      placeholder="e.g. 19500"
+                      className="w-full px-4 py-2.5 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all font-mono"
+                    />
+                    <p className="text-[11px] text-muted-foreground">Enter a port allowed for this system (19000-25999).</p>
+                  </div>
+
+                  <div className="pt-2 flex justify-end">
+                    <button 
+                      type="submit" 
+                      disabled={isCreatingAllocation}
+                      className="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
+                    >
+                      {isCreatingAllocation && <RefreshCw className="w-4 h-4 animate-spin" />}
+                      Create Allocation
+                    </button>
+                  </div>
+                </form>
               </div>
             </TabsContent>
 
@@ -301,10 +450,29 @@ export function ContainerDetails({ container, onClose, onRefresh }: ContainerDet
                     </div>
                   </div>
 
+                  {/* Internal Port */}
+                  <div className="space-y-3">
+                    <label className="text-sm font-semibold text-foreground/80 dark:text-slate-300">
+                      Target Internal Port
+                    </label>
+                    <div className="relative">
+                      <input 
+                        type="number" 
+                        placeholder="80" 
+                        value={internalPort}
+                        onChange={(e) => setInternalPort(e.target.value === '' ? '' : parseInt(e.target.value))}
+                        className="w-full bg-background dark:bg-slate-900 border border-border dark:border-slate-800 rounded-lg px-4 py-2.5 text-sm text-foreground dark:text-slate-200 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all placeholder:text-muted-foreground/50"
+                      />
+                      <p className="text-xs text-muted-foreground dark:text-slate-500 mt-2">
+                        Port di mana aplikasi Anda (Nginx/Node.js) berjalan di dalam kontainer. Mengubah pengaturan ini akan merakit ulang kontainer saat Anda menekan Restart.
+                      </p>
+                    </div>
+                  </div>
+
                   <div className="pt-4 flex justify-end border-t border-border dark:border-slate-800">
                     <button 
                       onClick={handleSaveResources}
-                      disabled={isSavingResources || (memoryLimit === container.memoryLimit && cpuLimit === container.cpuLimit && restartPolicy === (container.restartPolicy || 'unless-stopped') && volumeMountPath === (container.volumeMountPath || ''))}
+                      disabled={isSavingResources || (memoryLimit === container.memoryLimit && cpuLimit === container.cpuLimit && restartPolicy === (container.restartPolicy || 'unless-stopped') && volumeMountPath === (container.volumeMountPath || '') && internalPort === (container.internalPort || 80))}
                       className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold transition-all shadow-lg shadow-emerald-900/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                     >
                       {isSavingResources ? (
