@@ -7,6 +7,7 @@ import { DashboardSidebar } from "@/components/layout/DashboardSidebar";
 import { DashboardHeader } from "@/components/layout/DashboardHeader";
 import { WelcomeModal } from "@/components/dashboard/WelcomeModal";
 import { FloatingSupport } from "@/components/dashboard/FloatingSupport";
+import { CommandPalette } from "@/components/shared/CommandPalette";
 
 export default function DashboardLayout({
   children,
@@ -60,6 +61,7 @@ export default function DashboardLayout({
       </div>
 
       {/* Global Dashboard Elements */}
+      <CommandPalette />
       <WelcomeModal />
       <FloatingSupport />
     </div>

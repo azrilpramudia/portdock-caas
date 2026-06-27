@@ -181,7 +181,7 @@ export default function MonitoringPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ResponsiveContainer width="100%" height={200}>
+                  <ResponsiveContainer width="100%" height={200} minWidth={1} minHeight={1}>
                     <LineChart data={history}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                       <XAxis dataKey="timestamp" tick={{ fontSize: 10 }} />
@@ -212,7 +212,7 @@ export default function MonitoringPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ResponsiveContainer width="100%" height={200}>
+                  <ResponsiveContainer width="100%" height={200} minWidth={1} minHeight={1}>
                     <LineChart data={history}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                       <XAxis dataKey="timestamp" tick={{ fontSize: 10 }} />
@@ -243,7 +243,7 @@ export default function MonitoringPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ResponsiveContainer width="100%" height={200}>
+                  <ResponsiveContainer width="100%" height={200} minWidth={1} minHeight={1}>
                     <LineChart data={history}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                       <XAxis dataKey="timestamp" tick={{ fontSize: 10 }} />

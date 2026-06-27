@@ -15,7 +15,7 @@ export function MonitoringCharts({ title, dataKey, color, gradientId, areaChartD
     <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
       <h3 className="text-[15px] font-bold text-foreground mb-6">{title}</h3>
       <div className="h-[240px] w-full">
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
           <AreaChart data={areaChartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
             <defs>
               <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">

@@ -4,21 +4,31 @@ import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Sparkles } from "lucide-react";
+import { useAuthStore } from "@/store/auth";
 
 export function WelcomeModal() {
+  const { user } = useAuthStore();
   const [open, setOpen] = useState(false);
+  const [dontShowAgain, setDontShowAgain] = useState(false);
 
   useEffect(() => {
-    // Cek apakah modal sudah pernah ditampilkan
-    const hasSeen = localStorage.getItem("hasSeenWelcome");
+    if (!user) return;
+    // Cek apakah modal sudah pernah ditampilkan untuk user ini
+    const hasSeen = localStorage.getItem(`hideWelcomeModal_${user.id}`);
     if (!hasSeen) {
       setOpen(true);
     }
-  }, []);
+  }, [user]);
 
   const handleClose = () => {
     setOpen(false);
-    localStorage.setItem("hasSeenWelcome", "true");
+  };
+
+  const handleContinue = () => {
+    setOpen(false);
+    if (dontShowAgain && user) {
+      localStorage.setItem(`hideWelcomeModal_${user.id}`, "true");
+    }
   };
 
   return (
@@ -43,8 +53,25 @@ export function WelcomeModal() {
             </a>
           </DialogDescription>
         </DialogHeader>
-        <DialogFooter className="sm:justify-center mt-4">
-          <Button onClick={handleClose} className="w-full sm:w-auto portdock-gradient text-white">
+        <DialogFooter className="sm:justify-between items-center mt-4">
+          <div 
+            className="flex items-center space-x-2.5 w-full sm:w-auto justify-start cursor-pointer group mt-4 sm:mt-0"
+            onClick={() => setDontShowAgain(!dontShowAgain)}
+          >
+            <div className={`w-[18px] h-[18px] rounded-[4px] border flex items-center justify-center transition-colors flex-shrink-0 mt-0.5 ${dontShowAgain ? 'bg-blue-600 border-blue-600' : 'border-slate-300 dark:border-slate-600 group-hover:border-blue-500'}`}>
+              {dontShowAgain && (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3 text-white">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              )}
+            </div>
+            <label
+              className="text-[13px] text-slate-600 dark:text-slate-400 cursor-pointer select-none whitespace-nowrap leading-none"
+            >
+              Jangan tampilkan lagi
+            </label>
+          </div>
+          <Button onClick={handleContinue} className="w-full sm:w-auto portdock-gradient text-white">
             Mengerti, Lanjutkan
           </Button>
         </DialogFooter>
