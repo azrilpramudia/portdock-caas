@@ -3,7 +3,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { HelpCircle } from "lucide-react";
+import { HelpCircle, ShieldAlert } from "lucide-react";
+import { useAuthStore } from "@/store/auth";
 import { cn } from "@/lib/utils";
 import { navItems } from "@/constants/nav";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,7 @@ import portdockLogo from "@/assets/portdock.png";
 
 export function DashboardSidebar({ mobile = false, onClose }: { mobile?: boolean; onClose?: () => void }) {
   const pathname = usePathname();
+  const user = useAuthStore((state) => state.user);
 
   return (
     <aside

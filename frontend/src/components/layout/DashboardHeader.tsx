@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ThemeToggle } from "@/components/shared/ThemeToggle";
 import { NotificationBell } from "./NotificationBell";
 import { navItems } from "@/constants/nav";
-import { LogOut, User as UserIcon, Settings } from "lucide-react";
+import { LogOut, User as UserIcon, Settings, ShieldAlert } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -118,6 +118,18 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
                 <span>Settings</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
+              {user?.role === "ADMIN" && (
+                <>
+                  <DropdownMenuItem 
+                    className="cursor-pointer text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400 focus:bg-red-50 dark:focus:bg-red-500/10"
+                    onClick={() => router.push("/admin")}
+                  >
+                    <ShieldAlert className="mr-2 h-4 w-4" />
+                    <span>Enter Admin Mode</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                </>
+              )}
               <DropdownMenuItem 
                 className="cursor-pointer text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400 focus:bg-red-50 dark:focus:bg-red-500/10"
                 onClick={() => {
@@ -178,6 +190,18 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
                   <span>Settings</span>
                 </DropdownMenuItem>
               <DropdownMenuSeparator />
+              {user?.role === "ADMIN" && (
+                <>
+                  <DropdownMenuItem 
+                    className="cursor-pointer text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400 focus:bg-red-50 dark:focus:bg-red-500/10"
+                    onClick={() => router.push("/admin")}
+                  >
+                    <ShieldAlert className="mr-2 h-4 w-4" />
+                    <span>Enter Admin Mode</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                </>
+              )}
               <DropdownMenuItem 
                 className="cursor-pointer text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400 focus:bg-red-50 dark:focus:bg-red-500/10"
                 onClick={() => {

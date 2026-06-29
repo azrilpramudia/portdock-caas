@@ -4,6 +4,7 @@ export interface User {
   name: string;
   githubUsername?: string;
   sshPublicKey?: string;
+  role: "USER" | "ADMIN";
   createdAt: string;
 }
 
