@@ -57,7 +57,9 @@ server {
    */
   async requestSsl(domain: string, email: string): Promise<boolean> {
     if (process.env.NODE_ENV === 'development') {
-      this.logger.log(`Skipping SSL request for ${domain} in development mode.`);
+      this.logger.log(
+        `Skipping SSL request for ${domain} in development mode.`,
+      );
       return false; // Skip SSL generation locally
     }
 
@@ -69,9 +71,16 @@ server {
       // Check for Wildcard SSL Certificate first
       const baseDomain = this.configService.get<string>('BASE_DOMAIN');
       if (baseDomain && domain.endsWith(`.${baseDomain}`)) {
-        const wildcardPath = path.join(certbotConfDir, 'live', baseDomain, 'fullchain.pem');
+        const wildcardPath = path.join(
+          certbotConfDir,
+          'live',
+          baseDomain,
+          'fullchain.pem',
+        );
         if (fs.existsSync(wildcardPath)) {
-          this.logger.log(`Wildcard certificate for ${baseDomain} found. Using it for ${domain}.`);
+          this.logger.log(
+            `Wildcard certificate for ${baseDomain} found. Using it for ${domain}.`,
+          );
           return true;
         }
       }
@@ -158,7 +167,12 @@ server {
 
     if (baseDomain && domain.endsWith(`.${baseDomain}`)) {
       const certbotConfDir = path.resolve(process.cwd(), 'certbot-conf');
-      const wildcardPath = path.join(certbotConfDir, 'live', baseDomain, 'fullchain.pem');
+      const wildcardPath = path.join(
+        certbotConfDir,
+        'live',
+        baseDomain,
+        'fullchain.pem',
+      );
       if (fs.existsSync(wildcardPath)) {
         certPath = `/etc/letsencrypt/live/${baseDomain}/fullchain.pem`;
         keyPath = `/etc/letsencrypt/live/${baseDomain}/privkey.pem`;

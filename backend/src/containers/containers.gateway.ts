@@ -83,7 +83,7 @@ export class ContainersGateway
 
       // Avoid memory leaks and multiple streams
       const streamId = `${client.id}-logs-${containerId}`;
-      this.logStreams.set(streamId, stream as any);
+      this.logStreams.set(streamId, stream);
 
       passThrough.on('data', (chunk) => {
         client.emit(`logs-${containerId}`, chunk.toString('utf-8'));

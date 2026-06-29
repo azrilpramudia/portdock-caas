@@ -32,12 +32,17 @@ export class ActivityLogsService {
         },
       });
       if (count > 0) {
-        this.logger.log(`Successfully deleted ${count} old activity log(s) older than 30 days.`);
+        this.logger.log(
+          `Successfully deleted ${count} old activity log(s) older than 30 days.`,
+        );
       } else {
         this.logger.log('No old activity logs found to delete.');
       }
     } catch (error) {
-      this.logger.error('Failed to execute daily cleanup for activity logs', error);
+      this.logger.error(
+        'Failed to execute daily cleanup for activity logs',
+        error,
+      );
     }
   }
 

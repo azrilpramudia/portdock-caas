@@ -1,4 +1,8 @@
-import { Injectable, Logger, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { ConfigService } from '@nestjs/config';
 import * as fs from 'fs';
@@ -84,9 +88,10 @@ export class BackupService {
 
   private async enforceRetentionPolicy() {
     try {
-      const files = fs.readdirSync(this.backupDir)
-        .filter(file => file.endsWith('.sql.gz'))
-        .map(file => ({
+      const files = fs
+        .readdirSync(this.backupDir)
+        .filter((file) => file.endsWith('.sql.gz'))
+        .map((file) => ({
           name: file,
           path: path.join(this.backupDir, file),
           time: fs.statSync(path.join(this.backupDir, file)).mtime.getTime(),
@@ -94,8 +99,10 @@ export class BackupService {
         .sort((a, b) => b.time - a.time); // Descending (newest first)
 
       if (files.length > this.RETENTION_DAYS) {
-        this.logger.log(`Retention policy: Found ${files.length} backups. Deleting backups older than ${this.RETENTION_DAYS} files...`);
-        
+        this.logger.log(
+          `Retention policy: Found ${files.length} backups. Deleting backups older than ${this.RETENTION_DAYS} files...`,
+        );
+
         // Delete all files beyond the RETENTION_DAYS threshold
         const filesToDelete = files.slice(this.RETENTION_DAYS);
         for (const file of filesToDelete) {

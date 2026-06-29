@@ -1,4 +1,10 @@
-import { Injectable, Logger, NotFoundException, ForbiddenException, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  ForbiddenException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { DockerService } from '../docker/docker.service';
 import { CreateDatabaseDto } from './dto/create-database.dto';
@@ -18,7 +24,7 @@ export class DatabasesService {
     const dbPassword = randomBytes(8).toString('hex'); // 16 char password
     const dbUser = dto.type === DatabaseType.POSTGRESQL ? 'portdock' : null;
     const dbName = dto.type === DatabaseType.POSTGRESQL ? 'defaultdb' : null;
-    
+
     // Create DB record first to get ID for volume naming
     const database = await this.prisma.managedDatabase.create({
       data: {
@@ -32,7 +38,7 @@ export class DatabasesService {
         internalPort: dto.type === DatabaseType.POSTGRESQL ? 5432 : 6379,
         hostPort: 0, // placeholder, will update later
         volumeName: '',
-      }
+      },
     });
 
     try {
@@ -40,7 +46,7 @@ export class DatabasesService {
       await this.docker.createVolume(volumeName);
 
       const hostPort = await this.getAvailablePort();
-      
+
       let imageName = '';
       let envVars: string[] = [];
       let cmd: string[] = [];
@@ -65,7 +71,7 @@ export class DatabasesService {
       await this.docker.pullImage(imageName);
 
       const containerName = `portdock-db-${database.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${Date.now()}`;
-      
+
       const createOptions: any = {
         name: containerName,
         Image: imageName,
@@ -104,10 +110,13 @@ export class DatabasesService {
           hostPort,
           volumeName,
           status: ContainerStatus.RUNNING,
-        }
+        },
       });
     } catch (error) {
-      this.logger.error(`Failed to provision database: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to provision database: ${error.message}`,
+        error.stack,
+      );
       await this.prisma.managedDatabase.delete({ where: { id: database.id } });
       throw new InternalServerErrorException('Failed to provision database');
     }
@@ -116,7 +125,7 @@ export class DatabasesService {
   async findAll(userId: string) {
     return this.prisma.managedDatabase.findMany({
       where: { userId },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
     });
   }
 
@@ -129,7 +138,7 @@ export class DatabasesService {
 
   async remove(userId: string, id: string) {
     const db = await this.findOne(userId, id);
-    
+
     if (db.dockerContainerId) {
       try {
         await this.docker.stopContainer(db.dockerContainerId);
@@ -158,12 +167,12 @@ export class DatabasesService {
     const databases = await this.prisma.managedDatabase.findMany({
       select: { hostPort: true },
     });
-    
+
     const usedPorts = new Set([
-      ...containers.map(c => c.hostPort), 
-      ...databases.map(d => d.hostPort)
+      ...containers.map((c) => c.hostPort),
+      ...databases.map((d) => d.hostPort),
     ]);
-    
+
     let port = 40000;
     while (usedPorts.has(port)) {
       port++;

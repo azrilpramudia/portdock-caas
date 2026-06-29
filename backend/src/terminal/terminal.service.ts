@@ -96,7 +96,7 @@ export class TerminalService {
     try {
       const docker = this.dockerService.getDocker();
       const container = docker.getContainer(dockerContainerId);
-      
+
       const logStream = await container.logs({
         follow: true,
         stdout: true,
@@ -119,14 +119,16 @@ export class TerminalService {
       docker.modem.demuxStream(logStream, stdoutStream, stderrStream);
 
       logStream.on('error', (err: Error) => {
-        this.logger.error(`Application log stream error for ${dockerContainerId}: ${err.message}`);
+        this.logger.error(
+          `Application log stream error for ${dockerContainerId}: ${err.message}`,
+        );
         onError(err);
       });
 
       return {
         kill: () => {
           try {
-            logStream.destroy();
+            (logStream as any).destroy();
           } catch (e) {
             // Ignore if already dead
           }

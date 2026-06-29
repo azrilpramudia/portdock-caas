@@ -21,7 +21,12 @@ export class ContainersService {
     private activityLogs: ActivityLogsService,
   ) {}
 
-  async create(userId: string, projectId: string, dto: CreateContainerDto, ip?: string) {
+  async create(
+    userId: string,
+    projectId: string,
+    dto: CreateContainerDto,
+    ip?: string,
+  ) {
     // Verify project ownership
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },
@@ -210,12 +215,15 @@ export class ContainersService {
 
     try {
       const inspect = await this.docker.inspectContainer(dockerContainerId);
-      const bindings = inspect.HostConfig?.PortBindings?.[`${container.internalPort}/tcp`];
+      const bindings =
+        inspect.HostConfig?.PortBindings?.[`${container.internalPort}/tcp`];
       currentHostPort = bindings ? bindings[0]?.HostPort : null;
     } catch (err) {
       if (err.statusCode === 404) {
         // Container is completely missing in Docker engine (zombie state)
-        this.logger.warn(`Container ${dockerContainerId} missing in Docker, forcing recreation.`);
+        this.logger.warn(
+          `Container ${dockerContainerId} missing in Docker, forcing recreation.`,
+        );
         inspectFailed = true;
       } else {
         this.logger.error(`Failed to inspect container: ${err.message}`);
@@ -225,24 +233,36 @@ export class ContainersService {
 
     if (!recreateFailed) {
       try {
-        const expectedHostPort = container.hostPort ? String(container.hostPort) : null;
+        const expectedHostPort = container.hostPort
+          ? String(container.hostPort)
+          : null;
 
         if (currentHostPort !== expectedHostPort || inspectFailed) {
           // Port mapping changed OR container is missing, we must recreate
           if (!inspectFailed) {
             await this.docker.stopContainer(dockerContainerId).catch(() => {});
-            await this.docker.removeContainer(dockerContainerId, true).catch(() => {});
+            await this.docker
+              .removeContainer(dockerContainerId, true)
+              .catch(() => {});
           }
-          
+
           const imageTag = container.imageTag || 'latest';
           const fullImage = `${container.imageName}:${imageTag}`;
-          
-          const volumeName = container.volumeMountPath ? `portdock-vol-${container.id}` : undefined;
-          const binds = volumeName ? [`${volumeName}:${container.volumeMountPath}`] : [];
+
+          const volumeName = container.volumeMountPath
+            ? `portdock-vol-${container.id}`
+            : undefined;
+          const binds = volumeName
+            ? [`${volumeName}:${container.volumeMountPath}`]
+            : [];
 
           // Build port bindings only if a hostPort exists
-          const portBindings = container.hostPort 
-            ? { [`${container.internalPort}/tcp`]: [{ HostPort: `${container.hostPort}` }] }
+          const portBindings = container.hostPort
+            ? {
+                [`${container.internalPort}/tcp`]: [
+                  { HostPort: `${container.hostPort}` },
+                ],
+              }
             : {};
 
           const newDockerContainer = await this.docker.createContainer({
@@ -251,11 +271,19 @@ export class ContainersService {
             ExposedPorts: { [`${container.internalPort}/tcp`]: {} },
             HostConfig: {
               PortBindings: portBindings,
-              RestartPolicy: { Name: container.restartPolicy || 'unless-stopped' },
+              RestartPolicy: {
+                Name: container.restartPolicy || 'unless-stopped',
+              },
               Binds: binds,
-              Memory: container.memoryLimit ? Math.floor(container.memoryLimit * 1024 * 1024) : 0,
-              MemorySwap: container.memoryLimit ? Math.floor(container.memoryLimit * 1024 * 1024) : 0,
-              NanoCPUs: container.cpuLimit ? Math.floor(container.cpuLimit * 1e9) : 0,
+              Memory: container.memoryLimit
+                ? Math.floor(container.memoryLimit * 1024 * 1024)
+                : 0,
+              MemorySwap: container.memoryLimit
+                ? Math.floor(container.memoryLimit * 1024 * 1024)
+                : 0,
+              NanoCpus: container.cpuLimit
+                ? Math.floor(container.cpuLimit * 1e9)
+                : 0,
               LogConfig: {
                 Type: 'json-file',
                 Config: {
@@ -273,7 +301,9 @@ export class ContainersService {
           });
         }
       } catch (err) {
-        this.logger.error(`Failed to recreate container during restart: ${err.message}`);
+        this.logger.error(
+          `Failed to recreate container during restart: ${err.message}`,
+        );
         recreateFailed = true;
       }
     }
@@ -295,7 +325,9 @@ export class ContainersService {
 
       return updated;
     } else {
-      throw new InternalServerErrorException('Failed to restart container due to configuration error');
+      throw new InternalServerErrorException(
+        'Failed to restart container due to configuration error',
+      );
     }
   }
 
@@ -333,20 +365,31 @@ export class ContainersService {
     return { message: 'Container deleted successfully' };
   }
 
-  async updateResources(id: string, userId: string, dto: UpdateResourcesDto, ip?: string) {
+  async updateResources(
+    id: string,
+    userId: string,
+    dto: UpdateResourcesDto,
+    ip?: string,
+  ) {
     const container = await this.findOne(id, userId);
-    
+
     // Convert memory (MB) to bytes and CPU (cores) to nanoCPUs
-    const memoryBytes = dto.memoryLimit ? Math.floor(dto.memoryLimit * 1024 * 1024) : 0;
+    const memoryBytes = dto.memoryLimit
+      ? Math.floor(dto.memoryLimit * 1024 * 1024)
+      : 0;
     const cpuQuota = dto.cpuLimit ? Math.floor(dto.cpuLimit * 100000) : 0;
 
-    const volumeChanged = dto.volumeMountPath !== undefined && dto.volumeMountPath !== container.volumeMountPath;
-    const internalPortChanged = dto.internalPort !== undefined && dto.internalPort !== container.internalPort;
+    const volumeChanged =
+      dto.volumeMountPath !== undefined &&
+      dto.volumeMountPath !== container.volumeMountPath;
+    const internalPortChanged =
+      dto.internalPort !== undefined &&
+      dto.internalPort !== container.internalPort;
 
     if ((volumeChanged || internalPortChanged) && container.dockerContainerId) {
       const volumeName = `portdock-vol-${container.id}`;
       let binds: string[] = [];
-      
+
       if (dto.volumeMountPath) {
         await this.docker.createVolume(volumeName);
         binds = [`${volumeName}:${dto.volumeMountPath}`];
@@ -366,9 +409,11 @@ export class ContainersService {
       const imageTag = container.imageTag || 'latest';
       const fullImage = `${container.imageName}:${imageTag}`;
       const newInternalPort = dto.internalPort || container.internalPort;
-      
-      const portBindings = container.hostPort 
-        ? { [`${newInternalPort}/tcp`]: [{ HostPort: `${container.hostPort}` }] }
+
+      const portBindings = container.hostPort
+        ? {
+            [`${newInternalPort}/tcp`]: [{ HostPort: `${container.hostPort}` }],
+          }
         : {};
 
       const newDockerContainer = await this.docker.createContainer({
@@ -377,7 +422,10 @@ export class ContainersService {
         ExposedPorts: { [`${newInternalPort}/tcp`]: {} },
         HostConfig: {
           PortBindings: portBindings,
-          RestartPolicy: { Name: dto.restartPolicy || container.restartPolicy || 'unless-stopped' },
+          RestartPolicy: {
+            Name:
+              dto.restartPolicy || container.restartPolicy || 'unless-stopped',
+          },
           Binds: binds,
           Memory: memoryBytes,
           MemorySwap: memoryBytes,
@@ -398,11 +446,13 @@ export class ContainersService {
 
       await this.prisma.container.update({
         where: { id: container.id },
-        data: { dockerContainerId: newDockerContainer.id }
+        data: { dockerContainerId: newDockerContainer.id },
       });
     } else if (container.dockerContainerId) {
       try {
-        const dockerContainer = await this.docker.getContainer(container.dockerContainerId);
+        const dockerContainer = await this.docker.getContainer(
+          container.dockerContainerId,
+        );
         const updateOptions: any = {
           Memory: memoryBytes,
           MemorySwap: memoryBytes, // Set swap equal to memory to prevent swapping (or customize as needed)
@@ -415,8 +465,13 @@ export class ContainersService {
 
         await dockerContainer.update(updateOptions);
       } catch (err) {
-        this.logger.error(`Failed to update docker container resources: ${err.message}`, err.stack);
-        throw new InternalServerErrorException(`Failed to update docker container resources: ${err.message}`);
+        this.logger.error(
+          `Failed to update docker container resources: ${err.message}`,
+          err.stack,
+        );
+        throw new InternalServerErrorException(
+          `Failed to update docker container resources: ${err.message}`,
+        );
       }
     }
 
@@ -463,7 +518,9 @@ export class ContainersService {
     });
 
     if (existing && existing.id !== container.id) {
-      throw new ForbiddenException('Port is already in use by another container');
+      throw new ForbiddenException(
+        'Port is already in use by another container',
+      );
     }
 
     const updated = await this.prisma.container.update({

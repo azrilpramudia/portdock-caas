@@ -79,7 +79,7 @@ export class ContainersController {
     @Body() dto: UpdateResourcesDto,
     @Ip() ip: string,
   ) {
-    console.log("UPDATE RESOURCES DTO RECEIVED:", dto);
+    console.log('UPDATE RESOURCES DTO RECEIVED:', dto);
     return this.containersService.updateResources(id, req.user.id, dto, ip);
   }
 
@@ -96,11 +96,7 @@ export class ContainersController {
 
   @Delete(':id/allocate-port')
   @ApiOperation({ summary: 'Remove the allocated host port' })
-  removePort(
-    @Request() req: any,
-    @Param('id') id: string,
-    @Ip() ip: string,
-  ) {
+  removePort(@Request() req: any, @Param('id') id: string, @Ip() ip: string) {
     return this.containersService.removePort(id, req.user.id, ip);
   }
 }

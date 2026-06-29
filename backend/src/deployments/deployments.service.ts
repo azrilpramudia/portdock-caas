@@ -72,13 +72,26 @@ export class DeploymentsService {
       const dockerfilePath = path.join(extractDir, 'Dockerfile');
 
       if (project.templateId === 'STATIC_NGINX') {
-        fs.writeFileSync(dockerfilePath, `FROM nginx:latest\nCOPY . /usr/share/nginx/html\nEXPOSE 80\n`);
-        this.logger.log(`Generated STATIC_NGINX Dockerfile for ${project.name}`);
+        fs.writeFileSync(
+          dockerfilePath,
+          `FROM nginx:latest\nCOPY . /usr/share/nginx/html\nEXPOSE 80\n`,
+        );
+        this.logger.log(
+          `Generated STATIC_NGINX Dockerfile for ${project.name}`,
+        );
       } else if (project.templateId === 'STATIC_APACHE') {
-        fs.writeFileSync(dockerfilePath, `FROM httpd:latest\nCOPY . /usr/local/apache2/htdocs/\nEXPOSE 80\n`);
-        this.logger.log(`Generated STATIC_APACHE Dockerfile for ${project.name}`);
+        fs.writeFileSync(
+          dockerfilePath,
+          `FROM httpd:latest\nCOPY . /usr/local/apache2/htdocs/\nEXPOSE 80\n`,
+        );
+        this.logger.log(
+          `Generated STATIC_APACHE Dockerfile for ${project.name}`,
+        );
       } else if (project.templateId === 'PHP_APACHE') {
-        fs.writeFileSync(dockerfilePath, `FROM php:8.2-apache\nCOPY . /var/www/html/\nEXPOSE 80\n`);
+        fs.writeFileSync(
+          dockerfilePath,
+          `FROM php:8.2-apache\nCOPY . /var/www/html/\nEXPOSE 80\n`,
+        );
         this.logger.log(`Generated PHP_APACHE Dockerfile for ${project.name}`);
       }
 
@@ -255,13 +268,26 @@ export class DeploymentsService {
       const imageTag = `v${Date.now()}`;
 
       if (project.templateId === 'STATIC_NGINX') {
-        fs.writeFileSync(dockerfilePath, `FROM nginx:latest\nCOPY . /usr/share/nginx/html\nEXPOSE 80\n`);
-        this.logger.log(`Generated STATIC_NGINX Dockerfile for ${project.name}`);
+        fs.writeFileSync(
+          dockerfilePath,
+          `FROM nginx:latest\nCOPY . /usr/share/nginx/html\nEXPOSE 80\n`,
+        );
+        this.logger.log(
+          `Generated STATIC_NGINX Dockerfile for ${project.name}`,
+        );
       } else if (project.templateId === 'STATIC_APACHE') {
-        fs.writeFileSync(dockerfilePath, `FROM httpd:latest\nCOPY . /usr/local/apache2/htdocs/\nEXPOSE 80\n`);
-        this.logger.log(`Generated STATIC_APACHE Dockerfile for ${project.name}`);
+        fs.writeFileSync(
+          dockerfilePath,
+          `FROM httpd:latest\nCOPY . /usr/local/apache2/htdocs/\nEXPOSE 80\n`,
+        );
+        this.logger.log(
+          `Generated STATIC_APACHE Dockerfile for ${project.name}`,
+        );
       } else if (project.templateId === 'PHP_APACHE') {
-        fs.writeFileSync(dockerfilePath, `FROM php:8.2-apache\nCOPY . /var/www/html/\nEXPOSE 80\n`);
+        fs.writeFileSync(
+          dockerfilePath,
+          `FROM php:8.2-apache\nCOPY . /var/www/html/\nEXPOSE 80\n`,
+        );
         this.logger.log(`Generated PHP_APACHE Dockerfile for ${project.name}`);
       }
 
@@ -399,7 +425,11 @@ export class DeploymentsService {
       process.cwd(),
       this.config.get<string>('UPLOAD_DIR', './uploads'),
     );
-    const extractDir = path.join(uploadDir, projectId, `dockerfile-${Date.now()}`);
+    const extractDir = path.join(
+      uploadDir,
+      projectId,
+      `dockerfile-${Date.now()}`,
+    );
 
     fs.mkdirSync(extractDir, { recursive: true });
 
@@ -510,7 +540,10 @@ export class DeploymentsService {
 
       this.archive.cleanup(extractDir, file.path);
 
-      return { message: 'Deployment successful', container: dockerContainer.id };
+      return {
+        message: 'Deployment successful',
+        container: dockerContainer.id,
+      };
     } catch (err) {
       this.logger.error('Custom Dockerfile deployment failed', err);
 
@@ -555,31 +588,40 @@ export class DeploymentsService {
     throw new Error('No available ports');
   }
 
-  private async cleanupOldContainers(projectId: string, excludeContainerId: string) {
+  private async cleanupOldContainers(
+    projectId: string,
+    excludeContainerId: string,
+  ) {
     try {
       const oldContainers = await this.prisma.container.findMany({
-        where: { 
+        where: {
           projectId,
-          id: { not: excludeContainerId }
-        }
+          id: { not: excludeContainerId },
+        },
       });
-      
+
       for (const old of oldContainers) {
         if (old.dockerContainerId) {
           try {
             await this.docker.removeContainer(old.dockerContainerId, true);
-            this.logger.log(`Cleaned up old container ${old.dockerContainerId}`);
+            this.logger.log(
+              `Cleaned up old container ${old.dockerContainerId}`,
+            );
             if (old.imageName && old.imageTag) {
               await this.docker.removeImage(`${old.imageName}:${old.imageTag}`);
             }
           } catch (e) {
-            this.logger.error(`Failed to remove old docker container or image: ${e.message}`);
+            this.logger.error(
+              `Failed to remove old docker container or image: ${e.message}`,
+            );
           }
         }
         await this.prisma.container.delete({ where: { id: old.id } });
       }
     } catch (err) {
-      this.logger.error(`Error during cleanup of old containers: ${err.message}`);
+      this.logger.error(
+        `Error during cleanup of old containers: ${err.message}`,
+      );
     }
   }
 }

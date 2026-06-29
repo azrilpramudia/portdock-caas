@@ -17,8 +17,20 @@ export const CreateContainerSchema = z.object({
     .optional()
     .describe('Host port to map to'),
   subdomain: z.string().optional().describe('Subdomain for routing'),
-  memoryLimit: z.number().min(128).max(512).optional().default(512).describe('Memory limit in MB (max 512)'),
-  cpuLimit: z.number().min(0.1).max(0.5).optional().default(0.5).describe('CPU core limit (max 0.5)'),
+  memoryLimit: z
+    .number()
+    .min(128)
+    .max(512)
+    .optional()
+    .default(512)
+    .describe('Memory limit in MB (max 512)'),
+  cpuLimit: z
+    .number()
+    .min(0.1)
+    .max(0.5)
+    .optional()
+    .default(0.5)
+    .describe('CPU core limit (max 0.5)'),
 });
 
 export class CreateContainerDto extends createZodDto(CreateContainerSchema) {}

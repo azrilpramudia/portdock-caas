@@ -268,7 +268,12 @@ export class AuthService {
     return { message: 'GitHub account disconnected' };
   }
 
-  private generateToken(user: { id: string; email: string; name: string; role?: string }) {
+  private generateToken(user: {
+    id: string;
+    email: string;
+    name: string;
+    role?: string;
+  }) {
     return this.jwtService.sign({
       sub: user.id,
       email: user.email,
@@ -319,10 +324,10 @@ export class AuthService {
         createdAt: true,
         updatedAt: true,
         _count: {
-          select: { projects: true }
-        }
+          select: { projects: true },
+        },
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
     });
   }
 
@@ -341,8 +346,8 @@ export class AuthService {
             name: true,
             domain: true,
             status: true,
-          }
-        }
+          },
+        },
       },
     });
 
@@ -360,7 +365,9 @@ export class AuthService {
     }
 
     await this.prisma.user.delete({ where: { id: userId } });
-    return { message: 'User account and all associated resources deleted successfully' };
+    return {
+      message: 'User account and all associated resources deleted successfully',
+    };
   }
 
   async deleteAllUsers() {
@@ -368,7 +375,7 @@ export class AuthService {
       where: { role: 'USER' },
     });
     let deletedCount = 0;
-    
+
     for (const user of users) {
       try {
         await this.deleteAccount(user.id);
@@ -377,7 +384,9 @@ export class AuthService {
         console.error(`Failed to delete user ${user.id}:`, error);
       }
     }
-    
-    return { message: `Successfully deleted ${deletedCount} users and their resources` };
+
+    return {
+      message: `Successfully deleted ${deletedCount} users and their resources`,
+    };
   }
 }

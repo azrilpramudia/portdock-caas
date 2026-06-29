@@ -147,16 +147,21 @@ export class DockerService implements OnModuleInit {
   async createVolume(volumeName: string) {
     try {
       // Check if volume already exists
-      const volumeInfo = await this.docker.getVolume(volumeName).inspect().catch(() => null);
+      const volumeInfo = await this.docker
+        .getVolume(volumeName)
+        .inspect()
+        .catch(() => null);
       if (volumeInfo) return volumeInfo;
-      
+
       // Create new volume
       const volume = await this.docker.createVolume({
         Name: volumeName,
       });
       return volume;
     } catch (error) {
-      this.logger.error(`Failed to create volume ${volumeName}: ${error.message}`);
+      this.logger.error(
+        `Failed to create volume ${volumeName}: ${error.message}`,
+      );
       throw error;
     }
   }
@@ -166,7 +171,9 @@ export class DockerService implements OnModuleInit {
       const volume = this.docker.getVolume(volumeName);
       await volume.remove();
     } catch (error) {
-      this.logger.error(`Failed to remove volume ${volumeName}: ${error.message}`);
+      this.logger.error(
+        `Failed to remove volume ${volumeName}: ${error.message}`,
+      );
       throw error;
     }
   }
@@ -191,11 +198,15 @@ export class DockerService implements OnModuleInit {
   ): Promise<void> {
     return new Promise((resolve, reject) => {
       this.docker.buildImage(
-        tarStream as any,
+        tarStream,
         { t: `${imageName}:${imageTag}` },
         (err, stream) => {
           if (err) {
             reject(err);
+            return;
+          }
+          if (!stream) {
+            reject(new Error('No stream returned from build'));
             return;
           }
           this.docker.modem.followProgress(

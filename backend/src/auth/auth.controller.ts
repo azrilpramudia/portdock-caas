@@ -11,7 +11,14 @@ import {
   Param,
 } from '@nestjs/common';
 import type { Response } from 'express';
-import { ApiTags, ApiOperation, ApiCookieAuth, ApiParam, ApiResponse, ApiExcludeEndpoint } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiCookieAuth,
+  ApiParam,
+  ApiResponse,
+  ApiExcludeEndpoint,
+} from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -132,7 +139,10 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @ApiCookieAuth()
   @ApiOperation({ summary: 'Delete own account and all resources' })
-  deleteAccount(@Request() req: any, @Res({ passthrough: true }) res: Response) {
+  deleteAccount(
+    @Request() req: any,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     res.clearCookie('access_token');
     return this.authService.deleteAccount(req.user.id);
   }
@@ -141,7 +151,10 @@ export class AuthController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   @ApiOperation({ summary: 'Admin: Get all users' })
-  @ApiResponse({ status: 200, description: 'Returns an array of all users and their project counts.' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns an array of all users and their project counts.',
+  })
   getAllUsers() {
     return this.authService.getAllUsers();
   }
@@ -151,7 +164,11 @@ export class AuthController {
   @Roles('ADMIN')
   @ApiOperation({ summary: 'Admin: Get user by ID' })
   @ApiParam({ name: 'id', description: 'The ID of the user' })
-  @ApiResponse({ status: 200, description: 'Returns detailed information of a specific user including their projects.' })
+  @ApiResponse({
+    status: 200,
+    description:
+      'Returns detailed information of a specific user including their projects.',
+  })
   @ApiResponse({ status: 400, description: 'User not found.' })
   getUserById(@Param('id') id: string) {
     return this.authService.getUserById(id);
@@ -161,8 +178,15 @@ export class AuthController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   @ApiOperation({ summary: 'Admin: Delete user by ID and all resources' })
-  @ApiParam({ name: 'id', description: 'The ID of the user to permanently delete' })
-  @ApiResponse({ status: 200, description: 'User and all associated containers/projects successfully deleted.' })
+  @ApiParam({
+    name: 'id',
+    description: 'The ID of the user to permanently delete',
+  })
+  @ApiResponse({
+    status: 200,
+    description:
+      'User and all associated containers/projects successfully deleted.',
+  })
   deleteUserById(@Param('id') id: string) {
     return this.authService.deleteAccount(id);
   }
@@ -171,7 +195,11 @@ export class AuthController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   @ApiOperation({ summary: 'Admin: Delete all users and all resources (Nuke)' })
-  @ApiResponse({ status: 200, description: 'All users and their containers successfully wiped from the server.' })
+  @ApiResponse({
+    status: 200,
+    description:
+      'All users and their containers successfully wiped from the server.',
+  })
   deleteAllUsers() {
     return this.authService.deleteAllUsers();
   }

@@ -17,18 +17,17 @@ async function bootstrap() {
   fs.mkdirSync('./uploads/tmp', { recursive: true });
 
   // Security
-  app.use(helmet({
-    contentSecurityPolicy: false, // Disabling this because it blocks Swagger UI
-  }));
+  app.use(
+    helmet({
+      contentSecurityPolicy: false, // Disabling this because it blocks Swagger UI
+    }),
+  );
   app.use(cookieParser());
 
   // Enterprise-level strict CORS policy
   const isProduction = process.env.NODE_ENV === 'production';
   const allowedOrigins = isProduction
-    ? [
-        'https://portdock.my.id',
-        'https://www.portdock.my.id',
-      ]
+    ? ['https://portdock.my.id', 'https://www.portdock.my.id']
     : [
         'http://localhost:3000',
         'http://127.0.0.1:3000',

@@ -62,8 +62,21 @@ export class DeploymentsController {
     @Body('internalPort') internalPort?: string,
     @Ip() ip?: string,
   ) {
-    console.log('--- DEPLOY ZIP PAYLOAD ---', { memoryLimit, cpuLimit, internalPort, ip });
-    return this.deploymentsService.deployZip(req.user.id, projectId, file, Number(memoryLimit) || 512, Number(cpuLimit) || 1.0, internalPort ? Number(internalPort) : undefined, ip);
+    console.log('--- DEPLOY ZIP PAYLOAD ---', {
+      memoryLimit,
+      cpuLimit,
+      internalPort,
+      ip,
+    });
+    return this.deploymentsService.deployZip(
+      req.user.id,
+      projectId,
+      file,
+      Number(memoryLimit) || 512,
+      Number(cpuLimit) || 1.0,
+      internalPort ? Number(internalPort) : undefined,
+      ip,
+    );
   }
 
   @Post(':projectId/github')
@@ -71,7 +84,14 @@ export class DeploymentsController {
   deployGithub(
     @Request() req: any,
     @Param('projectId') projectId: string,
-    @Body() body: { repositoryUrl: string; branch?: string; memoryLimit?: number; cpuLimit?: number; internalPort?: string },
+    @Body()
+    body: {
+      repositoryUrl: string;
+      branch?: string;
+      memoryLimit?: number;
+      cpuLimit?: number;
+      internalPort?: string;
+    },
     @Body('internalPort') internalPort?: string,
     @Ip() ip?: string,
   ) {
@@ -96,7 +116,10 @@ export class DeploymentsController {
       storage: diskStorage({
         destination: './uploads/tmp',
         filename: (_req, file, cb) => {
-          cb(null, `dockerfile-${Date.now()}-${Math.round(Math.random() * 1e9)}`);
+          cb(
+            null,
+            `dockerfile-${Date.now()}-${Math.round(Math.random() * 1e9)}`,
+          );
         },
       }),
       fileFilter: (_req, file, cb) => {
@@ -118,7 +141,12 @@ export class DeploymentsController {
     @Body('internalPort') internalPort?: string,
     @Ip() ip?: string,
   ) {
-    console.log('--- DEPLOY DOCKERFILE PAYLOAD ---', { memoryLimit, cpuLimit, internalPort, ip });
+    console.log('--- DEPLOY DOCKERFILE PAYLOAD ---', {
+      memoryLimit,
+      cpuLimit,
+      internalPort,
+      ip,
+    });
     return this.deploymentsService.deployDockerfile(
       req.user.id,
       projectId,
