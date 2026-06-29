@@ -45,6 +45,9 @@ model Project {
   deploymentType DeploymentType   @map("deployment_type")
   templateId     AppTemplate      @default(NIXPACKS) @map("template_id")
   repositoryUrl  String?          @map("repository_url")
+  branch         String?
+  buildCommand   String?          @map("build_command")
+  startCommand   String?          @map("start_command")
   domain         String?
   envVars        Json?            @map("env_vars")
   status         ProjectStatus    @default(INACTIVE)

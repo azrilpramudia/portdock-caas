@@ -10,6 +10,9 @@ export const CreateProjectSchema = z.object({
     .string()
     .optional()
     .describe('GitHub repository URL (HTTPS or SSH)'),
+  branch: z.string().optional().describe('GitHub branch name'),
+  buildCommand: z.string().optional().describe('Custom build command'),
+  startCommand: z.string().optional().describe('Custom start command'),
   templateId: z.nativeEnum(AppTemplate).optional().describe('App Template'),
   domain: z.string().optional().describe('Custom domain'),
   envVars: z

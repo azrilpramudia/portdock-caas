@@ -97,7 +97,7 @@ export function DeploymentLogsTerminal({
       hasFinishedRef.current = true;
       addLog('Provisioning SSL certificates and routing...', 'process');
       setTimeout(() => {
-        addLog('Deployment completed successfully! 🎉', 'success');
+        addLog('Deployment completed successfully!', 'success');
       }, 1000);
     }
     

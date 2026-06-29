@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { ChevronLeft, Save, Plus, Trash2, ShieldAlert, Globe, Server, Settings2, Loader2 } from "lucide-react";
+import { ChevronLeft, Save, Plus, Trash2, ShieldAlert, Globe, Server, Settings2, Loader2, Eye, EyeOff, GitBranch, Terminal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -29,10 +29,16 @@ export default function ProjectSettingsPage() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [domain, setDomain] = useState("");
-  const [envs, setEnvs] = useState<{key: string, value: string}[]>([]);
+  const [envs, setEnvs] = useState<{key: string, value: string, show?: boolean}[]>([]);
+  
+  const [repositoryUrl, setRepositoryUrl] = useState("");
+  const [branch, setBranch] = useState("");
+  const [buildCommand, setBuildCommand] = useState("");
+  const [startCommand, setStartCommand] = useState("");
   
   const [isDirty, setIsDirty] = useState(false);
   const [showDiscardModal, setShowDiscardModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const { data: projectData, isLoading } = useQuery({
     queryKey: ["project", projectId],
@@ -44,6 +50,10 @@ export default function ProjectSettingsPage() {
       setName(projectData.name || "");
       setDescription(projectData.description || "");
       setDomain(projectData.domain || "");
+      setRepositoryUrl(projectData.repositoryUrl || "");
+      setBranch(projectData.branch || "");
+      setBuildCommand(projectData.buildCommand || "");
+      setStartCommand(projectData.startCommand || "");
       
       const envObj = projectData.envVars;
       if (envObj && typeof envObj === 'object') {
@@ -95,14 +105,16 @@ export default function ProjectSettingsPage() {
       name,
       description,
       domain: domain.trim() || undefined,
+      repositoryUrl: repositoryUrl.trim() || undefined,
+      branch: branch.trim() || undefined,
+      buildCommand: buildCommand.trim() || undefined,
+      startCommand: startCommand.trim() || undefined,
       envVars: envObj
     });
   };
 
   const handleDelete = () => {
-    if (window.confirm("Are you sure you want to delete this project? This action cannot be undone.")) {
-      deleteMutation.mutate();
-    }
+    setShowDeleteModal(true);
   };
 
   const addEnv = () => { setEnvs([...envs, { key: "", value: "" }]); setIsDirty(true); };
@@ -203,6 +215,66 @@ export default function ProjectSettingsPage() {
             </CardContent>
           </Card>
 
+          {/* Deployment Source */}
+          <Card className="bg-card border-border shadow-sm rounded-2xl overflow-hidden border p-0 gap-0">
+            <CardHeader className="border-b border-border bg-muted/50 pt-6 px-6 pb-4">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <GitBranch className="w-5 h-5 text-foreground" /> Deployment Source
+              </CardTitle>
+              <CardDescription>Connect to a Git repository for continuous deployment.</CardDescription>
+            </CardHeader>
+            <CardContent className="p-6 space-y-5">
+              <div className="space-y-2">
+                <Label className="text-foreground font-semibold">Repository URL</Label>
+                <Input 
+                  placeholder="https://github.com/username/repo"
+                  value={repositoryUrl} 
+                  onChange={(e) => { setRepositoryUrl(e.target.value); setIsDirty(true); }}
+                  className="h-11 border-border focus-visible:ring-blue-500 bg-card" 
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-foreground font-semibold">Branch</Label>
+                <Input 
+                  placeholder="main"
+                  value={branch} 
+                  onChange={(e) => { setBranch(e.target.value); setIsDirty(true); }}
+                  className="h-11 border-border focus-visible:ring-blue-500 bg-card" 
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Build & Run Settings */}
+          <Card className="bg-card border-border shadow-sm rounded-2xl overflow-hidden border p-0 gap-0">
+            <CardHeader className="border-b border-border bg-muted/50 pt-6 px-6 pb-4">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Terminal className="w-5 h-5 text-orange-600" /> Build & Run Settings
+              </CardTitle>
+              <CardDescription>Customize how your application is built and started.</CardDescription>
+            </CardHeader>
+            <CardContent className="p-6 space-y-5">
+              <div className="space-y-2">
+                <Label className="text-foreground font-semibold">Build Command</Label>
+                <Input 
+                  placeholder="npm run build"
+                  value={buildCommand} 
+                  onChange={(e) => { setBuildCommand(e.target.value); setIsDirty(true); }}
+                  className="h-11 border-border focus-visible:ring-orange-500 bg-card font-mono text-sm" 
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-foreground font-semibold">Start Command</Label>
+                <Input 
+                  placeholder="npm start"
+                  value={startCommand} 
+                  onChange={(e) => { setStartCommand(e.target.value); setIsDirty(true); }}
+                  className="h-11 border-border focus-visible:ring-orange-500 bg-card font-mono text-sm" 
+                />
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Environment Variables */}
           <Card className="bg-card border-border shadow-sm rounded-2xl overflow-hidden border p-0 gap-0">
             <CardHeader className="border-b border-border bg-muted/50 pt-6 px-6 pb-4">
@@ -229,14 +301,25 @@ export default function ProjectSettingsPage() {
                       className="h-10 font-mono text-sm border-border focus-visible:ring-emerald-500 bg-card" 
                     />
                   </div>
-                  <div className="flex-1 space-y-1.5">
+                  <div className="flex-1 space-y-1.5 relative">
                     <Input 
                       placeholder="Value" 
                       value={env.value} 
                       onChange={(e) => handleEnvChange(idx, 'value', e.target.value)}
-                      type="password" 
-                      className="h-10 font-mono text-sm border-border focus-visible:ring-emerald-500 bg-card" 
+                      type={env.show ? "text" : "password"} 
+                      className="h-10 font-mono text-sm border-border focus-visible:ring-emerald-500 bg-card pr-10" 
                     />
+                    <button
+                      type="button"
+                      className="absolute right-3 top-[9px] text-muted-foreground hover:text-foreground"
+                      onClick={() => {
+                        const newEnvs = [...envs];
+                        newEnvs[idx].show = !newEnvs[idx].show;
+                        setEnvs(newEnvs);
+                      }}
+                    >
+                      {env.show ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
                   </div>
                   <Button onClick={() => removeEnv(idx)} variant="outline" className="h-10 w-10 p-0 text-muted-foreground hover:text-red-600 dark:hover:text-red-400 border-border hover:border-red-500/30 hover:bg-red-500/10 shrink-0 bg-card">
                     <Trash2 className="w-4 h-4" />
@@ -321,6 +404,32 @@ export default function ProjectSettingsPage() {
             </Button>
             <Button variant="destructive" onClick={confirmDiscard}>
               Discard Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
+        <DialogContent className="sm:max-w-[425px] border-red-500/20">
+          <DialogHeader>
+            <DialogTitle className="text-red-500 flex items-center gap-2">
+              <Trash2 className="w-5 h-5" />
+              Delete Project
+            </DialogTitle>
+            <DialogDescription className="text-muted-foreground pt-2">
+              Are you sure you want to delete <span className="font-semibold text-foreground">prj-{projectId}</span>? 
+              All associated containers, logs, and configurations will be permanently removed. 
+              <br/><br/>
+              <span className="font-bold text-red-500 dark:text-red-400">This action cannot be undone.</span>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="mt-4 gap-3">
+            <Button variant="outline" onClick={() => setShowDeleteModal(false)} disabled={deleteMutation.isPending}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={() => deleteMutation.mutate()} disabled={deleteMutation.isPending} className="bg-red-600 hover:bg-red-700">
+              {deleteMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Trash2 className="w-4 h-4 mr-2" />}
+              Confirm Delete
             </Button>
           </DialogFooter>
         </DialogContent>
