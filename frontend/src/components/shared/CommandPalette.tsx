@@ -21,7 +21,12 @@ import {
   LogOut,
   User,
   Power,
-  RotateCw
+  RotateCw,
+  Play,
+  TerminalSquare,
+  Copy,
+  ExternalLink,
+  Globe
 } from "lucide-react";
 
 import {
@@ -39,6 +44,9 @@ import { FaGithub } from "react-icons/fa";
 import { useProjectsList } from "@/hooks/useProjects";
 import { useContainersList, useContainerAction } from "@/hooks/useContainers";
 import { useAuthStore } from "@/store/auth";
+import { useQuery } from "@tanstack/react-query";
+import api from "@/lib/api";
+import { toast } from "sonner";
 
 export function CommandPalette() {
   const [open, setOpen] = React.useState(false);
@@ -54,6 +62,26 @@ export function CommandPalette() {
   const { mutate: containerAction } = useContainerAction();
   
   const { logout } = useAuthStore();
+
+  const { data: databasesData } = useQuery({
+    queryKey: ["databases"],
+    queryFn: async () => {
+      const res = await api.get("/databases");
+      return res.data;
+    },
+  });
+  const databases = Array.isArray(databasesData) ? databasesData : (databasesData?.data || []);
+
+  const copyToClipboard = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success(`${label} copied to clipboard`);
+    setOpen(false);
+  };
+
+  const visitUrl = (url: string) => {
+    window.open(url.startsWith('http') ? url : `http://${url}`, '_blank');
+    setOpen(false);
+  };
 
   React.useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -80,42 +108,98 @@ export function CommandPalette() {
         
         {projects && projects.length > 0 && (
           <CommandGroup heading="Projects">
-            {projects.slice(0, 5).map((project: any) => (
-              <CommandItem 
-                key={project.id} 
-                onSelect={() => runCommand(() => router.push(`/projects/${project.id}`))}
-              >
-                <Box className="mr-2 h-4 w-4 text-blue-500" />
-                <span>{project.name}</span>
-                <span className="ml-auto text-xs text-muted-foreground">{project.deploymentType || "ZIP"}</span>
-              </CommandItem>
+            {projects.map((project: any) => (
+              <React.Fragment key={project.id}>
+                <CommandItem 
+                  onSelect={() => runCommand(() => router.push(`/projects/${project.id}`))}
+                >
+                  <Box className="mr-2 h-4 w-4 text-blue-500" />
+                  <span>{project.name}</span>
+                  <span className="ml-auto text-xs text-muted-foreground">{project.deploymentType || "ZIP"}</span>
+                </CommandItem>
+                {project.domain && (
+                  <>
+                    <CommandItem key={`visit-${project.id}`} onSelect={() => runCommand(() => visitUrl(project.domain))}>
+                      <ExternalLink className="mr-2 h-4 w-4 text-emerald-500" />
+                      <span>Visit {project.name} Website</span>
+                      <span className="ml-auto text-xs text-muted-foreground">Action</span>
+                    </CommandItem>
+                    <CommandItem key={`copy-${project.id}`} onSelect={() => runCommand(() => copyToClipboard(project.domain, "Domain"))}>
+                      <Copy className="mr-2 h-4 w-4 text-slate-500" />
+                      <span>Copy {project.name} Domain</span>
+                      <span className="ml-auto text-xs text-muted-foreground">Action</span>
+                    </CommandItem>
+                  </>
+                )}
+              </React.Fragment>
             ))}
           </CommandGroup>
         )}
 
         {projects && projects.length > 0 && <CommandSeparator />}
 
+        {databases && databases.length > 0 && (
+          <>
+            <CommandGroup heading="Databases">
+              {databases.map((db: any) => (
+                <CommandItem 
+                  key={db.id} 
+                  onSelect={() => runCommand(() => router.push(`/databases`))}
+                >
+                  <Database className="mr-2 h-4 w-4 text-emerald-500" />
+                  <span>{db.name}</span>
+                  <span className="ml-auto text-xs text-muted-foreground">{db.type}</span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+            <CommandSeparator />
+          </>
+        )}
+
         {containers && containers.length > 0 && (
           <CommandGroup heading="Container Actions">
-            {containers.slice(0, 3).map((container: any) => (
-              <CommandItem 
-                key={`restart-${container.id}`} 
-                onSelect={() => runCommand(() => containerAction({ id: container.id, action: "restart" }))}
-              >
-                <RotateCw className="mr-2 h-4 w-4 text-orange-500" />
-                <span>Restart {container.name}</span>
-                <span className="ml-auto text-xs text-muted-foreground">Action</span>
-              </CommandItem>
-            ))}
-            {containers.slice(0, 3).map((container: any) => (
-              <CommandItem 
-                key={`stop-${container.id}`} 
-                onSelect={() => runCommand(() => containerAction({ id: container.id, action: "stop" }))}
-              >
-                <Power className="mr-2 h-4 w-4 text-red-500" />
-                <span>Stop {container.name}</span>
-                <span className="ml-auto text-xs text-muted-foreground">Action</span>
-              </CommandItem>
+            {containers.map((container: any) => (
+              <React.Fragment key={container.id}>
+                <CommandItem onSelect={() => runCommand(() => router.push(`/terminal?containerId=${container.id}&tab=app-logs`))}>
+                  <TerminalSquare className="mr-2 h-4 w-4 text-blue-500" />
+                  <span>View {container.name} Logs</span>
+                  <span className="ml-auto text-xs text-muted-foreground">Action</span>
+                </CommandItem>
+                {container.status !== 'RUNNING' ? (
+                  <CommandItem onSelect={() => runCommand(() => containerAction({ id: container.id, action: "start" }))}>
+                    <Play className="mr-2 h-4 w-4 text-emerald-500" />
+                    <span>Start {container.name}</span>
+                    <span className="ml-auto text-xs text-muted-foreground">Action</span>
+                  </CommandItem>
+                ) : (
+                  <>
+                    <CommandItem onSelect={() => runCommand(() => containerAction({ id: container.id, action: "restart" }))}>
+                      <RotateCw className="mr-2 h-4 w-4 text-orange-500" />
+                      <span>Restart {container.name}</span>
+                      <span className="ml-auto text-xs text-muted-foreground">Action</span>
+                    </CommandItem>
+                    <CommandItem onSelect={() => runCommand(() => containerAction({ id: container.id, action: "stop" }))}>
+                      <Power className="mr-2 h-4 w-4 text-red-500" />
+                      <span>Stop {container.name}</span>
+                      <span className="ml-auto text-xs text-muted-foreground">Action</span>
+                    </CommandItem>
+                  </>
+                )}
+                {container.networkAllocations && container.networkAllocations.length > 0 && (
+                  <>
+                    <CommandItem key={`visit-ip-${container.id}`} onSelect={() => runCommand(() => visitUrl(`${container.project?.domain || window.location.hostname}:${container.networkAllocations[0].hostPort}`))}>
+                      <Globe className="mr-2 h-4 w-4 text-emerald-500" />
+                      <span>Visit {container.name} IP</span>
+                      <span className="ml-auto text-xs text-muted-foreground">Action</span>
+                    </CommandItem>
+                    <CommandItem key={`copy-ip-${container.id}`} onSelect={() => runCommand(() => copyToClipboard(`${container.project?.domain || window.location.hostname}:${container.networkAllocations[0].hostPort}`, "IP Address"))}>
+                      <Copy className="mr-2 h-4 w-4 text-slate-500" />
+                      <span>Copy {container.name} IP Address</span>
+                      <span className="ml-auto text-xs text-muted-foreground">Action</span>
+                    </CommandItem>
+                  </>
+                )}
+              </React.Fragment>
             ))}
           </CommandGroup>
         )}

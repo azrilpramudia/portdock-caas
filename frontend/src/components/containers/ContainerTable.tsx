@@ -56,7 +56,7 @@ export function ContainerTable({
             <tr className="border-b border-border text-[13px] font-semibold text-muted-foreground">
               <th className="px-5 py-4 font-semibold w-12 text-center">
                 <Checkbox 
-                  checked={allSelected ? true : (isIndeterminate ? "indeterminate" : false)} 
+                  checked={allSelected} 
                   onCheckedChange={onSelectAll} 
                   aria-label="Select all"
                 />

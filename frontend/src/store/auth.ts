@@ -24,7 +24,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       const { authService } = await import("@/services/auth.service");
       await authService.logout();
-    } catch (e) {
+    } catch {
       // ignore
     }
     set({ user: null, token: null, isAuthenticated: false });
@@ -37,7 +37,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       if (user) {
         set({ user, isAuthenticated: true, token: "cookie-based" });
       }
-    } catch (error) {
+    } catch {
       set({ user: null, token: null, isAuthenticated: false });
     }
   },

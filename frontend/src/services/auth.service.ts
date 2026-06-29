@@ -14,8 +14,7 @@ export const authService = {
   },
 
   register: async (data: RegisterFormSchema): Promise<AuthResponse> => {
-    const { confirmPassword, ...payload } = data;
-    const res = await api.post("/auth/register", payload);
+    const res = await api.post("/auth/register", data);
     return res.data;
   },
 

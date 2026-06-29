@@ -39,7 +39,7 @@ export function MonitoringStats({
           <div>
             <p className="text-[12px] font-medium text-muted-foreground mb-0.5 flex items-center gap-1">
               CPU Usage
-              <TooltipProvider delayDuration={300}>
+              <TooltipProvider delay={300}>
                 <Tooltip>
                   <TooltipTrigger>
                     <HelpCircle className="w-3.5 h-3.5 text-muted-foreground/50 hover:text-muted-foreground cursor-help" />
@@ -72,7 +72,7 @@ export function MonitoringStats({
           <div>
             <p className="text-[12px] font-medium text-muted-foreground mb-0.5 flex items-center gap-1">
               RAM Usage
-              <TooltipProvider delayDuration={300}>
+              <TooltipProvider delay={300}>
                 <Tooltip>
                   <TooltipTrigger>
                     <HelpCircle className="w-3.5 h-3.5 text-muted-foreground/50 hover:text-muted-foreground cursor-help" />
@@ -126,7 +126,7 @@ export function MonitoringStats({
           <div>
             <p className="text-[12px] font-medium text-muted-foreground mb-0.5 flex items-center gap-1">
               Network I/O
-              <TooltipProvider delayDuration={300}>
+              <TooltipProvider delay={300}>
                 <Tooltip>
                   <TooltipTrigger>
                     <HelpCircle className="w-3.5 h-3.5 text-muted-foreground/50 hover:text-muted-foreground cursor-help" />

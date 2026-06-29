@@ -1,7 +1,6 @@
 import { 
   LayoutDashboard, 
   FolderOpen, 
-  Rocket, 
   Container, 
   BarChart3, 
   TerminalSquare as TerminalIcon, 
