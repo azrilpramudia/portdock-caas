@@ -1,11 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Menu, Bell, ChevronDown } from "lucide-react";
+import { Menu, Bell, ChevronDown, ChevronRight } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ThemeToggle } from "@/components/shared/ThemeToggle";
 import { NotificationBell } from "./NotificationBell";
+import { Breadcrumbs } from "@/components/shared/Breadcrumbs";
 import { navItems } from "@/constants/nav";
 import { LogOut, User as UserIcon, Settings, ShieldAlert } from "lucide-react";
 import {
@@ -38,6 +40,7 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
 
   const currentNav = navItems.find((item) => pathname === item.href || pathname.startsWith(item.href + "/"));
   const pageTitle = currentNav?.label || "Dashboard";
+  const pathSegments = pathname.split("/").filter(Boolean);
 
   return (
     <>
@@ -48,6 +51,7 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
             <Menu className="w-[18px] h-[18px]" />
           </div>
           <div>
+            <Breadcrumbs pathSegments={pathSegments} />
             <h1 className="text-xl font-bold text-foreground leading-tight">
               {pageTitle}
             </h1>
@@ -154,7 +158,11 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
           >
             <Menu className="w-5 h-5" />
           </button>
-          <span className="font-bold text-foreground text-[15px]">{pageTitle}</span>
+          
+          <div className="flex flex-col ml-2">
+            <Breadcrumbs pathSegments={pathSegments} isMobile={true} />
+            <span className="font-bold text-foreground text-[15px] leading-tight mt-0.5">{pageTitle}</span>
+          </div>
         </div>
         
         <div className="flex items-center gap-1.5">

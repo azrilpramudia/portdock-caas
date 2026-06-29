@@ -8,6 +8,7 @@ import { DashboardHeader } from "@/components/layout/DashboardHeader";
 import { WelcomeModal } from "@/components/dashboard/WelcomeModal";
 import { FloatingSupport } from "@/components/dashboard/FloatingSupport";
 import { CommandPalette } from "@/components/shared/CommandPalette";
+import { DashboardErrorBoundary } from "@/components/shared/DashboardErrorBoundary";
 
 export default function DashboardLayout({
   children,
@@ -56,7 +57,9 @@ export default function DashboardLayout({
         
         {/* Page Content */}
         <main className="flex-1 overflow-y-auto">
-          <div className="p-4 lg:p-8 animate-fade-in">{children}</div>
+          <DashboardErrorBoundary>
+            <div className="p-4 lg:p-8 animate-fade-in">{children}</div>
+          </DashboardErrorBoundary>
         </main>
       </div>
 

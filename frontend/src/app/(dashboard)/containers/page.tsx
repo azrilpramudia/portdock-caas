@@ -2,11 +2,9 @@
 
 import { Box, Play, Pause, AlertCircle, ArrowUp, ArrowDown } from "lucide-react";
 import { SiNginx, SiNodedotjs, SiMysql, SiRedis, SiPhp } from "react-icons/si";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { containersService } from "@/services/containers.service";
+import { useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { toast } from "sonner";
-import { useState } from "react";
+import { useContainers } from "@/hooks/useContainers";
 import { ContainerDetails } from "@/components/containers/ContainerDetails";
 import { ContainerFilters } from "@/components/containers/ContainerFilters";
 import { ContainerTable } from "@/components/containers/ContainerTable";
@@ -20,166 +18,35 @@ import {
 } from "@/components/ui/dialog";
 
 export default function ContainersPage() {
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("All Status");
-  const [projectFilter, setProjectFilter] = useState("All Projects");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [selectedContainer, setSelectedContainer] = useState<{id: string, name: string} | null>(null);
-  const [containerToDelete, setContainerToDelete] = useState<string | null>(null);
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [isBulkProcessing, setIsBulkProcessing] = useState(false);
-  
-  const queryClient = useQueryClient();
-  const ITEMS_PER_PAGE = 10;
+  const {
+    search, setSearch,
+    statusFilter, setStatusFilter,
+    projectFilter, setProjectFilter,
+    currentPage, setCurrentPage,
+    selectedContainer, setSelectedContainer,
+    containerToDelete, setContainerToDelete,
+    selectedIds, setSelectedIds,
+    isBulkProcessing,
+    totalPages,
+    rawContainers,
+    paginatedContainers,
+    uniqueProjects,
+    isLoading,
+    stats,
+    handleRefresh,
+    handleSelectToggle,
+    handleSelectAll,
+    handleBulkAction,
+    mutations,
+    refetch
+  } = useContainers();
 
-  const { data: containersData, isLoading, refetch } = useQuery({
-    queryKey: ["containers"],
-    queryFn: () => containersService.getContainers(),
-  });
+  const totalContainers = stats.totalContainers;
+  const runningCount = stats.runningCount;
+  const stoppedCount = stats.stoppedCount;
+  const failedCount = stats.failedCount;
 
-  const handleRefresh = async () => {
-    await refetch();
-    toast.success("Data containers berhasil diperbarui");
-  };
-
-  const startMutation = useMutation({
-    mutationFn: (id: string) => containersService.startContainer(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["containers"] });
-      toast.success("Container started");
-    },
-  });
-
-  const stopMutation = useMutation({
-    mutationFn: (id: string) => containersService.stopContainer(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["containers"] });
-      toast.success("Container stopped");
-    },
-  });
-
-  const restartMutation = useMutation({
-    mutationFn: (id: string) => containersService.restartContainer(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["containers"] });
-      toast.success("Container restarted");
-    },
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => containersService.deleteContainer(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["containers"] });
-      toast.success("Container deleted successfully");
-      setContainerToDelete(null);
-    },
-    onError: (err: any) => {
-      toast.error(err.message || "Failed to delete container");
-      setContainerToDelete(null);
-    }
-  });
-
-  const rawContainers = containersData || [];
-
-  const handleSelectToggle = (id: string) => {
-    setSelectedIds(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
-
-  const handleSelectAll = () => {
-    if (selectedIds.size === paginatedContainers.length && paginatedContainers.length > 0) {
-      setSelectedIds(new Set()); // Deselect all on current page
-    } else {
-      const next = new Set(selectedIds);
-      paginatedContainers.forEach((c: any) => next.add(c.id));
-      setSelectedIds(next);
-    }
-  };
-
-  const handleBulkAction = async (action: 'start' | 'stop' | 'restart' | 'delete') => {
-    if (selectedIds.size === 0) return;
-    
-    // confirm delete
-    if (action === 'delete') {
-      if (!confirm(`Are you sure you want to delete ${selectedIds.size} containers?`)) return;
-    }
-
-    setIsBulkProcessing(true);
-    const toastId = toast.loading(`Processing ${action} on ${selectedIds.size} containers...`);
-    
-    try {
-      const promises = Array.from(selectedIds).map(id => {
-        if (action === 'start') return containersService.startContainer(id);
-        if (action === 'stop') return containersService.stopContainer(id);
-        if (action === 'restart') return containersService.restartContainer(id);
-        if (action === 'delete') return containersService.deleteContainer(id);
-      });
-
-      await Promise.allSettled(promises);
-      
-      toast.success(`Successfully executed ${action} on selected containers`, { id: toastId });
-      queryClient.invalidateQueries({ queryKey: ["containers"] });
-      setSelectedIds(new Set());
-    } catch (error: any) {
-      toast.error(`Some actions failed: ${error.message}`, { id: toastId });
-    } finally {
-      setIsBulkProcessing(false);
-    }
-  };
-
-  const getIcon = (imageName: string) => {
-    if (imageName.includes('nginx')) return { icon: SiNginx, color: 'text-emerald-500' };
-    if (imageName.includes('node')) return { icon: SiNodedotjs, color: 'text-emerald-600' };
-    if (imageName.includes('mysql')) return { icon: SiMysql, color: 'text-blue-500' };
-    if (imageName.includes('redis')) return { icon: SiRedis, color: 'text-red-500' };
-    if (imageName.includes('php')) return { icon: SiPhp, color: 'text-indigo-500' };
-    return { icon: Box, color: 'text-blue-600' };
-  };
-
-  const mappedContainers = rawContainers.map((c: any) => {
-    const { icon, color } = getIcon(c.imageName);
-    return {
-      id: c.id,
-      containerId: c.dockerContainerId?.substring(0, 12) || '-',
-      name: c.name,
-      image: `${c.imageName}:${c.imageTag}`,
-      project: c.project?.name || '-',
-      domain: c.project?.domain || null,
-      port: c.hostPort ? `${c.hostPort} -> ${c.internalPort}` : (c.internalPort || "-"),
-      hostPort: c.hostPort,
-      status: c.status === 'RUNNING' ? 'Running' : c.status === 'FAILED' ? 'Failed' : 'Stopped',
-      uptime: c.status === 'RUNNING' ? 'Active' : '-',
-      createdAt: format(new Date(c.createdAt), 'MMM dd, yyyy'),
-      icon: icon,
-      iconColor: color,
-    };
-  });
-
-  const totalContainers = rawContainers.length;
-  const runningCount = rawContainers.filter((c: any) => c.status === 'RUNNING').length;
-  const stoppedCount = rawContainers.filter((c: any) => c.status === 'STOPPED').length;
-  const failedCount = rawContainers.filter((c: any) => c.status === 'FAILED' || c.status === 'ERROR').length;
-
-  const uniqueProjects = Array.from(new Set(rawContainers.map((c: any) => c.project?.name).filter(Boolean))) as string[];
-
-  const filteredContainers = mappedContainers.filter((c: any) => {
-    const matchSearch = c.name.toLowerCase().includes(search.toLowerCase()) || c.image.toLowerCase().includes(search.toLowerCase());
-    const matchStatus = statusFilter === "All Status" || c.status === statusFilter;
-    const matchProject = projectFilter === "All Projects" || c.project === projectFilter;
-    return matchSearch && matchStatus && matchProject;
-  });
-
-  const totalPages = Math.max(1, Math.ceil(filteredContainers.length / ITEMS_PER_PAGE));
-  const paginatedContainers = filteredContainers.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  );
-
-  const stats = [
+  const statCards = [
     {
       title: "Total Containers",
       value: totalContainers.toString(),
@@ -223,7 +90,7 @@ export default function ContainersPage() {
       
       {/* 1. STATS CARDS */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((stat, i) => (
+        {statCards.map((stat, i) => (
           <div key={i} className="bg-card rounded-2xl border border-border p-5 shadow-sm flex items-center gap-4">
             <div className={`w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 ${stat.bg} ${stat.color}`}>
               <stat.icon className="w-6 h-6" fill="currentColor" strokeWidth={0} viewBox="0 0 24 24" style={{ stroke: "none" }} />
@@ -311,9 +178,9 @@ export default function ContainersPage() {
         rawContainersCount={rawContainers.length}
         selectedContainer={selectedContainer}
         setSelectedContainer={setSelectedContainer}
-        onStart={(id) => startMutation.mutate(id)}
-        onStop={(id) => stopMutation.mutate(id)}
-        onRestart={(id) => restartMutation.mutate(id)}
+        onStart={(id) => mutations.start.mutate(id)}
+        onStop={(id) => mutations.stop.mutate(id)}
+        onRestart={(id) => mutations.restart.mutate(id)}
         onDelete={(id) => setContainerToDelete(id)}
         selectedIds={selectedIds}
         onSelectToggle={handleSelectToggle}
@@ -348,6 +215,8 @@ export default function ContainersPage() {
         <ContainerDetails 
           container={rawContainers.find((c: any) => c.id === selectedContainer.id)} 
           onClose={() => setSelectedContainer(null)} 
+          onRefresh={refetch}
+          initialTab={selectedContainer.initialTab}
         />
       )}
 
@@ -364,16 +233,16 @@ export default function ContainersPage() {
             <button
               onClick={() => setContainerToDelete(null)}
               className="px-4 py-2 text-sm font-medium text-muted-foreground bg-muted hover:bg-muted/80 rounded-md transition-colors"
-              disabled={deleteMutation.isPending}
+              disabled={mutations.delete.isPending}
             >
               Cancel
             </button>
             <button
-              onClick={() => containerToDelete && deleteMutation.mutate(containerToDelete)}
+              onClick={() => containerToDelete && mutations.delete.mutate(containerToDelete)}
               className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors flex items-center gap-2"
-              disabled={deleteMutation.isPending}
+              disabled={mutations.delete.isPending}
             >
-              {deleteMutation.isPending ? "Deleting..." : "Delete"}
+              {mutations.delete.isPending ? "Deleting..." : "Delete"}
             </button>
           </DialogFooter>
         </DialogContent>

@@ -15,7 +15,7 @@ interface ContainerTableProps {
   isLoading: boolean;
   rawContainersCount: number;
   selectedContainer: any | null;
-  setSelectedContainer: (c: any) => void;
+  setSelectedContainer: (container: { id: string; name: string; initialTab?: string }) => void;
   onStart: (id: string) => void;
   onStop: (id: string) => void;
   onRestart: (id: string) => void;
@@ -193,7 +193,7 @@ export function ContainerTable({
                             </DropdownMenuItem>
                             <DropdownMenuItem 
                               className="flex items-center gap-2 py-2.5 cursor-pointer hover:bg-muted"
-                              onClick={() => setSelectedContainer({ id: c.id, name: c.name })}
+                              onClick={() => setSelectedContainer({ id: c.id, name: c.name, initialTab: 'logs' })}
                             >
                               <FileText className="w-4 h-4 text-emerald-500" />
                               <span className="font-medium text-[13px]">View Logs</span>

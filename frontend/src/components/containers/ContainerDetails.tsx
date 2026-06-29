@@ -11,14 +11,17 @@ import { useRouter } from "next/navigation";
 import { ContainerHeader } from "./details/ContainerHeader";
 import { NetworkTab } from "./details/NetworkTab";
 import { SettingsTab } from "./details/SettingsTab";
+import { useContainerNetwork } from "@/hooks/useContainerNetwork";
+import { useContainerResources } from "@/hooks/useContainerResources";
 
 interface ContainerDetailsProps {
   container: any;
   onClose: () => void;
   onRefresh?: () => void;
+  initialTab?: string;
 }
 
-export function ContainerDetails({ container, onClose, onRefresh }: ContainerDetailsProps) {
+export function ContainerDetails({ container, onClose, onRefresh, initialTab = "overview" }: ContainerDetailsProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   
@@ -29,22 +32,8 @@ export function ContainerDetails({ container, onClose, onRefresh }: ContainerDet
     }
   }, []);
   
-  // Resource Limits & Policies State
-  const [memoryLimit, setMemoryLimit] = useState<number>(container.memoryLimit || 512);
-  const [cpuLimit, setCpuLimit] = useState<number>(container.cpuLimit || 0.5);
-  const [restartPolicy, setRestartPolicy] = useState<string>(container.restartPolicy || 'unless-stopped');
-  const [volumeMountPath, setVolumeMountPath] = useState<string>(container.volumeMountPath || '');
-  const [internalPort, setInternalPort] = useState<number | ''>(container.internalPort || 80);
-  const [isSavingResources, setIsSavingResources] = useState(false);
-
-  // Network Allocation State
-  const [newPort, setNewPort] = useState<string>('');
-  const [isCreatingAllocation, setIsCreatingAllocation] = useState(false);
-  const [allocations, setAllocations] = useState([{
-    hostPort: container.hostPort,
-    internalPort: container.internalPort || 80,
-    isPrimary: true
-  }].filter(a => a.hostPort));
+  const networkState = useContainerNetwork(container, onRefresh);
+  const resourcesState = useContainerResources(container, onRefresh);
 
   const router = useRouter();
 
@@ -70,71 +59,8 @@ export function ContainerDetails({ container, onClose, onRefresh }: ContainerDet
     }
   };
 
-  const handleSaveResources = async () => {
-    setIsSavingResources(true);
-    try {
-      await containersService.updateResources(container.id, { 
-        memoryLimit, 
-        cpuLimit, 
-        restartPolicy,
-        volumeMountPath: volumeMountPath.trim() === '' ? null : volumeMountPath.trim(),
-        internalPort: internalPort === '' ? undefined : Number(internalPort)
-      });
-      toast.success("Settings updated successfully");
-      if (onRefresh) onRefresh();
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || "Failed to update settings");
-    } finally {
-      setIsSavingResources(false);
-    }
-  };
-
   const openInTerminal = () => {
     router.push(`/terminal?containerId=${container.id}&tab=app-logs`);
-  };
-
-  const handleCreateAllocation = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const portNumber = parseInt(newPort);
-    
-    if (isNaN(portNumber)) {
-      toast.error("Format port tidak valid");
-      return;
-    }
-
-    if (portNumber < 19000 || portNumber > 25999) {
-      toast.error("Port ditolak! Anda hanya diizinkan memilih port antara 19000 - 25999.");
-      return;
-    }
-
-    if (allocations.find(a => a.hostPort === portNumber)) {
-      toast.error("Port ini sudah Anda miliki.");
-      return;
-    }
-
-    setIsCreatingAllocation(true);
-    try {
-      await containersService.allocatePort(container.id, portNumber);
-      setAllocations([{ hostPort: portNumber, internalPort: container.internalPort || 80, isPrimary: true }]);
-      toast.success(`Port ${portNumber} berhasil dialokasikan!`);
-      setNewPort('');
-      if (onRefresh) onRefresh();
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || "Gagal mengalokasikan port");
-    } finally {
-      setIsCreatingAllocation(false);
-    }
-  };
-
-  const handleRemovePort = async () => {
-    try {
-      await containersService.removePort(container.id);
-      setAllocations([]);
-      toast.success(`Port berhasil dihapus!`);
-      if (onRefresh) onRefresh();
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || "Gagal menghapus port");
-    }
   };
 
   return (
@@ -159,7 +85,7 @@ export function ContainerDetails({ container, onClose, onRefresh }: ContainerDet
 
         {/* Body Tabs */}
         <div className="flex-1 overflow-y-auto p-6">
-          <Tabs defaultValue="overview" className="w-full">
+          <Tabs defaultValue={initialTab} className="w-full">
             <TabsList className="grid w-full grid-cols-4 mb-6 bg-muted/50 border border-border/50 h-11">
               <TabsTrigger value="overview" className="gap-2 data-[state=active]:bg-card data-[state=active]:shadow-sm"><Layout className="w-4 h-4" /> Overview</TabsTrigger>
               <TabsTrigger value="network" className="gap-2 data-[state=active]:bg-card data-[state=active]:shadow-sm"><Globe className="w-4 h-4" /> Network</TabsTrigger>
@@ -196,14 +122,14 @@ export function ContainerDetails({ container, onClose, onRefresh }: ContainerDet
 
             <TabsContent value="network" className="mt-0 space-y-6">
               <NetworkTab 
-                allocations={allocations} 
+                allocations={networkState.allocations} 
                 hostIp={hostIp} 
-                container={container} 
-                handleRemovePort={handleRemovePort} 
-                handleCreateAllocation={handleCreateAllocation} 
-                newPort={newPort} 
-                setNewPort={setNewPort} 
-                isCreatingAllocation={isCreatingAllocation} 
+                container={container}
+                newPort={networkState.newPort} 
+                setNewPort={networkState.setNewPort} 
+                isCreatingAllocation={networkState.isCreatingAllocation} 
+                handleCreateAllocation={networkState.handleCreateAllocation} 
+                handleRemovePort={networkState.handleRemovePort} 
               />
             </TabsContent>
 
@@ -225,21 +151,21 @@ export function ContainerDetails({ container, onClose, onRefresh }: ContainerDet
               </div>
             </TabsContent>
 
-            <TabsContent value="settings" className="mt-0">
+            <TabsContent value="settings" className="mt-0 space-y-6">
               <SettingsTab 
-                container={container} 
-                memoryLimit={memoryLimit} 
-                setMemoryLimit={setMemoryLimit} 
-                cpuLimit={cpuLimit} 
-                setCpuLimit={setCpuLimit} 
-                restartPolicy={restartPolicy} 
-                setRestartPolicy={setRestartPolicy} 
-                volumeMountPath={volumeMountPath} 
-                setVolumeMountPath={setVolumeMountPath} 
-                internalPort={internalPort} 
-                setInternalPort={setInternalPort} 
-                handleSaveResources={handleSaveResources} 
-                isSavingResources={isSavingResources} 
+                container={container}
+                memoryLimit={resourcesState.memoryLimit}
+                setMemoryLimit={resourcesState.setMemoryLimit}
+                cpuLimit={resourcesState.cpuLimit}
+                setCpuLimit={resourcesState.setCpuLimit}
+                restartPolicy={resourcesState.restartPolicy}
+                setRestartPolicy={resourcesState.setRestartPolicy}
+                volumeMountPath={resourcesState.volumeMountPath}
+                setVolumeMountPath={resourcesState.setVolumeMountPath}
+                internalPort={resourcesState.internalPort}
+                setInternalPort={resourcesState.setInternalPort}
+                isSavingResources={resourcesState.isSavingResources}
+                handleSaveResources={resourcesState.handleSaveResources}
               />
             </TabsContent>
           </Tabs>
