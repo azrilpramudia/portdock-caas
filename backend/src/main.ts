@@ -2,7 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
-import { ZodValidationPipe } from 'nestjs-zod';
+import { ZodValidationPipe, cleanupOpenApiDoc } from 'nestjs-zod';
 import helmet from 'helmet';
 import * as fs from 'fs';
 import cookieParser from 'cookie-parser';
@@ -57,9 +57,10 @@ async function bootstrap() {
     .setDescription('Portdock - Docker Deployment Platform API')
     .setVersion('1.0')
     .addCookieAuth('access_token')
+    .addApiKey({ type: 'apiKey', name: 'x-csrf-token', in: 'header' }, 'CSRF-Token')
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, document);
+  SwaggerModule.setup('api/docs', app, cleanupOpenApiDoc(document));
 
   const port = process.env.PORT ?? 3001;
   await app.listen(port);
