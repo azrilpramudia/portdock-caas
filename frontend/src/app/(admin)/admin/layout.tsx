@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/auth";
 import { AdminSidebar } from "@/components/layout/AdminSidebar";
+import { AdminHeader } from "@/components/layout/AdminHeader";
 
 export default function AdminLayout({
   children,
@@ -66,7 +67,9 @@ export default function AdminLayout({
           </button>
         </header>
 
-        <main className="flex-1 overflow-y-auto">
+        <AdminHeader />
+
+        <main className="flex-1 overflow-y-auto bg-gray-50/50">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 h-full">
             {children}
           </div>
