@@ -1,11 +1,26 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowLeft, Rocket, Sparkles, Cloud } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { useAuthStore } from "@/store/auth";
 import { RegisterForm } from "@/components/forms/RegisterForm";
 
 export default function RegisterPage() {
+  const router = useRouter();
+  const { isAuthenticated, initialize } = useAuthStore();
+
+  useEffect(() => {
+    initialize();
+  }, [initialize]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.replace("/dashboard");
+    }
+  }, [isAuthenticated, router]);
   return (
     <div className="min-h-screen bg-[#f8fafc] dark:bg-background text-slate-900 dark:text-foreground flex flex-col relative overflow-hidden transition-colors duration-300">
       {/* Dot Pattern Background */}

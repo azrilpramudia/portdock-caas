@@ -32,6 +32,9 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   initialize: async () => {
     try {
+      const { fetchAndSetCsrfToken } = await import("@/lib/api");
+      await fetchAndSetCsrfToken();
+      
       const { authService } = await import("@/services/auth.service");
       const user = await authService.getMe();
       if (user) {

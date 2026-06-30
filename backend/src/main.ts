@@ -6,6 +6,7 @@ import { ZodValidationPipe } from 'nestjs-zod';
 import helmet from 'helmet';
 import * as fs from 'fs';
 import cookieParser from 'cookie-parser';
+import { doubleCsrfProtection } from './csrf/csrf.config';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -23,6 +24,9 @@ async function bootstrap() {
     }),
   );
   app.use(cookieParser());
+  
+  // CSRF Protection
+  app.use(doubleCsrfProtection);
 
   // Enterprise-level strict CORS policy
   const isProduction = process.env.NODE_ENV === 'production';

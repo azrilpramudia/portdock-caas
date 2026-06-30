@@ -8,6 +8,7 @@ import {
   UseGuards,
   Request,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { ApiTags, ApiOperation, ApiCookieAuth } from '@nestjs/swagger';
 import { DatabasesService } from './databases.service';
 import { CreateDatabaseDto } from './dto/create-database.dto';
@@ -21,6 +22,7 @@ export class DatabasesController {
   constructor(private readonly databasesService: DatabasesService) {}
 
   @Post()
+  @Throttle({ default: { limit: 5, ttl: 3600000 } }) // 5 requests per 1 hour
   @ApiOperation({ summary: 'Create a new managed database' })
   create(@Request() req: any, @Body() dto: CreateDatabaseDto) {
     return this.databasesService.create(req.user.id, dto);

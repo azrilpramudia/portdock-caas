@@ -13,6 +13,7 @@ import {
   DefaultValuePipe,
   Ip,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import {
   ApiTags,
   ApiCookieAuth,
@@ -32,6 +33,7 @@ export class ProjectsController {
   constructor(private projectsService: ProjectsService) {}
 
   @Post()
+  @Throttle({ default: { limit: 5, ttl: 3600000 } }) // 5 requests per 1 hour
   @ApiOperation({ summary: 'Create a new project' })
   create(@Request() req: any, @Body() dto: CreateProjectDto, @Ip() ip: string) {
     return this.projectsService.create(req.user.id, dto, ip);

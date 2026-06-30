@@ -9,8 +9,10 @@ import {
   Delete,
   Res,
   Param,
+  Req,
 } from '@nestjs/common';
-import type { Response } from 'express';
+import { Throttle } from '@nestjs/throttler';
+import type { Response, Request as ExpressRequest } from 'express';
 import {
   ApiTags,
   ApiOperation,
@@ -28,13 +30,22 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RolesGuard } from './guards/roles.guard';
 import { Roles } from './decorators/roles.decorator';
 import { Role } from '@generated/prisma';
+import { generateCsrfToken } from '../csrf/csrf.config';
 
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
+  @Get('csrf-token')
+  @ApiOperation({ summary: 'Get CSRF token' })
+  getCsrfToken(@Req() req: ExpressRequest, @Res({ passthrough: true }) res: Response) {
+    const csrfToken = generateCsrfToken(req, res);
+    return { csrfToken };
+  }
+
   @Post('register')
+  @Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 requests per 1 minute
   @ApiOperation({ summary: 'Register a new user' })
   async register(
     @Body() dto: RegisterDto,
@@ -52,6 +63,7 @@ export class AuthController {
   }
 
   @Post('login')
+  @Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 requests per 1 minute
   @ApiOperation({ summary: 'Login and get JWT token' })
   async login(
     @Body() dto: LoginDto,

@@ -9,7 +9,17 @@ const api = axios.create({
   },
 });
 
-// Removed manual request interceptor for JWT since we use HttpOnly cookies
+export const fetchAndSetCsrfToken = async () => {
+  try {
+    const response = await axios.get(`${api.defaults.baseURL}/auth/csrf-token`, {
+      withCredentials: true,
+    });
+    const token = response.data.csrfToken;
+    api.defaults.headers.common["x-csrf-token"] = token;
+  } catch (error) {
+    console.error("Failed to fetch CSRF token", error);
+  }
+};
 
 // Response interceptor - handle 401
 api.interceptors.response.use(
