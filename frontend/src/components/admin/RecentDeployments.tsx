@@ -2,15 +2,14 @@
 
 import Link from "next/link";
 import { ArrowRight, CheckCircle2, XCircle, Clock } from "lucide-react";
+import { RecentDeploymentDto } from "@/hooks/useAdmin";
 
-export function RecentDeployments() {
-  const deployments = [
-    { id: "#DEP-1245", project: "E-Commerce API", user: "azril@example.com", status: "Success", time: "2 menit lalu", duration: "01:24" },
-    { id: "#DEP-1244", project: "Portfolio Web", user: "budi@example.com", status: "Success", time: "15 menit lalu", duration: "02:31" },
-    { id: "#DEP-1243", project: "Blog System", user: "andi@example.com", status: "Failed", time: "1 jam lalu", duration: "00:45" },
-    { id: "#DEP-1242", project: "Company Profile", user: "siti@example.com", status: "Success", time: "2 jam lalu", duration: "01:12" },
-    { id: "#DEP-1241", project: "Landing Page", user: "dimas@example.com", status: "Building", time: "2 jam lalu", duration: "-" },
-  ];
+interface RecentDeploymentsProps {
+  data?: RecentDeploymentDto[];
+}
+
+export function RecentDeployments({ data }: RecentDeploymentsProps) {
+  const deployments = data || [];
 
   return (
     <div className="bg-card rounded-xl border border-border shadow-sm flex flex-col h-full transition-colors">

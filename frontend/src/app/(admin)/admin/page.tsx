@@ -15,12 +15,32 @@ import { ContainerStatus } from "@/components/admin/ContainerStatus";
 import { RecentDeployments } from "@/components/admin/RecentDeployments";
 import { RecentActivity } from "@/components/admin/RecentActivity";
 import { ServiceStatus } from "@/components/admin/ServiceStatus";
+import { useAdminDashboard } from "@/hooks/useAdmin";
+import { Loader2 } from "lucide-react";
 
 export default function AdminRootPage() {
+  const { data: dashboardData, isLoading, error } = useAdminDashboard();
+
   const [date, setDate] = React.useState<DateRange | undefined>({
     from: new Date(2026, 4, 26),
     to: new Date(2026, 5, 2), // 2 Jun 2026
   });
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full min-h-[400px]">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (error || !dashboardData) {
+    return (
+      <div className="flex items-center justify-center h-full min-h-[400px] text-destructive">
+        Failed to load dashboard data.
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 max-w-[1600px] mx-auto pb-12">
@@ -69,30 +89,30 @@ export default function AdminRootPage() {
       </div>
 
       {/* Top Stats Row */}
-      <StatCards />
+      <StatCards data={dashboardData.stats} />
 
       {/* Middle Row (Resource & Container Status) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-          <ResourceUsage />
+          <ResourceUsage data={dashboardData.resources} />
         </div>
         <div className="lg:col-span-1">
-          <ContainerStatus />
+          <ContainerStatus data={dashboardData.containerStatus} />
         </div>
       </div>
 
       {/* Bottom Row (Deployments & Activity) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-          <RecentDeployments />
+          <RecentDeployments data={dashboardData.recentDeployments} />
         </div>
         <div className="lg:col-span-1">
-          <RecentActivity />
+          <RecentActivity data={dashboardData.recentActivity} />
         </div>
       </div>
 
-      {/* Footer Row (Service Status) */}
-      <ServiceStatus />
+      {/* Service Status */}
+      <ServiceStatus data={dashboardData.serviceStatus} />
     </div>
   );
 }

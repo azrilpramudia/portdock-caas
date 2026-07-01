@@ -1,12 +1,17 @@
 "use client";
 
 import { Users, Folder, Box, Rocket, ArrowUp, ArrowDown } from "lucide-react";
+import { AdminDashboardStatsDto } from "@/hooks/useAdmin";
 
-export function StatCards() {
+interface StatCardsProps {
+  data?: AdminDashboardStatsDto;
+}
+
+export function StatCards({ data }: StatCardsProps) {
   const stats = [
     {
       title: "Total Users",
-      value: "54",
+      value: data?.totalUsers.toString() || "0",
       trend: "+8%",
       isPositive: true,
       timeframe: "dari minggu lalu",
@@ -16,8 +21,8 @@ export function StatCards() {
     },
     {
       title: "Total Projects",
-      value: "132",
-      trend: "+12%",
+      value: data?.totalProjects.toString() || "0",
+      trend: "+12.5%",
       isPositive: true,
       timeframe: "dari minggu lalu",
       icon: Folder,
@@ -26,7 +31,7 @@ export function StatCards() {
     },
     {
       title: "Running Containers",
-      value: "76",
+      value: data?.runningContainers.toString() || "0",
       trend: "+5%",
       isPositive: true,
       timeframe: "dari minggu lalu",
@@ -36,8 +41,8 @@ export function StatCards() {
     },
     {
       title: "Total Containers",
-      value: "98",
-      trend: "+7%",
+      value: data?.totalContainers.toString() || "0",
+      trend: "+8.2%",
       isPositive: true,
       timeframe: "dari minggu lalu",
       icon: Box,
@@ -45,9 +50,9 @@ export function StatCards() {
       iconBg: "bg-purple-50 dark:bg-purple-500/10",
     },
     {
-      title: "Deployments Today",
-      value: "24",
-      trend: "+14%",
+      title: "Success Rate",
+      value: `${data?.successRate || 100}%`,
+      trend: "Optimal",
       isPositive: true,
       timeframe: "dari kemarin",
       icon: Rocket,

@@ -3,15 +3,27 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
+import { ContainerStatusSummaryDto } from "@/hooks/useAdmin";
 
-export function ContainerStatus() {
+interface ContainerStatusProps {
+  data?: ContainerStatusSummaryDto;
+}
+
+export function ContainerStatus({ data }: ContainerStatusProps) {
+  const active = data?.active || 0;
+  const stopped = data?.stopped || 0;
+  const failed = data?.failed || 0;
+  const total = active + stopped + failed;
+
+  const getPercentage = (val: number) => total > 0 ? ((val / total) * 100).toFixed(1) : "0.0";
+
   const statusData = [
-    { name: "Running", value: 76, color: "#10B981", bgClass: "bg-[#10B981]", percentage: "77.6" },
-    { name: "Stopped", value: 18, color: "#F59E0B", bgClass: "bg-[#F59E0B]", percentage: "18.4" },
-    { name: "Exited", value: 4, color: "#EF4444", bgClass: "bg-[#EF4444]", percentage: "4.1" },
+    { name: "Running", value: active, color: "#10B981", bgClass: "bg-[#10B981]", percentage: getPercentage(active) },
+    { name: "Stopped", value: stopped, color: "#F59E0B", bgClass: "bg-[#F59E0B]", percentage: getPercentage(stopped) },
+    { name: "Failed/Error", value: failed, color: "#EF4444", bgClass: "bg-[#EF4444]", percentage: getPercentage(failed) },
   ];
 
-  const total = statusData.reduce((sum, item) => sum + item.value, 0);
+  const totalContainers = total;
 
   return (
     <div className="bg-card rounded-xl border border-border p-6 shadow-sm flex flex-col h-full transition-colors">

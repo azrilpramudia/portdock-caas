@@ -1,13 +1,18 @@
 "use client";
 
 import { Cpu, HardDrive, Network, MemoryStick } from "lucide-react";
+import { ResourceUsageDto } from "@/hooks/useAdmin";
 
-export function ResourceUsage() {
+interface ResourceUsageProps {
+  data?: ResourceUsageDto;
+}
+
+export function ResourceUsage({ data }: ResourceUsageProps) {
   const resources = [
     {
       name: "CPU Usage",
-      percentage: 23,
-      label: "4 Core / 16 Core",
+      percentage: data?.cpu || 0,
+      label: `${data?.cpu || 0}%`,
       color: "bg-blue-500",
       icon: Cpu,
       iconColor: "text-blue-500",
@@ -15,8 +20,8 @@ export function ResourceUsage() {
     },
     {
       name: "RAM Usage",
-      percentage: 45,
-      label: "7.2 GB / 16 GB",
+      percentage: data?.ram || 0,
+      label: `${data?.ram || 0}%`,
       color: "bg-emerald-500",
       icon: MemoryStick,
       iconColor: "text-emerald-500",
@@ -24,17 +29,17 @@ export function ResourceUsage() {
     },
     {
       name: "Disk Usage",
-      percentage: 62,
-      label: "248 GB / 400 GB",
+      percentage: data?.disk || 0,
+      label: `${data?.disk || 0}%`,
       color: "bg-purple-500",
       icon: HardDrive,
       iconColor: "text-purple-500",
       iconBg: "bg-purple-50 dark:bg-purple-500/10",
     },
     {
-      name: "Network (Outbound)",
-      percentage: 18,
-      label: "1.2 TB / 10 TB",
+      name: "Network Traffic",
+      percentage: 100,
+      label: data?.network || "0 B/s",
       color: "bg-cyan-500",
       icon: Network,
       iconColor: "text-cyan-500",
