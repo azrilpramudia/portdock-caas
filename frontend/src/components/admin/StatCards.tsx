@@ -12,7 +12,7 @@ export function StatCards() {
       timeframe: "dari minggu lalu",
       icon: Users,
       iconColor: "text-blue-500",
-      iconBg: "bg-blue-50",
+      iconBg: "bg-blue-50 dark:bg-blue-500/10",
     },
     {
       title: "Total Projects",
@@ -22,7 +22,7 @@ export function StatCards() {
       timeframe: "dari minggu lalu",
       icon: Folder,
       iconColor: "text-blue-500",
-      iconBg: "bg-blue-50",
+      iconBg: "bg-blue-50 dark:bg-blue-500/10",
     },
     {
       title: "Running Containers",
@@ -32,7 +32,7 @@ export function StatCards() {
       timeframe: "dari minggu lalu",
       icon: Box,
       iconColor: "text-emerald-500",
-      iconBg: "bg-emerald-50",
+      iconBg: "bg-emerald-50 dark:bg-emerald-500/10",
     },
     {
       title: "Total Containers",
@@ -42,7 +42,7 @@ export function StatCards() {
       timeframe: "dari minggu lalu",
       icon: Box,
       iconColor: "text-purple-500",
-      iconBg: "bg-purple-50",
+      iconBg: "bg-purple-50 dark:bg-purple-500/10",
     },
     {
       title: "Deployments Today",
@@ -52,7 +52,7 @@ export function StatCards() {
       timeframe: "dari kemarin",
       icon: Rocket,
       iconColor: "text-orange-500",
-      iconBg: "bg-orange-50",
+      iconBg: "bg-orange-50 dark:bg-orange-500/10",
     },
   ];
 
@@ -61,23 +61,20 @@ export function StatCards() {
       {stats.map((stat, i) => {
         const Icon = stat.icon;
         return (
-          <div key={i} className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm flex flex-col justify-between">
-            <div className="flex items-start justify-between mb-4">
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                <p className="text-3xl font-bold text-gray-900">{stat.value}</p>
-              </div>
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${stat.iconBg}`}>
-                <Icon className={`w-5 h-5 ${stat.iconColor}`} />
-              </div>
+          <div key={i} className="bg-card rounded-xl border border-border p-4 xl:p-5 shadow-sm flex items-start gap-3 xl:gap-4 h-full transition-colors">
+            <div className={`w-12 h-12 xl:w-14 xl:h-14 rounded-2xl flex items-center justify-center shrink-0 ${stat.iconBg}`}>
+              <Icon className={`w-6 h-6 xl:w-7 xl:h-7 ${stat.iconColor}`} />
             </div>
-            
-            <div className="flex items-center text-xs">
-              <span className={`font-semibold flex items-center ${stat.isPositive ? 'text-emerald-500' : 'text-red-500'}`}>
-                {stat.isPositive ? <ArrowUp className="w-3 h-3 mr-0.5" /> : <ArrowDown className="w-3 h-3 mr-0.5" />}
-                {stat.trend}
-              </span>
-              <span className="text-gray-500 ml-1.5">{stat.timeframe}</span>
+            <div className="flex flex-col min-w-0 flex-1">
+              <p className="text-[13px] xl:text-sm font-bold text-foreground mb-1 leading-tight">{stat.title}</p>
+              <p className="text-2xl xl:text-3xl font-black text-foreground mb-1.5 leading-none">{stat.value}</p>
+              <div className="flex items-start text-[10px] xl:text-[11px] mt-0.5">
+                <span className={`font-bold flex items-center shrink-0 ${stat.isPositive ? 'text-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 px-1.5 py-0.5 rounded' : 'text-red-500 bg-red-50 dark:bg-red-500/10 px-1.5 py-0.5 rounded'}`}>
+                  {stat.isPositive ? <ArrowUp className="w-2.5 h-2.5 mr-0.5" /> : <ArrowDown className="w-2.5 h-2.5 mr-0.5" />}
+                  {stat.trend}
+                </span>
+                <span className="text-muted-foreground ml-1.5 font-medium leading-tight pt-[1px]">{stat.timeframe}</span>
+              </div>
             </div>
           </div>
         );

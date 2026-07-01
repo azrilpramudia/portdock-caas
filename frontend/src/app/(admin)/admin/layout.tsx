@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/auth";
 import { AdminSidebar } from "@/components/layout/AdminSidebar";
 import { AdminHeader } from "@/components/layout/AdminHeader";
+import { CommandPalette } from "@/components/shared/CommandPalette";
 
 export default function AdminLayout({
   children,
@@ -53,9 +54,9 @@ export default function AdminLayout({
       {/* Main Content Area */}
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
         {/* Mobile Header */}
-        <header className="lg:hidden flex items-center justify-between px-4 py-3 bg-[#0f1115] border-b border-border border-t-2 border-t-red-600">
+        <header className="lg:hidden flex items-center justify-between px-4 py-3 bg-sidebar border-b border-border border-t-2 border-t-primary">
           <div className="flex items-center">
-            <span className="text-white font-bold tracking-tight">Portdock <span className="text-red-500">ADMIN</span></span>
+            <span className="text-sidebar-foreground font-bold tracking-tight">Portdock <span className="text-primary">ADMIN</span></span>
           </div>
           <button
             onClick={() => setSidebarOpen(true)}
@@ -69,12 +70,14 @@ export default function AdminLayout({
 
         <AdminHeader />
 
-        <main className="flex-1 overflow-y-auto bg-gray-50/50">
+        <main className="flex-1 overflow-y-auto">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 h-full">
             {children}
           </div>
         </main>
       </div>
+
+      <CommandPalette />
     </div>
   );
 }

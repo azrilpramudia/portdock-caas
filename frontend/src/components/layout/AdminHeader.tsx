@@ -1,21 +1,38 @@
 "use client";
 
-import { Search, Bell, Sun, ChevronDown, Menu } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Search, ChevronDown, Menu, User, LogOut, Settings } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
+import Link from "next/link";
+import { NotificationBell } from "./NotificationBell";
+import { ThemeToggle } from "@/components/shared/ThemeToggle";
 
 interface AdminHeaderProps {
   onMenuClick?: () => void;
 }
 
 export function AdminHeader({ onMenuClick }: AdminHeaderProps) {
-  const { user } = useAuthStore();
+  const { user, logout } = useAuthStore();
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsProfileOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
-    <header className="hidden lg:flex items-center justify-between px-8 py-3 bg-white border-b border-gray-100 shadow-sm z-10 shrink-0 h-[64px]">
+    <header className="hidden lg:flex items-center justify-between px-8 py-3 bg-card border-b border-border shadow-sm z-10 shrink-0 h-[64px]">
       <div className="flex items-center gap-4 flex-1">
         <button 
           onClick={onMenuClick}
-          className="text-gray-400 hover:text-gray-600 transition-colors hidden" // hidden on desktop for now
+          className="text-foreground/80 hover:text-foreground transition-colors"
         >
           <Menu className="w-5 h-5" />
         </button>
@@ -24,50 +41,75 @@ export function AdminHeader({ onMenuClick }: AdminHeaderProps) {
       <div className="flex items-center gap-6 justify-end flex-1">
         {/* Search */}
         <div className="relative group flex items-center">
-          <Search className="w-4 h-4 text-gray-400 absolute left-3" />
-          <input 
-            type="text" 
-            placeholder="Search anything..." 
-            className="pl-9 pr-12 py-1.5 text-sm bg-gray-50 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-[#0066FF]/20 focus:border-[#0066FF] transition-all w-[300px]"
-          />
-          <div className="absolute right-2 flex items-center gap-0.5 text-[10px] text-gray-400 font-medium">
-            <span className="px-1.5 py-0.5 bg-gray-100 rounded border border-gray-200">⌘</span>
-            <span className="px-1.5 py-0.5 bg-gray-100 rounded border border-gray-200">K</span>
+          <Search className="w-4 h-4 text-muted-foreground absolute left-3 pointer-events-none" />
+          <button 
+            onClick={() => {
+              const event = new KeyboardEvent('keydown', {
+                key: 'k',
+                metaKey: true,
+                ctrlKey: true
+              });
+              document.dispatchEvent(event);
+            }}
+            className="flex items-center text-left pl-9 pr-12 py-1.5 text-sm bg-background border border-border rounded-lg outline-none hover:border-primary/50 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all w-[300px] text-muted-foreground"
+          >
+            Search anything...
+          </button>
+          <div className="absolute right-2 flex items-center text-[10px] text-muted-foreground font-medium pointer-events-none">
+            <span className="px-1.5 py-0.5 bg-muted rounded text-muted-foreground font-semibold tracking-widest">⌘K</span>
           </div>
         </div>
-
-        <div className="w-px h-6 bg-gray-200" />
 
         {/* Icons */}
-        <div className="flex items-center gap-4">
-          <button className="relative text-gray-500 hover:text-gray-700 transition-colors">
-            <Bell className="w-5 h-5" />
-            <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-white">
-              5
-            </span>
-          </button>
-          
-          <button className="text-gray-500 hover:text-gray-700 transition-colors">
-            <Sun className="w-5 h-5" />
-          </button>
+        <div className="flex items-center gap-2">
+          <NotificationBell />
+          <ThemeToggle />
         </div>
 
-        <div className="w-px h-6 bg-gray-200" />
-
         {/* Profile */}
-        <div className="flex items-center gap-3 cursor-pointer group">
-          <div className="w-9 h-9 rounded-full bg-[#0066FF] text-white flex items-center justify-center font-bold text-sm">
-            {user?.name ? user.name[0].toUpperCase() : 'A'}
+        <div className="relative" ref={dropdownRef}>
+          <div 
+            className="flex items-center gap-3 cursor-pointer group ml-2"
+            onClick={() => setIsProfileOpen(!isProfileOpen)}
+          >
+            <div className="w-9 h-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center shrink-0">
+              <User className="w-5 h-5" />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-sm font-bold text-foreground group-hover:text-primary transition-colors leading-tight">
+                {user?.name || "Admin Portdock"}
+              </span>
+              <span className="text-[11px] text-muted-foreground font-medium mt-0.5">
+                Administrator
+              </span>
+            </div>
+            <ChevronDown className={`w-4 h-4 text-muted-foreground ml-1 transition-transform ${isProfileOpen ? 'rotate-180' : ''}`} />
           </div>
-          <div className="flex flex-col">
-            <span className="text-sm font-semibold text-gray-700 group-hover:text-[#0066FF] transition-colors">
-              Admin Portdock
-            </span>
-            <span className="text-xs text-gray-500">
-              Administrator
-            </span>
-          </div>
-          <ChevronDown className="w-4 h-4 text-gray-400" />
+
+          {/* Dropdown Menu */}
+          {isProfileOpen && (
+            <div className="absolute right-0 mt-3 w-48 bg-card rounded-xl shadow-lg border border-border py-1 z-50">
+              <div className="px-4 py-2 border-b border-border mb-1">
+                <p className="text-sm font-medium text-foreground truncate">{user?.name || "Admin"}</p>
+                <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+              </div>
+              <Link 
+                href="/admin/settings"
+                onClick={() => setIsProfileOpen(false)}
+                className="flex items-center px-4 py-2 text-sm text-foreground/80 hover:bg-muted hover:text-primary transition-colors"
+              >
+                <Settings className="w-4 h-4 mr-2" />
+                Settings
+              </Link>
+              <button 
+                onClick={() => { setIsProfileOpen(false); logout(); }}
+                className="w-full flex items-center px-4 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Log out
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </header>

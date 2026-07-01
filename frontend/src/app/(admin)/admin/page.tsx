@@ -1,6 +1,14 @@
 "use client";
 
-import { Calendar } from "lucide-react";
+import * as React from "react";
+import { addDays, format } from "date-fns";
+import { id } from "date-fns/locale";
+import { Calendar as CalendarIcon, ChevronDown } from "lucide-react";
+import { DateRange } from "react-day-picker";
+
+import { cn } from "@/lib/utils";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { StatCards } from "@/components/admin/StatCards";
 import { ResourceUsage } from "@/components/admin/ResourceUsage";
 import { ContainerStatus } from "@/components/admin/ContainerStatus";
@@ -9,20 +17,55 @@ import { RecentActivity } from "@/components/admin/RecentActivity";
 import { ServiceStatus } from "@/components/admin/ServiceStatus";
 
 export default function AdminRootPage() {
+  const [date, setDate] = React.useState<DateRange | undefined>({
+    from: new Date(2026, 4, 26),
+    to: new Date(2026, 5, 2), // 2 Jun 2026
+  });
+
   return (
     <div className="space-y-6 max-w-[1600px] mx-auto pb-12">
       {/* Header section with Title and Date Picker */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Dashboard Overview</h1>
-          <p className="text-sm text-gray-500 mt-1">Ringkasan keseluruhan sistem Portdock</p>
+          <h1 className="text-2xl font-bold text-foreground tracking-tight">Dashboard Overview</h1>
+          <p className="text-sm text-muted-foreground mt-1">Ringkasan keseluruhan sistem Portdock</p>
         </div>
         
-        <div className="flex items-center gap-2 bg-white border border-gray-200 px-4 py-2 rounded-lg shadow-sm cursor-pointer hover:bg-gray-50 transition-colors">
-          <Calendar className="w-4 h-4 text-gray-500" />
-          <span className="text-sm font-medium text-gray-700">26 Mei – 2 Jun 2026</span>
-          <svg className="w-4 h-4 text-gray-400 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-        </div>
+        <Popover>
+          <PopoverTrigger
+            className={cn(
+              "flex items-center gap-2 bg-card border border-border px-4 py-2 rounded-lg shadow-sm cursor-pointer hover:bg-muted transition-colors outline-none",
+              !date && "text-muted-foreground"
+            )}
+          >
+            <CalendarIcon className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm font-medium text-foreground/80">
+                {date?.from ? (
+                  date.to ? (
+                    <>
+                      {format(date.from, "d LLL yyyy", { locale: id })} –{" "}
+                      {format(date.to, "d LLL yyyy", { locale: id })}
+                    </>
+                  ) : (
+                    format(date.from, "d LLL yyyy", { locale: id })
+                  )
+                ) : (
+                  <span>Pilih tanggal</span>
+                )}
+              </span>
+              <ChevronDown className="w-4 h-4 text-muted-foreground/70 ml-2" />
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="end">
+            <Calendar
+              mode="range"
+              defaultMonth={date?.from}
+              selected={date}
+              onSelect={setDate}
+              numberOfMonths={1}
+              locale={id}
+            />
+          </PopoverContent>
+        </Popover>
       </div>
 
       {/* Top Stats Row */}

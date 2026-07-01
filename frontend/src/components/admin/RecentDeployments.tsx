@@ -13,57 +13,61 @@ export function RecentDeployments() {
   ];
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm flex flex-col h-full">
-      <h3 className="text-base font-bold text-gray-900 mb-4">Deployment Terbaru</h3>
+    <div className="bg-card rounded-xl border border-border shadow-sm flex flex-col h-full transition-colors">
+      <div className="pt-6 px-6 pb-4 flex items-center justify-between">
+        <h3 className="text-base font-bold text-foreground">Deployment Terbaru</h3>
+      </div>
       
-      <div className="flex-1 overflow-x-auto">
-        <table className="w-full text-sm text-left">
-          <thead className="text-xs text-gray-500 uppercase bg-gray-50/50 border-b border-gray-100">
-            <tr>
-              <th className="px-4 py-3 font-semibold rounded-tl-lg">ID</th>
-              <th className="px-4 py-3 font-semibold">Project</th>
-              <th className="px-4 py-3 font-semibold">User</th>
-              <th className="px-4 py-3 font-semibold">Status</th>
-              <th className="px-4 py-3 font-semibold">Waktu</th>
-              <th className="px-4 py-3 font-semibold rounded-tr-lg">Durasi</th>
-            </tr>
-          </thead>
+      <div className="flex-1 overflow-x-auto px-6">
+        <div className="border border-border/50 rounded-lg overflow-hidden">
+          <table className="w-full text-sm text-left">
+            <thead className="text-xs text-muted-foreground bg-muted/30 border-b border-border/50">
+              <tr>
+                <th className="px-4 py-3 font-semibold text-left">ID</th>
+                <th className="px-4 py-3 font-semibold text-left">Project</th>
+                <th className="px-4 py-3 font-semibold text-left">User</th>
+                <th className="px-4 py-3 font-semibold text-left">Status</th>
+                <th className="px-4 py-3 font-semibold text-left">Waktu</th>
+                <th className="px-4 py-3 font-semibold text-left">Durasi</th>
+              </tr>
+            </thead>
           <tbody>
             {deployments.map((dep, i) => (
-              <tr key={i} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/30 transition-colors">
-                <td className="px-4 py-3 font-medium text-gray-500">{dep.id}</td>
-                <td className="px-4 py-3 font-semibold text-gray-900">{dep.project}</td>
-                <td className="px-4 py-3 text-gray-500">{dep.user}</td>
-                <td className="px-4 py-3">
+              <tr key={i} className="border-b border-border/50 last:border-0 hover:bg-muted/20 transition-colors">
+                <td className="px-4 py-3.5 font-medium text-muted-foreground">{dep.id}</td>
+                <td className="px-4 py-3.5 font-semibold text-foreground">{dep.project}</td>
+                <td className="px-4 py-3.5 text-muted-foreground">{dep.user}</td>
+                <td className="px-4 py-3.5">
                   {dep.status === 'Success' && (
-                    <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-semibold bg-emerald-50 text-emerald-600 border border-emerald-100">
-                      <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                      <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" />
                       Success
                     </span>
                   )}
                   {dep.status === 'Failed' && (
-                    <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-semibold bg-red-50 text-red-600 border border-red-100">
-                      <XCircle className="w-3.5 h-3.5 mr-1" />
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400">
+                      <XCircle className="w-3.5 h-3.5 mr-1.5" />
                       Failed
                     </span>
                   )}
                   {dep.status === 'Building' && (
-                    <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-semibold bg-amber-50 text-amber-600 border border-amber-100">
-                      <Clock className="w-3.5 h-3.5 mr-1" />
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                      <Clock className="w-3.5 h-3.5 mr-1.5" />
                       Building
                     </span>
                   )}
                 </td>
-                <td className="px-4 py-3 text-gray-500">{dep.time}</td>
-                <td className="px-4 py-3 text-gray-500 font-medium">{dep.duration}</td>
+                <td className="px-4 py-3.5 text-muted-foreground">{dep.time}</td>
+                <td className="px-4 py-3.5 text-muted-foreground font-medium">{dep.duration}</td>
               </tr>
             ))}
           </tbody>
         </table>
+        </div>
       </div>
 
-      <div className="mt-4 pt-4 border-t border-gray-100">
-        <Link href="/admin/deployments" className="inline-flex items-center text-sm font-semibold text-[#0066FF] hover:text-blue-700 transition-colors">
+      <div className="mt-auto px-6 pt-2 pb-6">
+        <Link href="/admin/deployments" className="inline-flex items-center text-[13px] font-bold text-primary hover:text-primary/80 transition-colors">
           Lihat semua deployment <ArrowRight className="w-4 h-4 ml-1" />
         </Link>
       </div>
