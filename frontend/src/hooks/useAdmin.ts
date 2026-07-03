@@ -128,3 +128,44 @@ export function useUpdateAdminUser() {
     },
   });
 }
+
+export interface AdminProjectListItemDto {
+  id: string;
+  name: string;
+  domain: string | null;
+  status: "ACTIVE" | "INACTIVE" | "BUILDING" | "FAILED";
+  createdAt: string;
+  updatedAt: string;
+  templateId: string;
+  user: {
+    id: string;
+    email: string;
+    name: string;
+  };
+  _count: {
+    containers: number;
+  };
+}
+
+export interface ProjectStatsDto {
+  totalProjects: number;
+  activeProjects: number;
+  pausedProjects: number;
+  failedProjects: number;
+  deploymentsToday: number;
+}
+
+export interface AdminProjectsResponseDto {
+  stats: ProjectStatsDto;
+  projects: AdminProjectListItemDto[];
+}
+
+export function useAdminProjects() {
+  return useQuery({
+    queryKey: ["adminProjects"],
+    queryFn: async () => {
+      const res = await api.get<AdminProjectsResponseDto>("/admin/projects");
+      return res.data;
+    },
+  });
+}

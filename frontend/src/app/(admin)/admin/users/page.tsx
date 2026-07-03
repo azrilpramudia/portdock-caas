@@ -287,140 +287,102 @@ export default function AdminUsersPage() {
         </Card>
       </div>
 
-      {/* Main Table Card */}
-      <Card className="border-border shadow-sm overflow-hidden bg-card">
+      {/* Toolbar Box */}
+      <div className="bg-card border border-border shadow-sm rounded-xl p-4 flex flex-col xl:flex-row flex-wrap gap-4 justify-between items-start xl:items-end">
+        {/* Left: Search */}
+        <div className="relative w-full flex-1 max-w-[400px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input 
+            placeholder="Search users by name or email..." 
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="pl-10 pr-4 bg-background border-input h-[42px] rounded-md text-sm focus-visible:ring-1 focus-visible:ring-primary/20 transition-all truncate"
+          />
+        </div>
         
-        {/* Toolbar */}
-        <div className="p-4 flex flex-col lg:flex-row lg:items-center gap-4 justify-between">
-          <div className="relative w-full lg:w-96">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <input 
-              type="text" 
-              placeholder="Search users by name or email..." 
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="w-full h-10 pl-10 pr-4 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-            />
+        {/* Right: Filters */}
+        <div className="flex flex-wrap items-end gap-3 w-full xl:w-auto">
+          {/* Role Dropdown */}
+          <div className="flex flex-col gap-1.5 w-[48%] sm:w-auto">
+            <span className="text-[12px] font-semibold text-slate-500 dark:text-slate-400 pl-1">Role</span>
+            <DropdownMenu>
+              <DropdownMenuTrigger className="inline-flex items-center justify-between whitespace-nowrap rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-border bg-card hover:bg-muted h-[42px] px-4 py-2 min-w-[140px] text-foreground">
+                {roleFilter} <ChevronDown className="w-4 h-4 text-muted-foreground ml-2 opacity-50" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-[140px] bg-card border-border shadow-xl rounded-xl">
+                <DropdownMenuItem onClick={() => { setRoleFilter("All Roles"); setCurrentPage(1); }} className="cursor-pointer hover:bg-muted font-medium text-sm py-2">
+                  All Roles
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => { setRoleFilter("USER"); setCurrentPage(1); }} className="cursor-pointer hover:bg-muted font-medium text-sm py-2">
+                  USER
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => { setRoleFilter("ADMIN"); setCurrentPage(1); }} className="cursor-pointer hover:bg-muted font-medium text-sm py-2">
+                  ADMIN
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
-          
-          <div className="flex flex-wrap items-center gap-3">
-            {showFilters && (
-              <>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground hidden sm:inline-block">Role</span>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger className="h-10 px-3 py-2 rounded-md border border-input bg-background text-sm flex items-center text-foreground hover:bg-accent transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20">
-                      {roleFilter}
-                      <ChevronDown className="w-4 h-4 ml-2 opacity-50" />
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-40 bg-card border-border shadow-xl rounded-xl">
-                      <DropdownMenuItem 
-                        onClick={() => { setRoleFilter("All Roles"); setCurrentPage(1); }}
-                        className="cursor-pointer hover:bg-muted font-medium text-sm py-2"
-                      >
-                        All Roles
-                      </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        onClick={() => { setRoleFilter("USER"); setCurrentPage(1); }}
-                        className="cursor-pointer hover:bg-muted font-medium text-sm py-2"
-                      >
-                        USER
-                      </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        onClick={() => { setRoleFilter("ADMIN"); setCurrentPage(1); }}
-                        className="cursor-pointer hover:bg-muted font-medium text-sm py-2"
-                      >
-                        ADMIN
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground hidden sm:inline-block">Status</span>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger className="h-10 px-3 py-2 rounded-md border border-input bg-background text-sm flex items-center text-foreground hover:bg-accent transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20">
-                      {statusFilter === "All Status" ? "All Status" : statusFilter === "ACTIVE" ? "Active" : "Suspended"}
-                      <ChevronDown className="w-4 h-4 ml-2 opacity-50" />
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-40 bg-card border-border shadow-xl rounded-xl">
-                      <DropdownMenuItem 
-                        onClick={() => { setStatusFilter("All Status"); setCurrentPage(1); }}
-                        className="cursor-pointer hover:bg-muted font-medium text-sm py-2"
-                      >
-                        All Status
-                      </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        onClick={() => { setStatusFilter("ACTIVE"); setCurrentPage(1); }}
-                        className="cursor-pointer hover:bg-muted font-medium text-sm py-2"
-                      >
-                        Active
-                      </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        onClick={() => { setStatusFilter("SUSPENDED"); setCurrentPage(1); }}
-                        className="cursor-pointer hover:bg-muted font-medium text-sm py-2"
-                      >
-                        Suspended
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-                
-                <DropdownMenu>
-                  <DropdownMenuTrigger className="h-10 px-3 py-2 rounded-md border border-input bg-background text-sm flex items-center text-muted-foreground hover:bg-accent transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20">
-                    <Calendar className="w-4 h-4 mr-2" />
-                    {dateFilter === "ALL" ? "All Time" : dateFilter === "7DAYS" ? "Last 7 Days" : "Last 30 Days"}
-                    <ChevronDown className="w-4 h-4 ml-2 opacity-50" />
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-40 bg-card border-border shadow-xl rounded-xl">
-                    <DropdownMenuItem 
-                      onClick={() => { setDateFilter("ALL"); setCurrentPage(1); }}
-                      className="cursor-pointer hover:bg-muted font-medium text-sm py-2"
-                    >
-                      All Time
-                    </DropdownMenuItem>
-                    <DropdownMenuItem 
-                      onClick={() => { setDateFilter("7DAYS"); setCurrentPage(1); }}
-                      className="cursor-pointer hover:bg-muted font-medium text-sm py-2"
-                    >
-                      Last 7 Days
-                    </DropdownMenuItem>
-                    <DropdownMenuItem 
-                      onClick={() => { setDateFilter("30DAYS"); setCurrentPage(1); }}
-                      className="cursor-pointer hover:bg-muted font-medium text-sm py-2"
-                    >
-                      Last 30 Days
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                
-                {activeFilterCount > 0 && (
-                  <button 
-                    onClick={resetFilters}
-                    className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 h-10 px-3"
-                    title="Clear Filters"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                )}
-              </>
-            )}
 
-            <button 
-              onClick={() => setShowFilters(!showFilters)}
-              className={`inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors border h-10 px-4 ${
-                showFilters 
-                  ? 'border-primary/50 bg-primary/10 text-primary hover:bg-primary/20' 
-                  : 'border-input bg-background hover:bg-accent hover:text-accent-foreground'
-              }`}
-            >
-              <Filter className="w-4 h-4 mr-2" />
-              Filter {activeFilterCount > 0 && !showFilters && `(${activeFilterCount})`}
+          {/* Status Dropdown */}
+          <div className="flex flex-col gap-1.5 w-[48%] sm:w-auto">
+            <span className="text-[12px] font-semibold text-slate-500 dark:text-slate-400 pl-1">Status</span>
+            <DropdownMenu>
+              <DropdownMenuTrigger className="inline-flex items-center justify-between whitespace-nowrap rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-border bg-card hover:bg-muted h-[42px] px-4 py-2 min-w-[140px] text-foreground">
+                {statusFilter === "All Status" ? "All Status" : statusFilter === "ACTIVE" ? "Active" : "Suspended"} <ChevronDown className="w-4 h-4 text-muted-foreground ml-2 opacity-50" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-[140px] bg-card border-border shadow-xl rounded-xl">
+                <DropdownMenuItem onClick={() => { setStatusFilter("All Status"); setCurrentPage(1); }} className="cursor-pointer hover:bg-muted font-medium text-sm py-2">
+                  All Status
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => { setStatusFilter("ACTIVE"); setCurrentPage(1); }} className="cursor-pointer hover:bg-muted font-medium text-sm py-2">
+                  Active
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => { setStatusFilter("SUSPENDED"); setCurrentPage(1); }} className="cursor-pointer hover:bg-muted font-medium text-sm py-2">
+                  Suspended
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          {/* Date Range Dropdown */}
+          <div className="flex flex-col w-[48%] sm:w-auto">
+            <DropdownMenu>
+              <DropdownMenuTrigger className="inline-flex items-center justify-between whitespace-nowrap rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-border bg-card hover:bg-muted h-[42px] px-4 py-2 min-w-[140px] text-foreground">
+                <div className="flex items-center">
+                  <Calendar className="w-4 h-4 mr-2 text-muted-foreground" />
+                  {dateFilter === "ALL" ? "All Time" : dateFilter === "7DAYS" ? "Last 7 Days" : "Last 30 Days"}
+                </div>
+                <ChevronDown className="w-4 h-4 text-muted-foreground ml-2 opacity-50" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-[140px] bg-card border-border shadow-xl rounded-xl">
+                <DropdownMenuItem onClick={() => { setDateFilter("ALL"); setCurrentPage(1); }} className="cursor-pointer hover:bg-muted font-medium text-sm py-2">
+                  All Time
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => { setDateFilter("7DAYS"); setCurrentPage(1); }} className="cursor-pointer hover:bg-muted font-medium text-sm py-2">
+                  Last 7 Days
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => { setDateFilter("30DAYS"); setCurrentPage(1); }} className="cursor-pointer hover:bg-muted font-medium text-sm py-2">
+                  Last 30 Days
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          {/* Filter Button */}
+          <div className="flex flex-col w-full sm:w-auto">
+            <button className="inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors border border-border bg-card hover:bg-muted h-[42px] px-4 text-foreground shadow-none">
+              <Filter className="w-4 h-4 mr-2 text-muted-foreground" />
+              Filter
             </button>
           </div>
         </div>
+      </div>
+
+      {/* Main Table Card */}
+      <Card className="border-border shadow-sm overflow-hidden bg-card">
 
         {/* Table */}
         <div className="overflow-x-auto">

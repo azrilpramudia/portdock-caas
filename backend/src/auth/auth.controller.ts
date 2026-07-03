@@ -202,17 +202,4 @@ export class AuthController {
   deleteUserById(@Param('id') id: string) {
     return this.authService.deleteAccount(id);
   }
-
-  @Delete('users')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
-  @ApiOperation({ summary: 'Admin: Delete all users and all resources (Nuke)' })
-  @ApiResponse({
-    status: 200,
-    description:
-      'All users and their containers successfully wiped from the server.',
-  })
-  deleteAllUsers() {
-    return this.authService.deleteAllUsers();
-  }
 }

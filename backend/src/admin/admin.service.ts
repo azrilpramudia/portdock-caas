@@ -147,7 +147,7 @@ export class AdminService {
   }
 
   async getAllProjects() {
-    return this.prisma.project.findMany({
+    const projects = await this.prisma.project.findMany({
       include: {
         user: {
           select: {
@@ -162,6 +162,26 @@ export class AdminService {
       },
       orderBy: { createdAt: 'desc' },
     });
+
+    const totalProjects = projects.length;
+    const activeProjects = projects.filter(p => p.status === 'ACTIVE').length;
+    const pausedProjects = projects.filter(p => p.status === 'INACTIVE').length;
+    const failedProjects = projects.filter(p => p.status === 'FAILED').length;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const deploymentsToday = projects.filter(p => p.updatedAt >= today).length;
+
+    return {
+      stats: {
+        totalProjects,
+        activeProjects,
+        pausedProjects,
+        failedProjects,
+        deploymentsToday,
+      },
+      projects,
+    };
   }
 
   async createUser(data: any) {

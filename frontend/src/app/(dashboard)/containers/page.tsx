@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, Play, Pause, AlertCircle, ArrowUp, ArrowDown } from "lucide-react";
+import { Box, Play, Pause, ArrowUp, ArrowDown } from "lucide-react";
 import { SiNginx, SiNodedotjs, SiMysql, SiRedis, SiPhp } from "react-icons/si";
 import { useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -16,6 +16,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+
+const FailedIcon = ({ className }: any) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" className={className}>
+    <circle cx="12" cy="12" r="10" fill="currentColor" />
+    <path d="M9 9l6 6M15 9l-6 6" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+  </svg>
+);
 
 export default function ContainersPage() {
   const {
@@ -79,7 +86,7 @@ export default function ContainersPage() {
       value: failedCount.toString(),
       trend: "",
       trendUp: false,
-      icon: AlertCircle,
+      icon: FailedIcon,
       color: "text-red-500 dark:text-red-400",
       bg: "bg-red-500/10",
     },

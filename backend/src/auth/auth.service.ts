@@ -381,24 +381,4 @@ export class AuthService {
       message: 'User account and all associated resources deleted successfully',
     };
   }
-
-  async deleteAllUsers() {
-    const users = await this.prisma.user.findMany({
-      where: { role: 'USER' },
-    });
-    let deletedCount = 0;
-
-    for (const user of users) {
-      try {
-        await this.deleteAccount(user.id);
-        deletedCount++;
-      } catch (error) {
-        console.error(`Failed to delete user ${user.id}:`, error);
-      }
-    }
-
-    return {
-      message: `Successfully deleted ${deletedCount} users and their resources`,
-    };
-  }
 }
