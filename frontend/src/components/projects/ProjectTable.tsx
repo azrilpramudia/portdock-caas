@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { id } from "date-fns/locale";
@@ -31,42 +31,51 @@ function getStatusBadge(project: any) {
   }
 
   let label = status;
-  let colorClass = "bg-muted-foreground/50";
+  let dotColor = "bg-slate-500";
+  let badgeColor = "bg-slate-50 text-slate-600 dark:bg-slate-500/10 dark:text-slate-400";
   
   switch(status) {
     case "ACTIVE":
     case "DEPLOYED":
       label = "Running";
-      colorClass = "bg-emerald-500";
+      dotColor = "bg-emerald-500";
+      badgeColor = "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400";
       break;
     case "INACTIVE":
     case "STOPPED":
       label = "Stopped";
-      colorClass = "bg-muted-foreground/50";
+      dotColor = "bg-slate-500";
+      badgeColor = "bg-slate-50 text-slate-600 dark:bg-slate-500/10 dark:text-slate-400";
       break;
     case "BUILDING":
       label = "Building";
-      colorClass = "bg-yellow-500";
+      dotColor = "bg-amber-500";
+      badgeColor = "bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400";
       break;
     case "FAILED":
     case "ERROR":
       label = "Failed";
-      colorClass = "bg-red-500";
+      dotColor = "bg-red-500";
+      badgeColor = "bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400";
       break;
     default:
       label = status ? status.charAt(0).toUpperCase() + status.slice(1).toLowerCase() : "Unknown";
-      colorClass = "bg-muted-foreground/50";
+      dotColor = "bg-slate-500";
+      badgeColor = "bg-slate-50 text-slate-600 dark:bg-slate-500/10 dark:text-slate-400";
   }
   
   return (
-    <div className="flex items-center gap-2">
-      <div className={`w-2 h-2 rounded-full ${colorClass}`}></div>
-      <span className="text-[13px] font-medium text-muted-foreground">{label}</span>
+    <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold ${badgeColor}`}>
+      <span className={`w-1.5 h-1.5 rounded-full ${dotColor}`}></span>
+      {label}
     </div>
   );
 }
 
 export function ProjectTable({ isLoading, projects, setDeleteId }: ProjectTableProps) {
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-24">
@@ -99,16 +108,16 @@ export function ProjectTable({ isLoading, projects, setDeleteId }: ProjectTableP
       <table className="w-full text-left border-collapse min-w-[800px]">
         <thead>
           <tr className="border-b border-border text-[12px] font-semibold text-muted-foreground bg-muted/50">
-            <th className="px-6 py-3 font-semibold">Project Name <span className="inline-block ml-1 opacity-50">↕</span></th>
-            <th className="px-6 py-3 font-semibold">Type <span className="inline-block ml-1 opacity-50">↕</span></th>
-            <th className="px-6 py-3 font-semibold">Domain <span className="inline-block ml-1 opacity-50">↕</span></th>
-            <th className="px-6 py-3 font-semibold">Status <span className="inline-block ml-1 opacity-50">↕</span></th>
-            <th className="px-6 py-3 font-semibold">Last Updated <span className="inline-block ml-1 opacity-50">↕</span></th>
+            <th className="px-6 py-3 font-semibold">Project Name</th>
+            <th className="px-6 py-3 font-semibold">Type</th>
+            <th className="px-6 py-3 font-semibold">Domain</th>
+            <th className="px-6 py-3 font-semibold">Status</th>
+            <th className="px-6 py-3 font-semibold">Last Updated</th>
             <th className="px-6 py-3 font-semibold">Action</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-border">
-          {projects.map((project: any) => {
+          {projects.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((project: any) => {
             const iconStyle = getProjectIcon(project.name);
             const ProjectIcon = iconStyle.icon;
             const iconColor = `${iconStyle.bg} ${iconStyle.text}`;
@@ -191,6 +200,48 @@ export function ProjectTable({ isLoading, projects, setDeleteId }: ProjectTableP
           })}
         </tbody>
       </table>
+      
+      {/* Pagination Controls */}
+      <div className="flex items-center justify-between px-6 py-4 border-t border-border">
+          <div className="text-[13px] text-muted-foreground">
+            Showing <span className="font-medium text-foreground">{(currentPage - 1) * itemsPerPage + 1}</span> to <span className="font-medium text-foreground">{Math.min(currentPage * itemsPerPage, projects.length)}</span> of <span className="font-medium text-foreground">{projects.length}</span> projects
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="h-8 text-[13px]"
+            >
+              Previous
+            </Button>
+            <div className="flex items-center gap-1">
+              {Array.from({ length: Math.ceil(projects.length / itemsPerPage) }).map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setCurrentPage(i + 1)}
+                  className={`w-8 h-8 rounded-md text-[13px] font-medium transition-colors ${
+                    currentPage === i + 1 
+                      ? 'bg-blue-600 text-white' 
+                      : 'text-muted-foreground hover:bg-muted'
+                  }`}
+                >
+                  {i + 1}
+                </button>
+              ))}
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(projects.length / itemsPerPage)))}
+              disabled={currentPage === Math.ceil(projects.length / itemsPerPage)}
+              className="h-8 text-[13px]"
+            >
+              Next
+            </Button>
+          </div>
+        </div>
     </div>
   );
 }

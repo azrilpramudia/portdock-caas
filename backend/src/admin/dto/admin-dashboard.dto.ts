@@ -39,7 +39,7 @@ export interface RecentActivityDto {
 
 export interface ServiceStatusDto {
   name: string;
-  status: 'Active' | 'Warning' | 'Error';
+  status: 'Active' | 'Warning' | 'Error' | 'Down';
 }
 
 export class AdminDashboardResponseDto {

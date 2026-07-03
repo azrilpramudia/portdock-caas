@@ -15,44 +15,51 @@ enum Role {
   ADMIN
 }
 
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+}
+
 model User {
-  id        String   @id @default(cuid())
+  id        String     @id @default(cuid())
   name      String
-  email     String   @unique
+  email     String     @unique
   password  String
-  role      Role     @default(USER)
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  role      Role       @default(USER)
+  status    UserStatus @default(ACTIVE)
+  lastLogin DateTime?  @map("last_login")
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
 
   githubToken    String?
   githubUsername String?
   sshPublicKey   String?
   sshPrivateKey  String?
 
-  projects          Project[]
-  activityLogs      ActivityLog[]
-  terminalLogs      TerminalLog[]
-  managedDatabases  ManagedDatabase[]
+  projects         Project[]
+  activityLogs     ActivityLog[]
+  terminalLogs     TerminalLog[]
+  managedDatabases ManagedDatabase[]
 
   @@map("users")
 }
 
 model Project {
-  id             String           @id @default(cuid())
-  userId         String           @map("user_id")
+  id             String         @id @default(cuid())
+  userId         String         @map("user_id")
   name           String
   description    String?
-  deploymentType DeploymentType   @map("deployment_type")
-  templateId     AppTemplate      @default(NIXPACKS) @map("template_id")
-  repositoryUrl  String?          @map("repository_url")
+  deploymentType DeploymentType @map("deployment_type")
+  templateId     AppTemplate    @default(NIXPACKS) @map("template_id")
+  repositoryUrl  String?        @map("repository_url")
   branch         String?
-  buildCommand   String?          @map("build_command")
-  startCommand   String?          @map("start_command")
+  buildCommand   String?        @map("build_command")
+  startCommand   String?        @map("start_command")
   domain         String?
-  envVars        Json?            @map("env_vars")
-  status         ProjectStatus    @default(INACTIVE)
-  createdAt      DateTime         @default(now()) @map("created_at")
-  updatedAt      DateTime         @updatedAt @map("updated_at")
+  envVars        Json?          @map("env_vars")
+  status         ProjectStatus  @default(INACTIVE)
+  createdAt      DateTime       @default(now()) @map("created_at")
+  updatedAt      DateTime       @updatedAt @map("updated_at")
 
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   containers   Container[]
@@ -102,12 +109,12 @@ model ActivityLog {
 }
 
 model TerminalLog {
-  id          String   @id @default(cuid())
-  userId      String   @map("user_id")
-  projectId   String?  @map("project_id")
-  command     String
-  output      String?
-  executedAt  DateTime @default(now()) @map("executed_at")
+  id         String   @id @default(cuid())
+  userId     String   @map("user_id")
+  projectId  String?  @map("project_id")
+  command    String
+  output     String?
+  executedAt DateTime @default(now()) @map("executed_at")
 
   user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   project Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
@@ -123,32 +130,32 @@ enum DatabaseType {
 }
 
 model ManagedDatabase {
-  id             String         @id @default(cuid())
-  userId         String         @map("user_id")
-  name           String
-  type           DatabaseType
-  version        String         @default("latest")
-  
-  // Credentials
-  dbUser         String?        @map("db_user")
-  dbPassword     String?        @map("db_password")
-  dbName         String?        @map("db_name")
-  
-  // Docker info
-  dockerContainerId String?     @unique @map("docker_container_id")
-  internalPort   Int            @map("internal_port")
-  hostPort       Int            @map("host_port")
-  status         ContainerStatus @default(STOPPED)
-  
-  // Resource allocations
-  memoryLimit    Int?           @default(512) @map("memory_limit")
-  cpuLimit       Float?         @default(0.5) @map("cpu_limit")
-  volumeName     String?        @map("volume_name")
-  
-  createdAt      DateTime       @default(now()) @map("created_at")
-  updatedAt      DateTime       @updatedAt @map("updated_at")
+  id      String       @id @default(cuid())
+  userId  String       @map("user_id")
+  name    String
+  type    DatabaseType
+  version String       @default("latest")
 
-  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Credentials
+  dbUser     String? @map("db_user")
+  dbPassword String? @map("db_password")
+  dbName     String? @map("db_name")
+
+  // Docker info
+  dockerContainerId String?         @unique @map("docker_container_id")
+  internalPort      Int             @map("internal_port")
+  hostPort          Int             @map("host_port")
+  status            ContainerStatus @default(STOPPED)
+
+  // Resource allocations
+  memoryLimit Int?    @default(512) @map("memory_limit")
+  cpuLimit    Float?  @default(0.5) @map("cpu_limit")
+  volumeName  String? @map("volume_name")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("managed_databases")
 }

@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { ArrowRight, CheckCircle2, XCircle, Clock } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+import { id } from "date-fns/locale";
 import { RecentDeploymentDto } from "@/hooks/useAdmin";
 
 interface RecentDeploymentsProps {
@@ -56,7 +58,9 @@ export function RecentDeployments({ data }: RecentDeploymentsProps) {
                     </span>
                   )}
                 </td>
-                <td className="px-4 py-3.5 text-muted-foreground">{dep.time}</td>
+                <td className="px-4 py-3.5 text-muted-foreground whitespace-nowrap">
+                  {formatDistanceToNow(new Date(dep.time), { addSuffix: true, locale: id })}
+                </td>
                 <td className="px-4 py-3.5 text-muted-foreground font-medium">{dep.duration}</td>
               </tr>
             ))}

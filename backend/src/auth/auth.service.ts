@@ -79,19 +79,29 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
+    if (user.status === 'SUSPENDED') {
+      throw new UnauthorizedException('Your account has been suspended. Please contact administrator.');
+    }
+
     const passwordMatch = await bcrypt.compare(dto.password, user.password);
     if (!passwordMatch) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    await this.prisma.activityLog.create({
-      data: {
-        userId: user.id,
-        action: 'LOGIN',
-        description: 'User logged in',
-        ipAddress: ip,
-      },
-    });
+    await this.prisma.$transaction([
+      this.prisma.activityLog.create({
+        data: {
+          userId: user.id,
+          action: 'LOGIN',
+          description: 'User logged in',
+          ipAddress: ip,
+        },
+      }),
+      this.prisma.user.update({
+        where: { id: user.id },
+        data: { lastLogin: new Date() },
+      }),
+    ]);
 
     const { password: _, ...userWithoutPassword } = user;
     const token = this.generateToken(user);

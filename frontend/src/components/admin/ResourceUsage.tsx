@@ -8,6 +8,11 @@ interface ResourceUsageProps {
 }
 
 export function ResourceUsage({ data }: ResourceUsageProps) {
+  // Assume Gigabit connection (1000 Mbps) for max capacity, which is ~125 MB/s
+  const MAX_BANDWIDTH_MBPS = 125;
+  const networkValue = parseFloat(data?.network || "0");
+  const networkPercentage = Math.min(Math.round((networkValue / MAX_BANDWIDTH_MBPS) * 100), 100);
+
   const resources = [
     {
       name: "CPU Usage",
@@ -38,7 +43,7 @@ export function ResourceUsage({ data }: ResourceUsageProps) {
     },
     {
       name: "Network Traffic",
-      percentage: 100,
+      percentage: networkPercentage,
       label: data?.network || "0 B/s",
       color: "bg-cyan-500",
       icon: Network,
@@ -53,7 +58,7 @@ export function ResourceUsage({ data }: ResourceUsageProps) {
         <h3 className="text-base font-bold text-foreground">Resource Penggunaan Server</h3>
         <div className="flex items-center gap-2 text-xs text-muted-foreground font-medium">
           <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-          Server: portdock-server-01
+          Server: {typeof window !== 'undefined' ? window.location.hostname : 'portdock-server-01'}
         </div>
       </div>
 

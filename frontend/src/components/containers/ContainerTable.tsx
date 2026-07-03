@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { RefreshCw, Eye, Play, Square, RefreshCw as RestartIcon, Trash2, MoreVertical, TerminalSquare, FileText, ExternalLink } from "lucide-react";
 import {
   DropdownMenu,
@@ -40,6 +40,8 @@ export function ContainerTable({
   onSelectAll,
 }: ContainerTableProps) {
   const router = useRouter();
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
 
   // Filter out any skeleton rows or loading states if needed
   const validContainers = containers || [];
@@ -86,7 +88,7 @@ export function ContainerTable({
                 </td>
               </tr>
             ) : (
-              validContainers.map((c: any) => {
+              validContainers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((c: any) => {
                 const isSelected = selectedIds.has(c.id);
                 return (
                   <tr key={c.id} className={`group hover:bg-muted/50 transition-colors border-b border-border last:border-0 ${isSelected ? 'bg-muted/40' : ''}`}>
@@ -219,6 +221,44 @@ export function ContainerTable({
           </tbody>
         </table>
       </div>
+
+      {/* Pagination Controls */}
+      <div className="flex items-center justify-between pt-4 mt-4 border-t border-border">
+          <div className="text-[13px] text-muted-foreground">
+            Showing <span className="font-medium text-foreground">{(currentPage - 1) * itemsPerPage + 1}</span> to <span className="font-medium text-foreground">{Math.min(currentPage * itemsPerPage, validContainers.length)}</span> of <span className="font-medium text-foreground">{validContainers.length}</span> containers
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-1.5 text-[13px] font-medium rounded-md border border-border text-muted-foreground hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              Previous
+            </button>
+            <div className="flex items-center gap-1">
+              {Array.from({ length: Math.ceil(validContainers.length / itemsPerPage) }).map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setCurrentPage(i + 1)}
+                  className={`w-8 h-8 rounded-md text-[13px] font-medium transition-colors ${
+                    currentPage === i + 1 
+                      ? 'bg-blue-600 text-white' 
+                      : 'text-muted-foreground hover:bg-muted'
+                  }`}
+                >
+                  {i + 1}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(validContainers.length / itemsPerPage)))}
+              disabled={currentPage === Math.ceil(validContainers.length / itemsPerPage)}
+              className="px-3 py-1.5 text-[13px] font-medium rounded-md border border-border text-muted-foreground hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              Next
+            </button>
+          </div>
+        </div>
     </div>
   );
 }
