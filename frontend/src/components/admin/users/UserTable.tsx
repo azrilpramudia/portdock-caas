@@ -32,20 +32,20 @@ export function UserTable({
   const totalPages = Math.max(1, Math.ceil(filteredUsers.length / itemsPerPage));
 
   return (
-    <Card className="border-border shadow-sm overflow-hidden bg-card">
+    <Card className="bg-card border-border shadow-sm rounded-2xl overflow-hidden p-0">
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse min-w-[1000px]">
           <thead>
-            <tr className="border-y border-border text-[12px] font-semibold text-muted-foreground bg-muted/50">
-              <th className="px-6 py-3 font-semibold">User</th>
-              <th className="px-6 py-3 font-semibold">Email</th>
-              <th className="px-6 py-3 font-semibold text-center">Role</th>
-              <th className="px-6 py-3 font-semibold">Status</th>
-              <th className="px-6 py-3 font-semibold text-center">Projects</th>
-              <th className="px-6 py-3 font-semibold text-center">Containers</th>
-              <th className="px-6 py-3 font-semibold">Last Login</th>
-              <th className="px-6 py-3 font-semibold">Joined At</th>
-              <th className="px-6 py-3 font-semibold text-center">Action</th>
+            <tr className="border-b border-border text-[12px] font-semibold text-muted-foreground bg-muted/50 h-14">
+              <th className="px-4 py-3 font-semibold">User</th>
+              <th className="px-4 py-3 font-semibold">Email</th>
+              <th className="px-4 py-3 font-semibold text-center">Role</th>
+              <th className="px-4 py-3 font-semibold">Status</th>
+              <th className="px-4 py-3 font-semibold text-center">Projects</th>
+              <th className="px-4 py-3 font-semibold text-center">Containers</th>
+              <th className="px-4 py-3 font-semibold">Last Login</th>
+              <th className="px-4 py-3 font-semibold">Joined At</th>
+              <th className="px-4 py-3 font-semibold text-center">Action</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
@@ -69,7 +69,7 @@ export function UserTable({
 
                 return (
                   <tr key={user.id} className="hover:bg-muted/10 transition-colors bg-card">
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white
                           ${isAdmin ? 'bg-purple-500' : 'bg-blue-500'}`}
@@ -79,8 +79,8 @@ export function UserTable({
                         <span className="font-semibold text-foreground">{user.name}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-muted-foreground">{user.email}</td>
-                    <td className="px-6 py-4 text-center">
+                    <td className="px-4 py-3 text-muted-foreground">{user.email}</td>
+                    <td className="px-4 py-3 text-center">
                       <span className={`inline-flex px-2.5 py-1 rounded-md text-[10px] font-bold tracking-wide
                         ${isAdmin 
                           ? 'bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400' 
@@ -89,7 +89,7 @@ export function UserTable({
                         {user.role}
                       </span>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-3">
                       <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold
                         ${isActive 
                           ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400' 
@@ -99,18 +99,18 @@ export function UserTable({
                         {isActive ? 'Active' : 'Suspended'}
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-center font-medium text-foreground">{user.projectsCount}</td>
-                    <td className="px-6 py-4 text-center font-medium text-foreground">{user.containersCount}</td>
-                    <td className="px-6 py-4 text-muted-foreground whitespace-nowrap">
+                    <td className="px-4 py-3 text-center font-medium text-foreground">{user.projectsCount}</td>
+                    <td className="px-4 py-3 text-center font-medium text-foreground">{user.containersCount}</td>
+                    <td className="px-4 py-3 text-muted-foreground">
                       <div className="flex items-center gap-2">
                         <span className={`w-1.5 h-1.5 rounded-full ${user.lastLogin ? 'bg-emerald-500' : 'bg-muted-foreground/30'}`}></span>
                         {user.lastLogin ? formatDistanceToNow(new Date(user.lastLogin), { addSuffix: true, locale: id }) : '-'}
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-muted-foreground whitespace-nowrap">
+                    <td className="px-4 py-3 text-muted-foreground">
                       {format(new Date(user.createdAt), "dd MMM yyyy", { locale: id })}
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-3 text-center">
                       <div className="flex items-center justify-center gap-2">
                         <button 
                           onClick={() => {

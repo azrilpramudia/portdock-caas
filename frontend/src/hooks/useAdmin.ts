@@ -169,3 +169,129 @@ export function useAdminProjects() {
     },
   });
 }
+
+export function useDeleteAdminProject() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (projectId: string) => {
+      const res = await api.delete(`/admin/projects/${projectId}`);
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["adminProjects"] });
+      queryClient.invalidateQueries({ queryKey: ["adminDashboard"] });
+    },
+  });
+}
+
+export function useUpdateAdminProject() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string, data: any }) => {
+      const res = await api.patch(`/admin/projects/${id}`, data);
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["adminProjects"] });
+      queryClient.invalidateQueries({ queryKey: ["adminDashboard"] });
+    },
+  });
+}
+
+export function useSuspendAdminProject() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const res = await api.post(`/admin/projects/${id}/suspend`);
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["adminProjects"] });
+      queryClient.invalidateQueries({ queryKey: ["adminDashboard"] });
+    },
+  });
+}
+
+export function useResumeAdminProject() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const res = await api.post(`/admin/projects/${id}/resume`);
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["adminProjects"] });
+      queryClient.invalidateQueries({ queryKey: ["adminDashboard"] });
+    },
+  });
+}
+
+export function useResetAdminProjectStatus() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const res = await api.post(`/admin/projects/${id}/reset-status`);
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["adminProjects"] });
+      queryClient.invalidateQueries({ queryKey: ["adminDashboard"] });
+    },
+  });
+}
+
+export interface AdminContainerListItemDto {
+  id: string;
+  name: string;
+  dockerContainerId: string | null;
+  imageName: string;
+  imageTag: string;
+  status: "RUNNING" | "STOPPED" | "BUILDING" | "ERROR" | "REMOVING" | "FAILED";
+  cpuLimit: number | null;
+  memoryLimit: number | null;
+  createdAt: string;
+  updatedAt: string;
+  liveStats?: {
+    cpuPercent: number;
+    memoryUsage: number;
+    memoryLimit: number;
+    memoryPercent: number;
+  } | null;
+  project: {
+    name: string;
+    domain: string | null;
+    user: {
+      name: string;
+      email: string;
+    };
+  };
+}
+
+export interface ContainerStatsDto {
+  totalContainers: number;
+  runningContainers: number;
+  stoppedContainers: number;
+  exitedContainers: number;
+  totalImages: number;
+}
+
+export interface AdminContainersResponseDto {
+  stats: ContainerStatsDto;
+  containers: AdminContainerListItemDto[];
+}
+
+export function useAdminContainers() {
+  return useQuery({
+    queryKey: ["adminContainers"],
+    queryFn: async () => {
+      const res = await api.get<AdminContainersResponseDto>("/admin/containers");
+      return res.data;
+    },
+    refetchInterval: 5000,
+  });
+}

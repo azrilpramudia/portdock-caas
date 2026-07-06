@@ -26,6 +26,36 @@ export class AdminController {
     return this.adminService.getAllProjects();
   }
 
+  @Get('containers')
+  async getAllContainers() {
+    return this.adminService.getAllContainers();
+  }
+
+  @Patch('projects/:id')
+  async updateProject(@Param('id') id: string, @Body() data: any) {
+    return this.adminService.updateProject(id, data);
+  }
+
+  @Post('projects/:id/suspend')
+  async suspendProject(@Param('id') id: string) {
+    return this.adminService.suspendProject(id);
+  }
+
+  @Post('projects/:id/resume')
+  async resumeProject(@Param('id') id: string) {
+    return this.adminService.resumeProject(id);
+  }
+
+  @Post('projects/:id/reset-status')
+  async resetProjectStatus(@Param('id') id: string) {
+    return this.adminService.resetProjectStatus(id);
+  }
+
+  @Delete('projects/:id')
+  async deleteProject(@Param('id') id: string) {
+    return this.adminService.deleteProject(id);
+  }
+
   @Post('users')
   async createUser(@Body() data: any) {
     return this.adminService.createUser(data);

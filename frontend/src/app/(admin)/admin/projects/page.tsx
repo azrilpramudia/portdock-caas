@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { ProjectStats } from "@/components/admin/projects/ProjectStats";
 import { ProjectToolbar } from "@/components/admin/projects/ProjectToolbar";
 import { ProjectTable } from "@/components/admin/projects/ProjectTable";
+import { ViewProjectModal, EditProjectModal, DeleteProjectModal } from "@/components/admin/projects/ProjectModals";
 
 export default function AdminProjectsPage() {
   const { data: responseData, isLoading } = useAdminProjects();
@@ -35,6 +36,16 @@ export default function AdminProjectsPage() {
     setSearchQuery("");
     setCurrentPage(1);
   };
+  
+  // Modal states
+  const [isViewProjectOpen, setIsViewProjectOpen] = useState(false);
+  const [projectToView, setProjectToView] = useState<any>(null);
+  
+  const [isEditProjectOpen, setIsEditProjectOpen] = useState(false);
+  const [projectToEdit, setProjectToEdit] = useState<any>(null);
+  
+  const [isDeleteProjectOpen, setIsDeleteProjectOpen] = useState(false);
+  const [projectToDelete, setProjectToDelete] = useState<any>(null);
   
   const projects = responseData?.projects || [];
   const { 
@@ -202,8 +213,36 @@ export default function AdminProjectsPage() {
           setCurrentPage={setCurrentPage}
           handlePrevPage={handlePrevPage}
           handleNextPage={handleNextPage}
+          onView={(project) => {
+            setProjectToView(project);
+            setIsViewProjectOpen(true);
+          }}
+          onEdit={(project) => {
+            setProjectToEdit(project);
+            setIsEditProjectOpen(true);
+          }}
+          onDelete={(project) => {
+            setProjectToDelete(project);
+            setIsDeleteProjectOpen(true);
+          }}
         />
       </div>
+
+      <ViewProjectModal 
+        isOpen={isViewProjectOpen} 
+        onClose={() => setIsViewProjectOpen(false)} 
+        project={projectToView} 
+      />
+      <EditProjectModal 
+        isOpen={isEditProjectOpen} 
+        onClose={() => setIsEditProjectOpen(false)} 
+        project={projectToEdit} 
+      />
+      <DeleteProjectModal 
+        isOpen={isDeleteProjectOpen} 
+        onClose={() => setIsDeleteProjectOpen(false)} 
+        project={projectToDelete} 
+      />
     </div>
   );
 }

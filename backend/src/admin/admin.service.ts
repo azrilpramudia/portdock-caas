@@ -3,12 +3,14 @@ import { PrismaService } from '../prisma/prisma.service';
 import { AdminDashboardResponseDto } from './dto/admin-dashboard.dto';
 import { SystemService } from './system.service';
 import * as bcrypt from 'bcrypt';
+import { DockerService } from '../docker/docker.service';
 
 @Injectable()
 export class AdminService {
   constructor(
     private prisma: PrismaService,
     private system: SystemService,
+    private dockerService: DockerService,
   ) {}
 
   async getDashboardStats(): Promise<AdminDashboardResponseDto> {
@@ -184,6 +186,106 @@ export class AdminService {
     };
   }
 
+  async updateProject(id: string, data: any) {
+    const updateData: any = {};
+    if (data.name !== undefined) updateData.name = data.name;
+    if (data.domain !== undefined) updateData.domain = data.domain;
+    if (data.status !== undefined) updateData.status = data.status;
+
+    return this.prisma.project.update({
+      where: { id },
+      data: updateData,
+    });
+  }
+
+  async deleteProject(id: string) {
+    // Delete the project (Prisma cascade handles related containers/logs in the DB)
+    return this.prisma.project.delete({
+      where: { id },
+    });
+  }
+
+  async suspendProject(id: string) {
+    // Get project and its containers
+    const project = await this.prisma.project.findUnique({
+      where: { id },
+      include: { containers: true },
+    });
+
+    if (!project) throw new Error('Project not found');
+
+    // Stop all running containers
+    for (const container of project.containers) {
+      if (container.dockerContainerId && container.status === 'RUNNING') {
+        try {
+          await this.dockerService.stopContainer(container.dockerContainerId);
+        } catch (err) {
+          console.warn(`Failed to stop container ${container.id} during suspension: ${err.message}`);
+        }
+      }
+    }
+
+    // Update container statuses in DB
+    await this.prisma.container.updateMany({
+      where: { projectId: id, status: 'RUNNING' },
+      data: { status: 'STOPPED' },
+    });
+
+    // Update project status to INACTIVE
+    return this.prisma.project.update({
+      where: { id },
+      data: { status: 'INACTIVE' },
+    });
+  }
+
+  async resumeProject(id: string) {
+    // Get project and its containers
+    const project = await this.prisma.project.findUnique({
+      where: { id },
+      include: { containers: true },
+    });
+
+    if (!project) throw new Error('Project not found');
+
+    // Start all containers
+    for (const container of project.containers) {
+      if (container.dockerContainerId) {
+        try {
+          await this.dockerService.startContainer(container.dockerContainerId);
+        } catch (err) {
+          console.warn(`Failed to start container ${container.id} during resume: ${err.message}`);
+        }
+      }
+    }
+
+    // Update container statuses in DB
+    await this.prisma.container.updateMany({
+      where: { projectId: id },
+      data: { status: 'RUNNING' },
+    });
+
+    // Update project status to ACTIVE
+    return this.prisma.project.update({
+      where: { id },
+      data: { status: 'ACTIVE' },
+    });
+  }
+
+  async resetProjectStatus(id: string) {
+    // Only reset if it's BUILDING
+    const project = await this.prisma.project.findUnique({ where: { id } });
+    if (!project) throw new Error('Project not found');
+    
+    if (project.status === 'BUILDING') {
+      return this.prisma.project.update({
+        where: { id },
+        data: { status: 'FAILED' },
+      });
+    }
+    
+    return project;
+  }
+
   async createUser(data: any) {
     const existingUser = await this.prisma.user.findUnique({
       where: { email: data.email }
@@ -258,5 +360,73 @@ export class AdminService {
     return this.prisma.user.delete({
       where: { id },
     });
+  }
+
+  async getAllContainers() {
+    const containers = await this.prisma.container.findMany({
+      include: {
+        project: {
+          include: {
+            user: {
+              select: { id: true, name: true, email: true },
+            },
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const augmentedContainers = await Promise.all(containers.map(async (c) => {
+      let liveStats: any = null;
+      if (c.status === 'RUNNING' && c.dockerContainerId) {
+        try {
+          const stats = await this.dockerService.getContainerStats(c.dockerContainerId);
+          
+          // Calculate CPU
+          const cpuDelta = stats.cpu_stats.cpu_usage.total_usage - (stats.precpu_stats?.cpu_usage?.total_usage || 0);
+          const systemCpuDelta = stats.cpu_stats.system_cpu_usage - (stats.precpu_stats?.system_cpu_usage || 0);
+          const numCores = stats.cpu_stats.online_cpus || 1;
+          let cpuPercent = 0;
+          if (systemCpuDelta > 0 && cpuDelta > 0) {
+            cpuPercent = (cpuDelta / systemCpuDelta) * numCores * 100;
+          }
+
+          // Calculate Memory
+          const memoryUsage = stats.memory_stats.usage - (stats.memory_stats.stats?.cache || 0);
+          const memoryLimit = stats.memory_stats.limit || (c.memoryLimit ? c.memoryLimit * 1024 * 1024 : 0);
+          let memoryPercent = 0;
+          if (memoryLimit > 0) {
+            memoryPercent = (memoryUsage / memoryLimit) * 100;
+          }
+
+          liveStats = {
+            cpuPercent: parseFloat(cpuPercent.toFixed(2)),
+            memoryUsage,
+            memoryLimit,
+            memoryPercent: parseFloat(memoryPercent.toFixed(2))
+          };
+        } catch (error) {
+          // Ignore error if container stats cannot be fetched, it might have stopped
+        }
+      }
+
+      return {
+        ...c,
+        liveStats
+      };
+    }));
+
+    const stats = {
+      totalContainers: containers.length,
+      runningContainers: containers.filter(c => c.status === 'RUNNING').length,
+      stoppedContainers: containers.filter(c => c.status === 'STOPPED').length,
+      exitedContainers: containers.filter(c => c.status === 'ERROR' || c.status === 'REMOVING').length,
+      totalImages: new Set(containers.map(c => c.imageName)).size,
+    };
+
+    return {
+      stats,
+      containers: augmentedContainers,
+    };
   }
 }
