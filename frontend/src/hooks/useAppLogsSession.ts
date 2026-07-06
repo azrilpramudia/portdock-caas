@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { API_BASE_URL } from "@/constants/config";
 import { io, Socket } from "socket.io-client";
 import { toast } from "sonner";
 import type { Terminal } from "xterm";
@@ -104,7 +105,7 @@ export function useAppLogsSession(selectedContainerId: string) {
       appLogsSocketRef.current.disconnect();
     }
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api";
+    const apiUrl = API_BASE_URL;
     const socketUrl = apiUrl.replace("/api", "");
 
     appLogsXtermRef.current?.clear();

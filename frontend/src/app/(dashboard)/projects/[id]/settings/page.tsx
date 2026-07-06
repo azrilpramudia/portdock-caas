@@ -2,12 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import Link from "next/link";
-import { ChevronLeft, Save, Plus, Trash2, ShieldAlert, Globe, Server, Settings2, Loader2, Eye, EyeOff, GitBranch, Terminal } from "lucide-react";
+import { ChevronLeft, Save, Settings2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { projectsService } from "@/services/projects.service";
 import { toast } from "sonner";
@@ -19,6 +15,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+
+import { SettingsGeneral } from "@/components/projects/settings/SettingsGeneral";
+import { SettingsGit } from "@/components/projects/settings/SettingsGit";
+import { SettingsEnvVars } from "@/components/projects/settings/SettingsEnvVars";
+import { SettingsDangerZone } from "@/components/projects/settings/SettingsDangerZone";
 
 export default function ProjectSettingsPage() {
   const params = useParams();
@@ -113,20 +114,6 @@ export default function ProjectSettingsPage() {
     });
   };
 
-  const handleDelete = () => {
-    setShowDeleteModal(true);
-  };
-
-  const addEnv = () => { setEnvs([...envs, { key: "", value: "" }]); setIsDirty(true); };
-  const removeEnv = (index: number) => { setEnvs(envs.filter((_, i) => i !== index)); setIsDirty(true); };
-
-  const handleEnvChange = (index: number, field: 'key' | 'value', val: string) => {
-    const newEnvs = [...envs];
-    newEnvs[index][field] = val;
-    setEnvs(newEnvs);
-    setIsDirty(true);
-  };
-
   const handleNavigation = (e: React.MouseEvent) => {
     e.preventDefault();
     if (isDirty) {
@@ -183,252 +170,64 @@ export default function ProjectSettingsPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
         {/* Main Settings Column */}
         <div className="lg:col-span-2 space-y-6">
-          
-          {/* General Settings */}
-          <Card className="bg-card border-border shadow-sm rounded-2xl overflow-hidden border p-0 gap-0">
-            <CardHeader className="border-b border-border bg-muted/50 pt-6 px-6 pb-4">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Server className="w-5 h-5 text-blue-600" /> General Details
-              </CardTitle>
-              <CardDescription>Update the basic information of your project.</CardDescription>
-            </CardHeader>
-            <CardContent className="p-6 space-y-5">
-              <div className="space-y-2">
-                <Label className="text-foreground font-semibold">Project Name</Label>
-                <Input 
-                  value={name} 
-                  onChange={(e) => { setName(e.target.value); setIsDirty(true); }}
-                  className="h-11 border-border focus-visible:ring-blue-500 bg-card" 
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-foreground font-semibold">Description</Label>
-                <textarea 
-                  className="w-full min-h-[100px] p-3 text-sm rounded-lg border border-border bg-card placeholder:text-muted-foreground/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
-                  value={description}
-                  onChange={(e) => { setDescription(e.target.value); setIsDirty(true); }}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Deployment Source */}
-          <Card className="bg-card border-border shadow-sm rounded-2xl overflow-hidden border p-0 gap-0">
-            <CardHeader className="border-b border-border bg-muted/50 pt-6 px-6 pb-4">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <GitBranch className="w-5 h-5 text-foreground" /> Deployment Source
-              </CardTitle>
-              <CardDescription>Connect to a Git repository for continuous deployment.</CardDescription>
-            </CardHeader>
-            <CardContent className="p-6 space-y-5">
-              <div className="space-y-2">
-                <Label className="text-foreground font-semibold">Repository URL</Label>
-                <Input 
-                  placeholder="https://github.com/username/repo"
-                  value={repositoryUrl} 
-                  onChange={(e) => { setRepositoryUrl(e.target.value); setIsDirty(true); }}
-                  className="h-11 border-border focus-visible:ring-blue-500 bg-card" 
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-foreground font-semibold">Branch</Label>
-                <Input 
-                  placeholder="main"
-                  value={branch} 
-                  onChange={(e) => { setBranch(e.target.value); setIsDirty(true); }}
-                  className="h-11 border-border focus-visible:ring-blue-500 bg-card" 
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Build & Run Settings */}
-          <Card className="bg-card border-border shadow-sm rounded-2xl overflow-hidden border p-0 gap-0">
-            <CardHeader className="border-b border-border bg-muted/50 pt-6 px-6 pb-4">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Terminal className="w-5 h-5 text-orange-600" /> Build & Run Settings
-              </CardTitle>
-              <CardDescription>Customize how your application is built and started.</CardDescription>
-            </CardHeader>
-            <CardContent className="p-6 space-y-5">
-              <div className="space-y-2">
-                <Label className="text-foreground font-semibold">Build Command</Label>
-                <Input 
-                  placeholder="npm run build"
-                  value={buildCommand} 
-                  onChange={(e) => { setBuildCommand(e.target.value); setIsDirty(true); }}
-                  className="h-11 border-border focus-visible:ring-orange-500 bg-card font-mono text-sm" 
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-foreground font-semibold">Start Command</Label>
-                <Input 
-                  placeholder="npm start"
-                  value={startCommand} 
-                  onChange={(e) => { setStartCommand(e.target.value); setIsDirty(true); }}
-                  className="h-11 border-border focus-visible:ring-orange-500 bg-card font-mono text-sm" 
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Environment Variables */}
-          <Card className="bg-card border-border shadow-sm rounded-2xl overflow-hidden border p-0 gap-0">
-            <CardHeader className="border-b border-border bg-muted/50 pt-6 px-6 pb-4">
-              <div className="flex justify-between items-center">
-                <div>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <ShieldAlert className="w-5 h-5 text-emerald-600" /> Environment Variables
-                  </CardTitle>
-                  <CardDescription className="mt-1">Securely inject runtime configurations.</CardDescription>
-                </div>
-                <Button onClick={addEnv} variant="outline" size="sm" className="h-8 text-xs font-semibold text-blue-600 border-blue-500/20 bg-blue-500/10 hover:bg-blue-500/20">
-                  <Plus className="w-3.5 h-3.5 mr-1" /> Add Var
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="p-6 space-y-4">
-              {envs.map((env, idx) => (
-                <div key={idx} className="flex gap-3 items-start">
-                  <div className="flex-1 space-y-1.5">
-                    <Input 
-                      placeholder="KEY (e.g. DATABASE_URL)" 
-                      value={env.key} 
-                      onChange={(e) => handleEnvChange(idx, 'key', e.target.value)}
-                      className="h-10 font-mono text-sm border-border focus-visible:ring-emerald-500 bg-card" 
-                    />
-                  </div>
-                  <div className="flex-1 space-y-1.5 relative">
-                    <Input 
-                      placeholder="Value" 
-                      value={env.value} 
-                      onChange={(e) => handleEnvChange(idx, 'value', e.target.value)}
-                      type={env.show ? "text" : "password"} 
-                      className="h-10 font-mono text-sm border-border focus-visible:ring-emerald-500 bg-card pr-10" 
-                    />
-                    <button
-                      type="button"
-                      className="absolute right-3 top-[9px] text-muted-foreground hover:text-foreground"
-                      onClick={() => {
-                        const newEnvs = [...envs];
-                        newEnvs[idx].show = !newEnvs[idx].show;
-                        setEnvs(newEnvs);
-                      }}
-                    >
-                      {env.show ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  </div>
-                  <Button onClick={() => removeEnv(idx)} variant="outline" className="h-10 w-10 p-0 text-muted-foreground hover:text-red-600 dark:hover:text-red-400 border-border hover:border-red-500/30 hover:bg-red-500/10 shrink-0 bg-card">
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
-              ))}
-              {envs.length === 0 && (
-                <div className="text-center py-6 text-sm text-muted-foreground bg-muted rounded-xl border border-dashed border-border">
-                  No environment variables configured.
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
+          <SettingsGeneral 
+            name={name} setName={setName}
+            description={description} setDescription={setDescription}
+            domain={domain} setDomain={setDomain}
+            setIsDirty={setIsDirty}
+          />
+          <SettingsGit 
+            repositoryUrl={repositoryUrl} setRepositoryUrl={setRepositoryUrl}
+            branch={branch} setBranch={setBranch}
+            buildCommand={buildCommand} setBuildCommand={setBuildCommand}
+            startCommand={startCommand} setStartCommand={setStartCommand}
+            setIsDirty={setIsDirty}
+          />
+          <SettingsEnvVars 
+            envs={envs} setEnvs={setEnvs} setIsDirty={setIsDirty}
+          />
         </div>
 
         {/* Sidebar Settings Column */}
         <div className="space-y-6">
-          
-          {/* Domain Configuration */}
-          <Card className="bg-card border-border shadow-sm rounded-2xl overflow-hidden border p-0 gap-0">
-            <CardHeader className="border-b border-border bg-muted/50 pt-6 px-6 pb-4">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Globe className="w-4 h-4 text-indigo-600" /> Custom Domain
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-5 space-y-4">
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                Map a custom domain to this project. We will automatically provision an SSL certificate via Let's Encrypt.
-              </p>
-              <div className="space-y-2">
-                <Label className="text-[13px] text-foreground font-semibold">Domain Name</Label>
-                <div className="flex gap-2">
-                  <Input 
-                    placeholder="www.example.com" 
-                    value={domain}
-                    onChange={(e) => { setDomain(e.target.value); setIsDirty(true); }}
-                    className="h-9 text-sm border-border focus-visible:ring-indigo-500 bg-card" 
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Danger Zone */}
-          <Card className="border border-red-500/20 shadow-sm rounded-2xl overflow-hidden bg-card p-0 gap-0">
-            <CardHeader className="border-b border-red-500/20 bg-red-500/10 pt-6 px-6 pb-4">
-              <CardTitle className="text-base text-red-600 dark:text-red-400 flex items-center gap-2">
-                <ShieldAlert className="w-4 h-4" /> Danger Zone
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-5 space-y-4">
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                Permanently remove this project and all of its associated containers, logs, and environments. This action cannot be undone.
-              </p>
-              <Button 
-                onClick={handleDelete}
-                disabled={deleteMutation.isPending}
-                className="w-full bg-card text-red-600 dark:text-red-400 border border-red-500/20 hover:bg-red-500/10 hover:border-red-500/30 font-bold transition-colors"
-              >
-                {deleteMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Trash2 className="w-4 h-4 mr-2" />}
-                Delete Project
-              </Button>
-            </CardContent>
-          </Card>
-
+          <SettingsDangerZone 
+            handleDelete={() => setShowDeleteModal(true)} 
+            isPending={deleteMutation.isPending} 
+          />
         </div>
-
       </div>
 
+      {/* Discard Modal */}
       <Dialog open={showDiscardModal} onOpenChange={setShowDiscardModal}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-md bg-card border-border shadow-lg">
           <DialogHeader>
-            <DialogTitle>Discard Unsaved Changes?</DialogTitle>
+            <DialogTitle>Discard Unsaved Changes</DialogTitle>
             <DialogDescription>
-              You have unsaved changes in your project settings. Are you sure you want to leave this page? Your changes will be lost.
+              You have unsaved changes. Are you sure you want to discard them?
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter className="mt-4">
-            <Button variant="outline" onClick={() => setShowDiscardModal(false)}>
-              Keep Editing
-            </Button>
-            <Button variant="destructive" onClick={confirmDiscard}>
-              Discard Changes
-            </Button>
+          <DialogFooter className="sm:justify-end gap-2 mt-4">
+            <Button variant="outline" onClick={() => setShowDiscardModal(false)}>Cancel</Button>
+            <Button variant="destructive" onClick={confirmDiscard}>Discard Changes</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
+      {/* Delete Modal */}
       <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
-        <DialogContent className="sm:max-w-[425px] border-red-500/20">
+        <DialogContent className="sm:max-w-md bg-card border-border shadow-lg">
           <DialogHeader>
-            <DialogTitle className="text-red-500 flex items-center gap-2">
-              <Trash2 className="w-5 h-5" />
-              Delete Project
-            </DialogTitle>
-            <DialogDescription className="text-muted-foreground pt-2">
-              Are you sure you want to delete <span className="font-semibold text-foreground">prj-{projectId}</span>? 
-              All associated containers, logs, and configurations will be permanently removed. 
-              <br/><br/>
-              <span className="font-bold text-red-500 dark:text-red-400">This action cannot be undone.</span>
+            <DialogTitle className="text-red-600 dark:text-red-400">Delete Project</DialogTitle>
+            <DialogDescription>
+              Are you absolutely sure you want to delete this project? This action cannot be undone and will permanently delete all associated data, including containers and logs.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter className="mt-4 gap-3">
-            <Button variant="outline" onClick={() => setShowDeleteModal(false)} disabled={deleteMutation.isPending}>
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={() => deleteMutation.mutate()} disabled={deleteMutation.isPending} className="bg-red-600 hover:bg-red-700">
-              {deleteMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Trash2 className="w-4 h-4 mr-2" />}
+          <DialogFooter className="sm:justify-end gap-2 mt-4">
+            <Button variant="outline" onClick={() => setShowDeleteModal(false)}>Cancel</Button>
+            <Button variant="destructive" onClick={() => deleteMutation.mutate()} disabled={deleteMutation.isPending}>
+              {deleteMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
               Confirm Delete
             </Button>
           </DialogFooter>
