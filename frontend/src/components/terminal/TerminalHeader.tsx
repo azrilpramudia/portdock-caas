@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface Container {
   id: string;
@@ -42,15 +43,23 @@ export function TerminalHeader({
     <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-card border border-border p-4 rounded-2xl shadow-sm mb-6">
       <div className="w-full md:w-auto flex items-end gap-3">
         {backUrl && (
-          <Button 
-            variant="outline" 
-            size="icon" 
-            onClick={() => router.push(backUrl)}
-            className="mb-0.5 h-[42px] w-[42px] rounded-xl border-border bg-background hover:bg-muted text-muted-foreground shrink-0"
-            title="Kembali"
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </Button>
+          <TooltipProvider delay={300}>
+            <Tooltip>
+              <TooltipTrigger render={
+                <Button 
+                  variant="outline" 
+                  size="icon" 
+                  onClick={() => router.push(backUrl)}
+                  className="mb-0.5 h-[42px] w-[42px] rounded-xl border-border bg-background hover:bg-muted text-muted-foreground shrink-0"
+                />
+              }>
+                <ArrowLeft className="w-4 h-4" />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Kembali</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         )}
         <div className="w-full md:w-auto">
           <div className="flex items-center gap-2 mb-2">

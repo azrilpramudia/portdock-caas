@@ -257,19 +257,40 @@ export function ContainerTable({
                         )}
                         
                         {container.status === 'STOPPED' && (
-                          <Button onClick={() => handleAction(container.id, 'start')} disabled={isPending} variant="outline" size="icon" className="h-8 w-8 rounded-lg bg-card border-slate-200 dark:border-slate-800 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 shadow-none shrink-0">
-                            <Play className="w-4 h-4" />
-                          </Button>
+                          <TooltipProvider delay={300}>
+                            <Tooltip>
+                              <TooltipTrigger render={<Button onClick={() => handleAction(container.id, 'start')} disabled={isPending} variant="outline" size="icon" className="h-8 w-8 rounded-lg bg-card border-slate-200 dark:border-slate-800 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 shadow-none shrink-0" />}>
+                                <Play className="w-4 h-4" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Start Container</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         )}
 
                         {(container.status === 'ERROR' || container.status === 'FAILED') && (
                           <>
-                            <Button onClick={() => handleAction(container.id, 'restart')} disabled={isPending} variant="outline" size="icon" className="h-8 w-8 rounded-lg bg-card border-slate-200 dark:border-slate-800 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 shadow-none shrink-0">
-                              <RotateCw className="w-4 h-4" />
-                            </Button>
-                            <Button onClick={() => handleAction(container.id, 'delete')} disabled={isPending} variant="outline" size="icon" className="h-8 w-8 rounded-lg bg-card border-rose-100 dark:border-rose-900/30 text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 shadow-none shrink-0">
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
+                            <TooltipProvider delay={300}>
+                              <Tooltip>
+                                <TooltipTrigger render={<Button onClick={() => handleAction(container.id, 'restart')} disabled={isPending} variant="outline" size="icon" className="h-8 w-8 rounded-lg bg-card border-slate-200 dark:border-slate-800 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 shadow-none shrink-0" />}>
+                                  <RotateCw className="w-4 h-4" />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Restart Container</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                            <TooltipProvider delay={300}>
+                              <Tooltip>
+                                <TooltipTrigger render={<Button onClick={() => handleAction(container.id, 'delete')} disabled={isPending} variant="outline" size="icon" className="h-8 w-8 rounded-lg bg-card border-rose-100 dark:border-rose-900/30 text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 shadow-none shrink-0" />}>
+                                  <Trash2 className="w-4 h-4" />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Delete Container</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
                           </>
                         )}
 

@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface ProjectTableProps {
   paginatedProjects: any[];
@@ -172,33 +173,59 @@ export function ProjectTable({
                     {/* Actions */}
                     <td className="px-4 py-3 text-center">
                       <div className="flex items-center justify-center gap-2">
-                        <Button 
-                          variant="outline" 
-                          size="icon" 
-                          className="h-[34px] w-[34px] rounded-lg bg-card border-slate-200 dark:border-slate-800 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 shadow-none shrink-0"
-                          onClick={() => onView && onView(project)}
-                          title="View Details"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="icon" 
-                          className="h-[34px] w-[34px] rounded-lg bg-card border-slate-200 dark:border-slate-800 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 shadow-none shrink-0"
-                          onClick={() => onEdit && onEdit(project)}
-                          title="Edit Project"
-                        >
-                          <Pencil className="w-4 h-4" />
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="icon" 
-                          className="h-[34px] w-[34px] rounded-lg bg-card border-rose-100 dark:border-rose-900/30 text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 shadow-none shrink-0"
-                          onClick={() => onDelete && onDelete(project)}
-                          title="Delete Project"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                        <TooltipProvider delay={300}>
+                          <Tooltip>
+                            <TooltipTrigger render={
+                              <Button 
+                                variant="outline" 
+                                size="icon" 
+                                className="h-[34px] w-[34px] rounded-lg bg-card border-slate-200 dark:border-slate-800 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 shadow-none shrink-0"
+                                onClick={() => onView && onView(project)}
+                              />
+                            }>
+                              <Eye className="w-4 h-4" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>View Details</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+
+                        <TooltipProvider delay={300}>
+                          <Tooltip>
+                            <TooltipTrigger render={
+                              <Button 
+                                variant="outline" 
+                                size="icon" 
+                                className="h-[34px] w-[34px] rounded-lg bg-card border-slate-200 dark:border-slate-800 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 shadow-none shrink-0"
+                                onClick={() => onEdit && onEdit(project)}
+                              />
+                            }>
+                              <Pencil className="w-4 h-4" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Edit Project</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+
+                        <TooltipProvider delay={300}>
+                          <Tooltip>
+                            <TooltipTrigger render={
+                              <Button 
+                                variant="outline" 
+                                size="icon" 
+                                className="h-[34px] w-[34px] rounded-lg bg-card border-rose-100 dark:border-rose-900/30 text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 shadow-none shrink-0"
+                                onClick={() => onDelete && onDelete(project)}
+                              />
+                            }>
+                              <Trash2 className="w-4 h-4" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Delete Project</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       </div>
                     </td>
                   </tr>

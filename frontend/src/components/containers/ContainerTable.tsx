@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useRouter } from "next/navigation";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface ContainerTableProps {
   containers: any[];
@@ -147,38 +148,81 @@ export function ContainerTable({
                             <ExternalLink className="w-4 h-4" />
                           </a>
                         ) : c.hostPort ? (
-                          <a 
-                            href={`http://localhost:${c.hostPort}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors border text-muted-foreground hover:bg-muted hover:text-foreground border-border bg-card"
-                            title="Open Application in Browser"
-                          >
-                            <ExternalLink className="w-4 h-4" />
-                          </a>
+                          <TooltipProvider delay={300}>
+                            <Tooltip>
+                              <TooltipTrigger render={
+                                <a 
+                                  href={`http://localhost:${c.hostPort}`}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors border text-muted-foreground hover:bg-muted hover:text-foreground border-border bg-card"
+                                />
+                              }>
+                                <ExternalLink className="w-4 h-4" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Open App in Browser</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         ) : (
-                          <button 
-                            disabled
-                            className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors border text-muted-foreground/30 border-border bg-card cursor-not-allowed"
-                            title="No port exposed"
-                          >
-                            <ExternalLink className="w-4 h-4" />
-                          </button>
+                          <TooltipProvider delay={300}>
+                            <Tooltip>
+                              <TooltipTrigger render={
+                                <button 
+                                  disabled
+                                  className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors border text-muted-foreground/30 border-border bg-card cursor-not-allowed"
+                                />
+                              }>
+                                <ExternalLink className="w-4 h-4" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>No port exposed</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         )}
                         
                         {c.status === "Running" ? (
                           <>
-                            <button onClick={() => onStop(c.id)} className="w-8 h-8 rounded-lg flex items-center justify-center text-amber-500 hover:bg-amber-500/10 hover:text-amber-600 transition-colors border border-border bg-card">
-                              <Square className="w-4 h-4" />
-                            </button>
-                            <button onClick={() => onRestart(c.id)} className="w-8 h-8 rounded-lg flex items-center justify-center text-blue-500 hover:bg-blue-500/10 hover:text-blue-600 transition-colors border border-border bg-card">
-                              <RestartIcon className="w-4 h-4" />
-                            </button>
+                            <TooltipProvider delay={300}>
+                              <Tooltip>
+                                <TooltipTrigger render={
+                                  <button onClick={() => onStop(c.id)} className="w-8 h-8 rounded-lg flex items-center justify-center text-amber-500 hover:bg-amber-500/10 hover:text-amber-600 transition-colors border border-border bg-card" />
+                                }>
+                                  <Square className="w-4 h-4" />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Stop Container</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                            <TooltipProvider delay={300}>
+                              <Tooltip>
+                                <TooltipTrigger render={
+                                  <button onClick={() => onRestart(c.id)} className="w-8 h-8 rounded-lg flex items-center justify-center text-blue-500 hover:bg-blue-500/10 hover:text-blue-600 transition-colors border border-border bg-card" />
+                                }>
+                                  <RestartIcon className="w-4 h-4" />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Restart Container</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
                           </>
                         ) : (
-                          <button onClick={() => onStart(c.id)} className="w-8 h-8 rounded-lg flex items-center justify-center text-emerald-500 hover:bg-emerald-500/10 hover:text-emerald-600 transition-colors border border-border bg-card">
-                            <Play className="w-4 h-4 ml-0.5" />
-                          </button>
+                          <TooltipProvider delay={300}>
+                            <Tooltip>
+                              <TooltipTrigger render={
+                                <button onClick={() => onStart(c.id)} className="w-8 h-8 rounded-lg flex items-center justify-center text-emerald-500 hover:bg-emerald-500/10 hover:text-emerald-600 transition-colors border border-border bg-card" />
+                              }>
+                                <Play className="w-4 h-4 ml-0.5" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Start Container</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         )}
                         
                         <DropdownMenu>
