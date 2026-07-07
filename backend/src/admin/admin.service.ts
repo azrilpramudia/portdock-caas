@@ -1,9 +1,14 @@
-import { Injectable, ConflictException } from '@nestjs/common';
+import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AdminDashboardResponseDto } from './dto/admin-dashboard.dto';
 import { SystemService } from './system.service';
 import * as bcrypt from 'bcrypt';
 import { DockerService } from '../docker/docker.service';
+
+function calculateTrend(current: number, previous: number): number {
+  if (previous === 0) return current > 0 ? 100 : 0;
+  return Math.round(((current - previous) / previous) * 100);
+}
 
 @Injectable()
 export class AdminService {
@@ -14,6 +19,10 @@ export class AdminService {
   ) {}
 
   async getDashboardStats(): Promise<AdminDashboardResponseDto> {
+    const now = new Date();
+    const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const twoWeeksAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+
     const [
       totalProjects,
       totalContainers,
@@ -25,7 +34,15 @@ export class AdminService {
       recentProjects,
       recentActivities,
       resources,
-      serviceStatus
+      serviceStatus,
+      projectsThisWeek,
+      projectsLastWeek,
+      usersThisWeek,
+      usersLastWeek,
+      containersThisWeek,
+      containersLastWeek,
+      activeDeploymentsThisWeek,
+      activeDeploymentsLastWeek
     ] = await Promise.all([
       this.prisma.project.count(),
       this.prisma.container.count(),
@@ -46,15 +63,33 @@ export class AdminService {
       }),
       this.system.getSystemResources(),
       this.system.getServiceHealth(),
+      this.prisma.project.count({ where: { createdAt: { gte: oneWeekAgo } } }),
+      this.prisma.project.count({ where: { createdAt: { gte: twoWeeksAgo, lt: oneWeekAgo } } }),
+      this.prisma.user.count({ where: { createdAt: { gte: oneWeekAgo } } }),
+      this.prisma.user.count({ where: { createdAt: { gte: twoWeeksAgo, lt: oneWeekAgo } } }),
+      this.prisma.container.count({ where: { createdAt: { gte: oneWeekAgo } } }),
+      this.prisma.container.count({ where: { createdAt: { gte: twoWeeksAgo, lt: oneWeekAgo } } }),
+      this.prisma.project.count({ where: { status: 'ACTIVE', createdAt: { gte: oneWeekAgo } } }),
+      this.prisma.project.count({ where: { status: 'ACTIVE', createdAt: { gte: twoWeeksAgo, lt: oneWeekAgo } } }),
     ]);
 
     const successRate = totalProjects > 0 ? 
       Math.round((activeDeployments / totalProjects) * 100) : 100;
+    const successRateLastWeek = projectsLastWeek > 0 ? 
+      Math.round((activeDeploymentsLastWeek / projectsLastWeek) * 100) : 100;
 
     const recentDeployments = recentProjects.map(p => {
-      // Generate pseudo-random duration based on project ID for visual variety
-      const mins = (p.id.charCodeAt(p.id.length - 1) % 5) + 1;
-      const secs = (p.id.charCodeAt(p.id.length - 2) % 60).toString().padStart(2, '0');
+      let durationStr = '-';
+      if (p.updatedAt && p.createdAt) {
+        const diffInSeconds = Math.floor((p.updatedAt.getTime() - p.createdAt.getTime()) / 1000);
+        if (diffInSeconds > 0) {
+          const m = Math.floor(diffInSeconds / 60);
+          const s = diffInSeconds % 60;
+          durationStr = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        } else {
+          durationStr = '< 1s';
+        }
+      }
       
       return {
         id: `#DEP-${p.id.substring(p.id.length - 4).toUpperCase()}`,
@@ -62,7 +97,7 @@ export class AdminService {
         user: p.user.email,
         status: (p.status === 'ACTIVE' ? 'Success' : p.status === 'FAILED' ? 'Failed' : 'Building') as 'Success' | 'Failed' | 'Building',
         time: p.updatedAt.toISOString(),
-        duration: `0${mins}:${secs}`,
+        duration: durationStr,
       };
     });
 
@@ -82,6 +117,11 @@ export class AdminService {
         totalUsers,
         successRate,
         runningContainers: containerRunning,
+        totalProjectsTrend: calculateTrend(projectsThisWeek, projectsLastWeek),
+        totalContainersTrend: calculateTrend(containersThisWeek, containersLastWeek),
+        activeDeploymentsTrend: calculateTrend(activeDeploymentsThisWeek, activeDeploymentsLastWeek),
+        totalUsersTrend: calculateTrend(usersThisWeek, usersLastWeek),
+        successRateTrend: calculateTrend(successRate, successRateLastWeek),
       },
       resources,
       containerStatus: {
@@ -173,6 +213,27 @@ export class AdminService {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const deploymentsToday = projects.filter(p => p.updatedAt >= today).length;
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+    const twoWeeksAgo = new Date();
+    twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    yesterday.setHours(0, 0, 0, 0);
+
+    const totalProjectsThisWeek = projects.filter(p => p.createdAt >= oneWeekAgo).length;
+    const totalProjectsLastWeek = projects.filter(p => p.createdAt >= twoWeeksAgo && p.createdAt < oneWeekAgo).length;
+    
+    const activeProjectsThisWeek = projects.filter(p => p.status === 'ACTIVE' && p.createdAt >= oneWeekAgo).length;
+    const activeProjectsLastWeek = projects.filter(p => p.status === 'ACTIVE' && p.createdAt >= twoWeeksAgo && p.createdAt < oneWeekAgo).length;
+    
+    const pausedProjectsThisWeek = projects.filter(p => p.status === 'INACTIVE' && p.createdAt >= oneWeekAgo).length;
+    const pausedProjectsLastWeek = projects.filter(p => p.status === 'INACTIVE' && p.createdAt >= twoWeeksAgo && p.createdAt < oneWeekAgo).length;
+    
+    const failedProjectsThisWeek = projects.filter(p => p.status === 'FAILED' && p.createdAt >= oneWeekAgo).length;
+    const failedProjectsLastWeek = projects.filter(p => p.status === 'FAILED' && p.createdAt >= twoWeeksAgo && p.createdAt < oneWeekAgo).length;
+
+    const deploymentsYesterday = projects.filter(p => p.updatedAt >= yesterday && p.updatedAt < today).length;
 
     return {
       stats: {
@@ -181,6 +242,11 @@ export class AdminService {
         pausedProjects,
         failedProjects,
         deploymentsToday,
+        totalProjectsTrend: calculateTrend(totalProjectsThisWeek, totalProjectsLastWeek),
+        activeProjectsTrend: calculateTrend(activeProjectsThisWeek, activeProjectsLastWeek),
+        pausedProjectsTrend: calculateTrend(pausedProjectsThisWeek, pausedProjectsLastWeek),
+        failedProjectsTrend: calculateTrend(failedProjectsThisWeek, failedProjectsLastWeek),
+        deploymentsTrend: calculateTrend(deploymentsToday, deploymentsYesterday),
       },
       projects,
     };
@@ -204,6 +270,60 @@ export class AdminService {
       where: { id },
     });
   }
+
+  async startContainer(id: string) {
+    const container = await this.prisma.container.findUnique({ where: { id } });
+    if (!container) throw new NotFoundException('Container not found');
+    if (!container.dockerContainerId) throw new NotFoundException('Docker container not found');
+
+    await this.dockerService.startContainer(container.dockerContainerId);
+    return this.prisma.container.update({
+      where: { id },
+      data: { status: 'RUNNING' },
+    });
+  }
+
+  async stopContainer(id: string) {
+    const container = await this.prisma.container.findUnique({ where: { id } });
+    if (!container) throw new NotFoundException('Container not found');
+    if (!container.dockerContainerId) throw new NotFoundException('Docker container not found');
+
+    await this.dockerService.stopContainer(container.dockerContainerId);
+    return this.prisma.container.update({
+      where: { id },
+      data: { status: 'STOPPED' },
+    });
+  }
+
+  async restartContainer(id: string) {
+    const container = await this.prisma.container.findUnique({ where: { id } });
+    if (!container) throw new NotFoundException('Container not found');
+    if (!container.dockerContainerId) throw new NotFoundException('Docker container not found');
+
+    await this.dockerService.restartContainer(container.dockerContainerId);
+    return this.prisma.container.update({
+      where: { id },
+      data: { status: 'RUNNING' },
+    });
+  }
+
+  async deleteContainer(id: string) {
+    const container = await this.prisma.container.findUnique({ where: { id } });
+    if (!container) throw new NotFoundException('Container not found');
+    
+    if (container.dockerContainerId) {
+      try {
+        await this.dockerService.removeContainer(container.dockerContainerId);
+      } catch (err) {
+        console.warn(`Failed to remove docker container ${container.dockerContainerId}:`, err);
+      }
+    }
+    
+    return this.prisma.container.delete({
+      where: { id },
+    });
+  }
+
 
   async suspendProject(id: string) {
     // Get project and its containers
@@ -381,6 +501,7 @@ export class AdminService {
       if (c.status === 'RUNNING' && c.dockerContainerId) {
         try {
           const stats = await this.dockerService.getContainerStats(c.dockerContainerId);
+          const info = await this.dockerService.inspectContainer(c.dockerContainerId);
           
           // Calculate CPU
           const cpuDelta = stats.cpu_stats.cpu_usage.total_usage - (stats.precpu_stats?.cpu_usage?.total_usage || 0);
@@ -403,7 +524,8 @@ export class AdminService {
             cpuPercent: parseFloat(cpuPercent.toFixed(2)),
             memoryUsage,
             memoryLimit,
-            memoryPercent: parseFloat(memoryPercent.toFixed(2))
+            memoryPercent: parseFloat(memoryPercent.toFixed(2)),
+            startedAt: info.State?.StartedAt || null
           };
         } catch (error) {
           // Ignore error if container stats cannot be fetched, it might have stopped
@@ -416,12 +538,37 @@ export class AdminService {
       };
     }));
 
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+    const twoWeeksAgo = new Date();
+    twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+
+    const totalContainersThisWeek = containers.filter(c => c.createdAt >= oneWeekAgo).length;
+    const totalContainersLastWeek = containers.filter(c => c.createdAt >= twoWeeksAgo && c.createdAt < oneWeekAgo).length;
+
+    const runningContainersThisWeek = containers.filter(c => c.status === 'RUNNING' && c.createdAt >= oneWeekAgo).length;
+    const runningContainersLastWeek = containers.filter(c => c.status === 'RUNNING' && c.createdAt >= twoWeeksAgo && c.createdAt < oneWeekAgo).length;
+
+    const stoppedContainersThisWeek = containers.filter(c => c.status === 'STOPPED' && c.createdAt >= oneWeekAgo).length;
+    const stoppedContainersLastWeek = containers.filter(c => c.status === 'STOPPED' && c.createdAt >= twoWeeksAgo && c.createdAt < oneWeekAgo).length;
+
+    const exitedContainersThisWeek = containers.filter(c => (c.status === 'ERROR' || c.status === 'REMOVING') && c.createdAt >= oneWeekAgo).length;
+    const exitedContainersLastWeek = containers.filter(c => (c.status === 'ERROR' || c.status === 'REMOVING') && c.createdAt >= twoWeeksAgo && c.createdAt < oneWeekAgo).length;
+
+    const imagesArrayThisWeek = containers.filter(c => c.createdAt >= oneWeekAgo).map(c => c.imageName);
+    const imagesArrayLastWeek = containers.filter(c => c.createdAt >= twoWeeksAgo && c.createdAt < oneWeekAgo).map(c => c.imageName);
+
     const stats = {
       totalContainers: containers.length,
       runningContainers: containers.filter(c => c.status === 'RUNNING').length,
       stoppedContainers: containers.filter(c => c.status === 'STOPPED').length,
       exitedContainers: containers.filter(c => c.status === 'ERROR' || c.status === 'REMOVING').length,
       totalImages: new Set(containers.map(c => c.imageName)).size,
+      totalContainersTrend: calculateTrend(totalContainersThisWeek, totalContainersLastWeek),
+      runningContainersTrend: calculateTrend(runningContainersThisWeek, runningContainersLastWeek),
+      stoppedContainersTrend: calculateTrend(stoppedContainersThisWeek, stoppedContainersLastWeek),
+      exitedContainersTrend: calculateTrend(exitedContainersThisWeek, exitedContainersLastWeek),
+      totalImagesTrend: calculateTrend(new Set(imagesArrayThisWeek).size, new Set(imagesArrayLastWeek).size),
     };
 
     return {

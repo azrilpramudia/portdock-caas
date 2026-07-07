@@ -8,6 +8,12 @@ export interface AdminDashboardStatsDto {
   totalUsers: number;
   successRate: number;
   runningContainers: number;
+  totalProjectsTrend?: number;
+  totalContainersTrend?: number;
+  activeDeploymentsTrend?: number;
+  totalUsersTrend?: number;
+  successRateTrend?: number;
+  runningContainersTrend?: number;
 }
 
 export interface ResourceUsageDto {
@@ -153,6 +159,11 @@ export interface ProjectStatsDto {
   pausedProjects: number;
   failedProjects: number;
   deploymentsToday: number;
+  totalProjectsTrend?: number;
+  activeProjectsTrend?: number;
+  pausedProjectsTrend?: number;
+  failedProjectsTrend?: number;
+  deploymentsTrend?: number;
 }
 
 export interface AdminProjectsResponseDto {
@@ -278,6 +289,11 @@ export interface ContainerStatsDto {
   stoppedContainers: number;
   exitedContainers: number;
   totalImages: number;
+  totalContainersTrend?: number;
+  runningContainersTrend?: number;
+  stoppedContainersTrend?: number;
+  exitedContainersTrend?: number;
+  totalImagesTrend?: number;
 }
 
 export interface AdminContainersResponseDto {
@@ -293,5 +309,24 @@ export function useAdminContainers() {
       return res.data;
     },
     refetchInterval: 5000,
+  });
+}
+
+export function useAdminContainerAction() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, action }: { id: string; action: 'start' | 'stop' | 'restart' | 'delete' }) => {
+      if (action === 'delete') {
+        const res = await api.delete(`/admin/containers/${id}`);
+        return res.data;
+      } else {
+        const res = await api.post(`/admin/containers/${id}/${action}`);
+        return res.data;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["adminContainers"] });
+    },
   });
 }

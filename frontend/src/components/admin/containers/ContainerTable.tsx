@@ -1,9 +1,18 @@
-import { Eye, Terminal, MoreVertical, Play, RotateCw, Trash2, ChevronLeft, ChevronRight, Box } from "lucide-react";
+import { Eye, Terminal, MoreVertical, Play, RotateCw, Trash2, ChevronLeft, ChevronRight, Box, PauseCircle, Copy, Check } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
-import { id } from "date-fns/locale";
+import { id as localeId } from "date-fns/locale";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useState } from "react";
+import Link from "next/link";
+import { useAdminContainerAction } from "@/hooks/useAdmin";
+import { useRouter } from "next/navigation";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { toast } from "sonner";
 
 interface ContainerTableProps {
   paginatedContainers: any[];
@@ -26,6 +35,25 @@ export function ContainerTable({
   handlePrevPage,
   handleNextPage
 }: ContainerTableProps) {
+  const { mutate: performAction, isPending } = useAdminContainerAction();
+  const router = useRouter();
+  const [viewContainer, setViewContainer] = useState<any | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+    toast.success("JSON berhasil disalin!");
+  };
+
+  const handleAction = (containerId: string, action: 'start'|'stop'|'restart'|'delete') => {
+    const actionText = action === 'start' ? 'menyalakan' : action === 'stop' ? 'mematikan' : action === 'restart' ? 'memulai ulang' : 'menghapus';
+    performAction({ id: containerId, action }, {
+      onSuccess: () => toast.success(`Berhasil ${actionText} kontainer!`),
+      onError: (err: any) => toast.error(`Gagal ${actionText} kontainer: ${err.message}`)
+    });
+  };
   
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -72,14 +100,9 @@ export function ContainerTable({
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
   };
 
-  const getMockUptime = (status: string, idx: number) => {
-    if (status !== 'RUNNING') return '-';
-    const values = ['2 jam 15 menit', '1 jam 45 menit', '1 jam 10 menit', '45 menit', '1 jam 20 menit'];
-    return values[idx % values.length];
-  };
-
   return (
-    <Card className="bg-card border-border shadow-sm rounded-2xl overflow-hidden p-0">
+    <>
+      <Card className="bg-card border-border shadow-sm rounded-2xl overflow-hidden p-0">
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
@@ -105,14 +128,19 @@ export function ContainerTable({
             ) : (
               paginatedContainers.map((container, idx) => {
                 const user = container.project?.user || {};
-                const uptimeMock = getMockUptime(container.status, idx);
                 
                 const liveStats = container.liveStats || {
                   cpuPercent: 0,
                   memoryUsage: 0,
                   memoryLimit: container.memoryLimit ? container.memoryLimit * 1024 * 1024 : 1024 * 1024 * 1024,
-                  memoryPercent: 0
+                  memoryPercent: 0,
+                  startedAt: null
                 };
+
+                let uptime = '-';
+                if (container.status === 'RUNNING' && liveStats.startedAt) {
+                  uptime = formatDistanceToNow(new Date(liveStats.startedAt));
+                }
                 
                 const ramUsedStr = formatBytes(liveStats.memoryUsage);
                 const ramTotalStr = formatBytes(liveStats.memoryLimit);
@@ -197,48 +225,75 @@ export function ContainerTable({
                         {container.status === 'RUNNING' && (
                           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                         )}
-                        {uptimeMock}
+                        {uptime}
                       </div>
                     </td>
 
                     {/* Actions */}
                     <td className="px-2 py-3 text-center">
                       <div className="flex items-center justify-center gap-2">
-                        {container.status === 'RUNNING' && (
-                          <>
-                            <Button variant="outline" size="icon" className="h-8 w-8 rounded-lg bg-card border-slate-200 dark:border-slate-800 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 shadow-none shrink-0">
+                        <TooltipProvider delay={300}>
+                          <Tooltip>
+                            <TooltipTrigger render={<Button aria-label="Lihat detail kontainer" onClick={() => setViewContainer(container)} variant="outline" size="icon" className="h-8 w-8 rounded-lg bg-card border-slate-200 dark:border-slate-800 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 shadow-none shrink-0" />}>
                               <Eye className="w-4 h-4" />
-                            </Button>
-                            <Button variant="outline" size="icon" className="h-8 w-8 rounded-lg bg-card border-slate-200 dark:border-slate-800 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 shadow-none shrink-0">
-                              <Terminal className="w-4 h-4" />
-                            </Button>
-                            <Button variant="outline" size="icon" className="h-8 w-8 rounded-lg bg-card border-slate-200 dark:border-slate-800 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 shadow-none shrink-0">
-                              <MoreVertical className="w-4 h-4" />
-                            </Button>
-                          </>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Lihat Detail</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                        
+                        {container.status === 'RUNNING' && (
+                          <TooltipProvider delay={300}>
+                            <Tooltip>
+                              <TooltipTrigger render={<Button aria-label="Buka terminal kontainer" variant="outline" size="icon" onClick={() => router.push(`/admin/terminal?containerId=${container.id}`)} className="h-8 w-8 rounded-lg bg-card border-slate-200 dark:border-slate-800 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 shadow-none shrink-0" />}>
+                                <Terminal className="w-4 h-4" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Buka Terminal</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         )}
+                        
                         {container.status === 'STOPPED' && (
-                          <>
-                            <Button variant="outline" size="icon" className="h-8 w-8 rounded-lg bg-card border-slate-200 dark:border-slate-800 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 shadow-none shrink-0">
-                              <Play className="w-4 h-4" />
-                            </Button>
-                            <Button variant="outline" size="icon" className="h-8 w-8 rounded-lg bg-card border-slate-200 dark:border-slate-800 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 shadow-none shrink-0">
-                              <Terminal className="w-4 h-4" />
-                            </Button>
-                            <Button variant="outline" size="icon" className="h-8 w-8 rounded-lg bg-card border-slate-200 dark:border-slate-800 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 shadow-none shrink-0">
-                              <MoreVertical className="w-4 h-4" />
-                            </Button>
-                          </>
+                          <Button onClick={() => handleAction(container.id, 'start')} disabled={isPending} variant="outline" size="icon" className="h-8 w-8 rounded-lg bg-card border-slate-200 dark:border-slate-800 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 shadow-none shrink-0">
+                            <Play className="w-4 h-4" />
+                          </Button>
                         )}
+
                         {(container.status === 'ERROR' || container.status === 'FAILED') && (
                           <>
-                            <Button variant="outline" size="icon" className="h-8 w-8 rounded-lg bg-card border-slate-200 dark:border-slate-800 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 shadow-none shrink-0">
+                            <Button onClick={() => handleAction(container.id, 'restart')} disabled={isPending} variant="outline" size="icon" className="h-8 w-8 rounded-lg bg-card border-slate-200 dark:border-slate-800 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 shadow-none shrink-0">
                               <RotateCw className="w-4 h-4" />
                             </Button>
-                            <Button variant="outline" size="icon" className="h-8 w-8 rounded-lg bg-card border-rose-100 dark:border-rose-900/30 text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 shadow-none shrink-0">
+                            <Button onClick={() => handleAction(container.id, 'delete')} disabled={isPending} variant="outline" size="icon" className="h-8 w-8 rounded-lg bg-card border-rose-100 dark:border-rose-900/30 text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 shadow-none shrink-0">
                               <Trash2 className="w-4 h-4" />
                             </Button>
                           </>
+                        )}
+
+                        {(container.status === 'RUNNING' || container.status === 'STOPPED') && (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger render={<Button variant="outline" size="icon" className="h-8 w-8 rounded-lg bg-card border-slate-200 dark:border-slate-800 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 shadow-none shrink-0" />}>
+                              <MoreVertical className="w-4 h-4" />
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              {container.status === 'RUNNING' && (
+                                <DropdownMenuItem onClick={() => handleAction(container.id, 'stop')} disabled={isPending}>
+                                  <PauseCircle className="w-4 h-4 mr-2" /> Stop Container
+                                </DropdownMenuItem>
+                              )}
+                              {container.status === 'RUNNING' && (
+                                <DropdownMenuItem onClick={() => handleAction(container.id, 'restart')} disabled={isPending}>
+                                  <RotateCw className="w-4 h-4 mr-2" /> Restart Container
+                                </DropdownMenuItem>
+                              )}
+                              <DropdownMenuItem className="text-rose-500 focus:text-rose-500" onClick={() => handleAction(container.id, 'delete')} disabled={isPending}>
+                                <Trash2 className="w-4 h-4 mr-2" /> Delete Container
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         )}
                       </div>
                     </td>
@@ -304,9 +359,70 @@ export function ContainerTable({
             disabled={currentPage === totalPages || totalPages === 0}
           >
             <ChevronRight className="h-4 w-4" />
-          </Button>
+            </Button>
+          </div>
         </div>
-      </div>
-    </Card>
+      </Card>
+
+      {/* Container Details Modal */}
+      <Dialog open={!!viewContainer} onOpenChange={(open) => !open && setViewContainer(null)}>
+        <DialogContent className="max-w-[95vw] sm:max-w-[80vw] md:max-w-[70vw] lg:max-w-[60vw] xl:max-w-4xl w-full max-h-[85vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Container Details: {viewContainer?.name}</DialogTitle>
+            <DialogDescription>Full properties of the selected container.</DialogDescription>
+          </DialogHeader>
+          
+          <Tabs defaultValue="overview" className="mt-2 flex-1 flex flex-col overflow-hidden">
+            <TabsList className="mb-2 w-fit">
+              <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="json">Raw JSON</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="overview" className="flex-1 overflow-y-auto outline-none">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 pr-2 pb-2">
+                {viewContainer && [
+                  { label: 'Container Name', value: viewContainer.name },
+                  { label: 'Docker ID', value: viewContainer.dockerContainerId?.substring(0, 12) || '-' },
+                  { label: 'Image', value: `${viewContainer.imageName}:${viewContainer.imageTag}` },
+                  { label: 'Project', value: viewContainer.project?.name || '-' },
+                  { label: 'Domain', value: viewContainer.project?.domain || viewContainer.subdomain || '-' },
+                  { label: 'Status', value: viewContainer.status },
+                  { label: 'Memory Limit', value: viewContainer.memoryLimit ? `${viewContainer.memoryLimit} MB` : 'Unlimited' },
+                  { label: 'CPU Limit', value: viewContainer.cpuLimit ? `${viewContainer.cpuLimit} Core` : 'Unlimited' },
+                  { label: 'Port Mapping', value: viewContainer.hostPort ? `${viewContainer.hostPort} ➔ ${viewContainer.internalPort}` : '-' },
+                  { label: 'Restart Policy', value: viewContainer.restartPolicy || 'Unless Stopped' },
+                  { label: 'Volume Mount', value: viewContainer.volumeMountPath || 'None' },
+                  { label: 'Created At', value: viewContainer.createdAt ? new Date(viewContainer.createdAt).toLocaleString('id-ID') : '-' },
+                ].map((item, idx) => (
+                  <div key={idx} className="bg-muted/50 border border-border/50 rounded-lg p-3 flex flex-col gap-1 transition-colors hover:bg-muted">
+                    <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">{item.label}</span>
+                    <span className="text-sm font-semibold text-foreground truncate" title={String(item.value)}>{item.value}</span>
+                  </div>
+                ))}
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="json" className="flex-1 flex flex-col overflow-hidden outline-none">
+              <div className="relative flex-1 bg-muted/30 border border-border rounded-lg flex flex-col overflow-hidden">
+                <Button 
+                  size="icon-sm" 
+                  variant="ghost" 
+                  className="absolute top-2 right-2 bg-background/50 hover:bg-background/80 backdrop-blur-sm z-10 border border-border"
+                  onClick={() => handleCopy(JSON.stringify(viewContainer, null, 2))}
+                  aria-label="Salin JSON"
+                >
+                  {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4 text-muted-foreground" />}
+                </Button>
+                <div className="flex-1 overflow-y-auto overflow-x-hidden p-4">
+                  <pre className="text-foreground text-[10px] sm:text-xs whitespace-pre-wrap break-all m-0">
+                    {viewContainer ? JSON.stringify(viewContainer, null, 2) : ''}
+                  </pre>
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

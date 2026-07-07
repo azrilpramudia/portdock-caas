@@ -5,6 +5,12 @@ export interface AdminDashboardStatsDto {
   totalUsers: number;
   successRate: number;
   runningContainers: number;
+  totalProjectsTrend?: number;
+  totalContainersTrend?: number;
+  activeDeploymentsTrend?: number;
+  totalUsersTrend?: number;
+  successRateTrend?: number;
+  runningContainersTrend?: number;
 }
 
 export interface ResourceUsageDto {

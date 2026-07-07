@@ -7,14 +7,34 @@ interface ProjectStatsProps {
   pausedProjects: number;
   failedProjects: number;
   deploymentsToday: number;
+  totalProjectsTrend?: number;
+  activeProjectsTrend?: number;
+  pausedProjectsTrend?: number;
+  failedProjectsTrend?: number;
+  deploymentsTrend?: number;
 }
+
+const TrendIndicator = ({ value, label = "dari minggu lalu" }: { value?: number, label?: string }) => {
+  if (value === undefined || value === null) return null;
+  const isPositive = value >= 0;
+  return (
+    <p className={`text-xs font-medium mt-1 flex items-center ${isPositive ? 'text-emerald-500' : 'text-rose-500'}`}>
+      {isPositive ? '↑' : '↓'} {Math.abs(value)}% <span className="text-muted-foreground font-normal ml-1">{label}</span>
+    </p>
+  );
+};
 
 export function ProjectStats({
   totalProjects,
   activeProjects,
   pausedProjects,
   failedProjects,
-  deploymentsToday
+  deploymentsToday,
+  totalProjectsTrend,
+  activeProjectsTrend,
+  pausedProjectsTrend,
+  failedProjectsTrend,
+  deploymentsTrend
 }: ProjectStatsProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
@@ -26,9 +46,7 @@ export function ProjectStats({
           <div>
             <p className="text-sm font-medium text-muted-foreground">Total Projects</p>
             <h3 className="text-2xl font-bold mt-1">{totalProjects}</h3>
-            <p className="text-xs font-medium text-emerald-500 mt-1 flex items-center">
-              ↑ 12% <span className="text-muted-foreground font-normal ml-1">dari minggu lalu</span>
-            </p>
+            <TrendIndicator value={totalProjectsTrend} />
           </div>
         </CardContent>
       </Card>
@@ -41,9 +59,7 @@ export function ProjectStats({
           <div>
             <p className="text-sm font-medium text-muted-foreground">Active Projects</p>
             <h3 className="text-2xl font-bold mt-1">{activeProjects}</h3>
-            <p className="text-xs font-medium text-emerald-500 mt-1 flex items-center">
-              ↑ 8% <span className="text-muted-foreground font-normal ml-1">dari minggu lalu</span>
-            </p>
+            <TrendIndicator value={activeProjectsTrend} />
           </div>
         </CardContent>
       </Card>
@@ -59,9 +75,7 @@ export function ProjectStats({
           <div>
             <p className="text-sm font-medium text-muted-foreground">Inactive Projects</p>
             <h3 className="text-2xl font-bold mt-1">{pausedProjects}</h3>
-            <p className="text-xs font-medium text-emerald-500 mt-1 flex items-center">
-              ↑ 33% <span className="text-muted-foreground font-normal ml-1">dari minggu lalu</span>
-            </p>
+            <TrendIndicator value={pausedProjectsTrend} />
           </div>
         </CardContent>
       </Card>
@@ -77,9 +91,7 @@ export function ProjectStats({
           <div>
             <p className="text-sm font-medium text-muted-foreground">Failed Projects</p>
             <h3 className="text-2xl font-bold mt-1">{failedProjects}</h3>
-            <p className="text-xs font-medium text-rose-500 mt-1 flex items-center">
-              ↓ 11% <span className="text-muted-foreground font-normal ml-1">dari minggu lalu</span>
-            </p>
+            <TrendIndicator value={failedProjectsTrend} />
           </div>
         </CardContent>
       </Card>
@@ -92,9 +104,7 @@ export function ProjectStats({
           <div>
             <p className="text-sm font-medium text-muted-foreground">Deployments Today</p>
             <h3 className="text-2xl font-bold mt-1">{deploymentsToday}</h3>
-            <p className="text-xs font-medium text-emerald-500 mt-1 flex items-center">
-              ↑ 14% <span className="text-muted-foreground font-normal ml-1">dari kemarin</span>
-            </p>
+            <TrendIndicator value={deploymentsTrend} label="dari kemarin" />
           </div>
         </CardContent>
       </Card>

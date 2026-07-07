@@ -15,21 +15,26 @@ export default function AdminLayout({
   const router = useRouter();
   const { isAuthenticated, user, initialize } = useAuthStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true);
 
   useEffect(() => {
-    initialize();
+    initialize().finally(() => {
+      setIsInitializing(false);
+    });
   }, [initialize]);
 
   useEffect(() => {
+    if (isInitializing) return;
+    
     if (!isAuthenticated) {
       router.replace("/login");
     } else if (user && user.role !== "ADMIN") {
       // Security Guard: Non-admins go back to user dashboard
       router.replace("/projects");
     }
-  }, [isAuthenticated, user, router]);
+  }, [isAuthenticated, user, router, isInitializing]);
 
-  if (!isAuthenticated || user?.role !== "ADMIN") return null;
+  if (isInitializing || !isAuthenticated || user?.role !== "ADMIN") return null;
 
   return (
     <div className="flex h-screen bg-background overflow-hidden">

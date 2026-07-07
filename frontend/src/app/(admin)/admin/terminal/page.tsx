@@ -15,6 +15,8 @@ import { ApplicationLogsWindow } from "@/components/terminal/ApplicationLogsWind
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TerminalSquare, ListTodo, ScrollText } from "lucide-react";
 
+import api from "@/lib/api";
+
 export default function TerminalPage() {
   const [containers, setContainers] = useState<any[]>([]);
   const [selectedContainerId, setSelectedContainerId] = useState("");
@@ -48,7 +50,8 @@ export default function TerminalPage() {
   useEffect(() => {
     const fetchContainers = async () => {
       try {
-        const data = await containersService.getContainers();
+        const res = await api.get("/admin/containers");
+        const data = res.data.containers || [];
         const running = data.filter((c: any) => c.status === "RUNNING");
         setContainers(running);
         
@@ -83,7 +86,8 @@ export default function TerminalPage() {
         isConnected={isConnected}
         handleConnect={handleConnect}
         handleDisconnect={handleDisconnect}
-        backUrl="/containers"
+        backUrl="/admin/containers"
+        isAdminMode={true}
       />
 
       <SessionInfoPanel sessionInfo={sessionInfo} isConnected={isConnected} />

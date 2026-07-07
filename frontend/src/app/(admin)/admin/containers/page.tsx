@@ -44,7 +44,12 @@ export default function AdminContainersPage() {
     runningContainers = 0, 
     stoppedContainers = 0, 
     exitedContainers = 0, 
-    totalImages = 0 
+    totalImages = 0,
+    totalContainersTrend,
+    runningContainersTrend,
+    stoppedContainersTrend,
+    exitedContainersTrend,
+    totalImagesTrend
   } = responseData?.stats || {};
 
   const uniqueProjects = useMemo(() => {
@@ -159,11 +164,7 @@ export default function AdminContainersPage() {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <Button 
-            className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-blue-600 hover:bg-blue-700 text-white h-10 px-4 py-2"
-          >
-            <Plus className="w-4 h-4 mr-2" /> Create Container
-          </Button>
+
           <Button 
             variant="outline" 
             className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2"
@@ -180,6 +181,11 @@ export default function AdminContainersPage() {
         stoppedContainers={stoppedContainers}
         exitedContainers={exitedContainers}
         totalImages={totalImages}
+        totalContainersTrend={totalContainersTrend}
+        runningContainersTrend={runningContainersTrend}
+        stoppedContainersTrend={stoppedContainersTrend}
+        exitedContainersTrend={exitedContainersTrend}
+        totalImagesTrend={totalImagesTrend}
       />
 
       <div className="space-y-4">

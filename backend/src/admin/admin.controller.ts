@@ -31,6 +31,26 @@ export class AdminController {
     return this.adminService.getAllContainers();
   }
 
+  @Post('containers/:id/start')
+  async startContainer(@Param('id') id: string) {
+    return this.adminService.startContainer(id);
+  }
+
+  @Post('containers/:id/stop')
+  async stopContainer(@Param('id') id: string) {
+    return this.adminService.stopContainer(id);
+  }
+
+  @Post('containers/:id/restart')
+  async restartContainer(@Param('id') id: string) {
+    return this.adminService.restartContainer(id);
+  }
+
+  @Delete('containers/:id')
+  async deleteContainer(@Param('id') id: string) {
+    return this.adminService.deleteContainer(id);
+  }
+
   @Patch('projects/:id')
   async updateProject(@Param('id') id: string, @Body() data: any) {
     return this.adminService.updateProject(id, data);

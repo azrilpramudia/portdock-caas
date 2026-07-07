@@ -1,10 +1,12 @@
-import { ChevronDown, RefreshCw, LogOut } from "lucide-react";
+import { ChevronDown, RefreshCw, LogOut, ArrowLeft } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 
 interface Container {
   id: string;
@@ -19,6 +21,8 @@ interface TerminalHeaderProps {
   isConnected: boolean;
   handleConnect: () => void;
   handleDisconnect: () => void;
+  backUrl?: string;
+  isAdminMode?: boolean;
 }
 
 export function TerminalHeader({
@@ -28,15 +32,37 @@ export function TerminalHeader({
   isConnected,
   handleConnect,
   handleDisconnect,
+  backUrl,
+  isAdminMode,
 }: TerminalHeaderProps) {
   const selectedContainer = containers.find((c) => c.id === selectedContainerId);
+  const router = useRouter();
 
   return (
     <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-card border border-border p-4 rounded-2xl shadow-sm mb-6">
-      <div className="w-full md:w-auto">
-        <label className="text-sm font-semibold text-muted-foreground mb-2 block">
-          Container Selection
-        </label>
+      <div className="w-full md:w-auto flex items-end gap-3">
+        {backUrl && (
+          <Button 
+            variant="outline" 
+            size="icon" 
+            onClick={() => router.push(backUrl)}
+            className="mb-0.5 h-[42px] w-[42px] rounded-xl border-border bg-background hover:bg-muted text-muted-foreground shrink-0"
+            title="Kembali"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </Button>
+        )}
+        <div className="w-full md:w-auto">
+          <div className="flex items-center gap-2 mb-2">
+            <label className="text-sm font-semibold text-muted-foreground block">
+              Container Selection
+            </label>
+            {isAdminMode && (
+              <span className="px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-500 text-[10px] font-bold uppercase tracking-wider border border-rose-500/20">
+                Admin Mode
+              </span>
+            )}
+          </div>
         <DropdownMenu>
           <DropdownMenuTrigger className="w-full md:w-[320px] flex items-center justify-between px-4 py-2.5 bg-background border border-border rounded-xl text-[14px] font-medium hover:bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-ring">
             <div className="flex items-center gap-3">
@@ -65,6 +91,7 @@ export function TerminalHeader({
             )}
           </DropdownMenuContent>
         </DropdownMenu>
+      </div>
       </div>
 
       <div className="flex items-center gap-3 w-full md:w-auto">

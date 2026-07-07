@@ -53,7 +53,12 @@ export default function AdminProjectsPage() {
     activeProjects = 0, 
     pausedProjects = 0, 
     failedProjects = 0, 
-    deploymentsToday = 0 
+    deploymentsToday = 0,
+    totalProjectsTrend,
+    activeProjectsTrend,
+    pausedProjectsTrend,
+    failedProjectsTrend,
+    deploymentsTrend
   } = responseData?.stats || {};
 
   const uniqueOwners = useMemo(() => {
@@ -184,6 +189,11 @@ export default function AdminProjectsPage() {
         pausedProjects={pausedProjects}
         failedProjects={failedProjects}
         deploymentsToday={deploymentsToday}
+        totalProjectsTrend={totalProjectsTrend}
+        activeProjectsTrend={activeProjectsTrend}
+        pausedProjectsTrend={pausedProjectsTrend}
+        failedProjectsTrend={failedProjectsTrend}
+        deploymentsTrend={deploymentsTrend}
       />
 
       <div className="space-y-4">
