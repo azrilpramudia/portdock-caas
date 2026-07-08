@@ -1,7 +1,9 @@
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import React, { useState } from "react";
+import { ChevronLeft, ChevronRight, Rocket, Terminal } from "lucide-react";
 import { Eye, Square, RotateCw, ExternalLink, List, CheckCircle2, XCircle, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
 
@@ -26,6 +28,10 @@ export function DeploymentsTable({
   handlePrevPage,
   handleNextPage
 }: DeploymentsTableProps) {
+  const [selectedDep, setSelectedDep] = useState<any>(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [isLogsOpen, setIsLogsOpen] = useState(false);
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "Success":
@@ -113,8 +119,18 @@ export function DeploymentsTable({
           <tbody className="divide-y divide-border">
             {deployments.length === 0 ? (
               <tr>
-                <td colSpan={10} className="px-6 py-12 text-center text-muted-foreground font-medium">
-                  No deployments found.
+                <td colSpan={10} className="px-6 py-20 text-center">
+                  <div className="flex flex-col items-center justify-center">
+                    <div className="bg-slate-100 dark:bg-slate-800/80 p-5 rounded-full mb-5 shadow-sm border border-slate-200 dark:border-slate-700">
+                      <Rocket className="w-8 h-8 text-slate-400 dark:text-slate-500" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-2">
+                      Belum ada riwayat deployment
+                    </h3>
+                    <p className="text-[14px] text-slate-500 dark:text-slate-400 max-w-sm mx-auto leading-relaxed">
+                      Data deployment akan otomatis terisi dan dipantau di sini ketika pengguna meluncurkan proyek mereka.
+                    </p>
+                  </div>
                 </td>
               </tr>
             ) : deployments.map((dep, index) => (
@@ -178,7 +194,12 @@ export function DeploymentsTable({
                     <TooltipProvider delay={300}>
                       <Tooltip>
                         <TooltipTrigger render={
-                          <Button variant="outline" size="icon" className="h-8 w-8 rounded-lg bg-background border-slate-200 dark:border-slate-800 text-slate-500 hover:text-slate-700 shadow-none" />
+                          <Button 
+                            onClick={() => { setSelectedDep(dep); setIsDetailsOpen(true); }}
+                            variant="outline" 
+                            size="icon" 
+                            className="h-8 w-8 rounded-lg bg-background border-slate-200 dark:border-slate-800 text-slate-500 hover:text-slate-700 shadow-none" 
+                          />
                         }>
                           <Eye className="w-4 h-4" />
                         </TooltipTrigger>
@@ -190,7 +211,12 @@ export function DeploymentsTable({
                       <TooltipProvider delay={300}>
                         <Tooltip>
                           <TooltipTrigger render={
-                            <Button variant="outline" size="icon" className="h-8 w-8 rounded-lg bg-background border-slate-200 dark:border-slate-800 text-slate-500 hover:text-slate-700 shadow-none" />
+                            <Button 
+                              onClick={() => { setSelectedDep(dep); setIsLogsOpen(true); }}
+                              variant="outline" 
+                              size="icon" 
+                              className="h-8 w-8 rounded-lg bg-background border-slate-200 dark:border-slate-800 text-slate-500 hover:text-slate-700 shadow-none" 
+                            />
                           }>
                             <List className="w-4 h-4" />
                           </TooltipTrigger>
@@ -282,6 +308,100 @@ export function DeploymentsTable({
           </Button>
         </div>
       </div>
+
+      {/* Details Dialog */}
+      <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Deployment Details</DialogTitle>
+            <DialogDescription>
+              Detailed information about this deployment.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedDep && (
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <span className="font-semibold text-right text-sm text-slate-700 dark:text-slate-300">ID:</span>
+                <span className="col-span-3 text-sm font-mono text-muted-foreground">{selectedDep.id}</span>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <span className="font-semibold text-right text-sm text-slate-700 dark:text-slate-300">Project:</span>
+                <span className="col-span-3 text-sm font-medium text-foreground">{selectedDep.project?.name}</span>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <span className="font-semibold text-right text-sm text-slate-700 dark:text-slate-300">Status:</span>
+                <span className="col-span-3 text-sm">{getStatusBadge(selectedDep.status)}</span>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <span className="font-semibold text-right text-sm text-slate-700 dark:text-slate-300">Progress:</span>
+                <span className="col-span-3 text-sm font-medium text-foreground">{selectedDep.progress}%</span>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <span className="font-semibold text-right text-sm text-slate-700 dark:text-slate-300">Started At:</span>
+                <span className="col-span-3 text-sm text-muted-foreground">{format(new Date(selectedDep.startedAt), "dd MMM yyyy, HH:mm:ss", { locale: id })}</span>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <span className="font-semibold text-right text-sm text-slate-700 dark:text-slate-300">Ended At:</span>
+                <span className="col-span-3 text-sm text-muted-foreground">{selectedDep.endedAt ? format(new Date(selectedDep.endedAt), "dd MMM yyyy, HH:mm:ss", { locale: id }) : '-'}</span>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <span className="font-semibold text-right text-sm text-slate-700 dark:text-slate-300">Duration:</span>
+                <span className="col-span-3 text-sm font-medium text-foreground">{calculateDuration(selectedDep.startedAt, selectedDep.endedAt)}</span>
+              </div>
+              {selectedDep.domain && (
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <span className="font-semibold text-right text-sm text-slate-700 dark:text-slate-300">Domain:</span>
+                  <a href={`http://${selectedDep.domain}`} target="_blank" rel="noreferrer" className="col-span-3 text-sm text-blue-500 hover:underline">
+                    {selectedDep.domain}
+                  </a>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Logs Dialog */}
+      <Dialog open={isLogsOpen} onOpenChange={setIsLogsOpen}>
+        <DialogContent className="sm:max-w-[700px]">
+          <DialogHeader>
+            <DialogTitle>Build Logs</DialogTitle>
+            <DialogDescription>
+              Terminal output for {selectedDep?.project?.name}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="bg-[#0D1117] text-[#C9D1D9] font-mono text-[13px] p-5 rounded-md h-[400px] overflow-y-auto mt-2 border border-slate-700/50">
+            <div className="flex flex-col gap-1.5">
+              <div className="text-blue-400 mb-2 flex items-center gap-2">
+                <Terminal className="w-4 h-4" />
+                <span>Starting deployment process...</span>
+              </div>
+              <div>&gt; Fetching project configuration for <span className="font-bold text-white">{selectedDep?.project?.name}</span></div>
+              <div className="text-emerald-400">✓ Configuration loaded successfully.</div>
+              <div>&gt; Pulling dependencies...</div>
+              <div>&gt; Building Docker image...</div>
+              <div className="text-slate-500">Step 1/5 : FROM node:18-alpine</div>
+              <div className="text-slate-500">Step 2/5 : WORKDIR /app</div>
+              <div className="text-slate-500">Step 3/5 : COPY package*.json ./</div>
+              <div className="text-slate-500">Step 4/5 : RUN npm install</div>
+              <div className="text-slate-500">Step 5/5 : COPY . .</div>
+              <div>&gt; Exporting image...</div>
+              
+              <div className="mt-4 border-t border-slate-700/50 pt-4">
+                {selectedDep?.status === "Success" ? (
+                  <div className="text-emerald-400 font-medium">✓ Deployment completed successfully. Container is now running.</div>
+                ) : selectedDep?.status === "Failed" ? (
+                  <div className="text-rose-400 font-medium">✗ Deployment failed: Build process exited with error code 1.</div>
+                ) : (
+                  <div className="text-blue-400 animate-pulse font-medium">... Processing ...</div>
+                )}
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

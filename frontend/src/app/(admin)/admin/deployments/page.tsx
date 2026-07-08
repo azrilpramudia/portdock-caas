@@ -88,6 +88,42 @@ export default function AdminDeploymentsPage() {
     if (currentPage > 1) setCurrentPage(currentPage - 1);
   };
 
+  const handleExport = () => {
+    if (!filteredDeployments.length) return;
+    
+    // Create CSV header
+    const headers = ['ID', 'Project', 'User', 'Environment', 'Status', 'Progress', 'Started At', 'Ended At', 'Domain'];
+    
+    // Create CSV rows
+    const rows = filteredDeployments.map(dep => [
+      dep.id,
+      dep.project.name,
+      dep.project.user.name,
+      dep.project.templateId || 'N/A',
+      dep.status,
+      `${dep.progress}%`,
+      new Date(dep.startedAt).toLocaleString(),
+      dep.endedAt ? new Date(dep.endedAt).toLocaleString() : '-',
+      dep.domain || 'N/A'
+    ]);
+    
+    // Combine header and rows
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+    ].join('\n');
+    
+    // Trigger download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `deployments_export_${new Date().getTime()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   if (isLoading && !data) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -111,11 +147,8 @@ export default function AdminDeploymentsPage() {
         </div>
         
         <div className="flex items-center gap-3">
-          <Button className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors h-10 px-4 py-2">
-            <Plus className="w-4 h-4 mr-2" />
-            New Deployment
-          </Button>
-          <Button variant="outline" className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
+
+          <Button onClick={handleExport} disabled={filteredDeployments.length === 0} variant="outline" className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
             <Download className="w-4 h-4 mr-2" />
             Export
           </Button>
