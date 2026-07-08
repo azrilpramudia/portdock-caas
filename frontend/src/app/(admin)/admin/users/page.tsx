@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { useAdminUsers } from "@/hooks/useAdmin";
-import { 
+import {
   Users, UserCheck, UserX, UserPlus, 
-  Download, Plus, Loader2
+  Download, Plus, Loader2, ArrowUp
 } from "lucide-react";
 import { format } from "date-fns";
 import { Card, CardContent } from "@/components/ui/card";
@@ -157,9 +157,12 @@ export default function AdminUsersPage() {
             <div>
               <p className="text-sm font-medium text-muted-foreground">Total Users</p>
               <h3 className="text-2xl font-bold mt-1">{stats?.totalUsers || 0}</h3>
-              <p className="text-xs font-medium text-emerald-500 mt-1 flex items-center">
-                ↑ 8% <span className="text-muted-foreground font-normal ml-1">dari minggu lalu</span>
-              </p>
+              <div className="flex items-start text-[10px] xl:text-[11px] mt-0.5">
+                <span className="font-bold flex items-center shrink-0 text-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 px-1.5 py-0.5 rounded">
+                  <ArrowUp className="w-2.5 h-2.5 mr-0.5" /> 8%
+                </span>
+                <span className="text-muted-foreground ml-1.5 font-medium leading-tight pt-[1px]">dari minggu lalu</span>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -173,9 +176,12 @@ export default function AdminUsersPage() {
             <div>
               <p className="text-sm font-medium text-muted-foreground">Active Users</p>
               <h3 className="text-2xl font-bold mt-1">{stats?.activeUsers || 0}</h3>
-              <p className="text-xs font-medium text-emerald-500 mt-1 flex items-center">
-                ↑ 10% <span className="text-muted-foreground font-normal ml-1">dari minggu lalu</span>
-              </p>
+              <div className="flex items-start text-[10px] xl:text-[11px] mt-0.5">
+                <span className="font-bold flex items-center shrink-0 text-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 px-1.5 py-0.5 rounded">
+                  <ArrowUp className="w-2.5 h-2.5 mr-0.5" /> 10%
+                </span>
+                <span className="text-muted-foreground ml-1.5 font-medium leading-tight pt-[1px]">dari minggu lalu</span>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -189,9 +195,12 @@ export default function AdminUsersPage() {
             <div>
               <p className="text-sm font-medium text-muted-foreground">Suspended Users</p>
               <h3 className="text-2xl font-bold mt-1">{stats?.suspendedUsers || 0}</h3>
-              <p className="text-xs font-medium text-emerald-500 mt-1 flex items-center">
-                ↑ 2% <span className="text-muted-foreground font-normal ml-1">dari minggu lalu</span>
-              </p>
+              <div className="flex items-start text-[10px] xl:text-[11px] mt-0.5">
+                <span className="font-bold flex items-center shrink-0 text-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 px-1.5 py-0.5 rounded">
+                  <ArrowUp className="w-2.5 h-2.5 mr-0.5" /> 2%
+                </span>
+                <span className="text-muted-foreground ml-1.5 font-medium leading-tight pt-[1px]">dari minggu lalu</span>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -205,9 +214,12 @@ export default function AdminUsersPage() {
             <div>
               <p className="text-sm font-medium text-muted-foreground">New Users (7 Hari)</p>
               <h3 className="text-2xl font-bold mt-1">{stats?.newUsers || 0}</h3>
-              <p className="text-xs font-medium text-emerald-500 mt-1 flex items-center">
-                ↑ 15% <span className="text-muted-foreground font-normal ml-1">dari minggu lalu</span>
-              </p>
+              <div className="flex items-start text-[10px] xl:text-[11px] mt-0.5">
+                <span className="font-bold flex items-center shrink-0 text-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 px-1.5 py-0.5 rounded">
+                  <ArrowUp className="w-2.5 h-2.5 mr-0.5" /> 15%
+                </span>
+                <span className="text-muted-foreground ml-1.5 font-medium leading-tight pt-[1px]">dari minggu lalu</span>
+              </div>
             </div>
           </CardContent>
         </Card>

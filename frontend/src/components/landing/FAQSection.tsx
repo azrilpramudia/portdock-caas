@@ -43,7 +43,7 @@ export default function FAQSection() {
                     {faq.question}
                   </span>
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-all duration-300 ${
-                    isOpen ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 rotate-180' : 'bg-slate-50 dark:bg-[#1e293b] text-slate-400 dark:text-slate-500'
+                    isOpen ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 rotate-180' : 'bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500'
                   }`}>
                     <ChevronDown className="w-4 h-4" />
                   </div>

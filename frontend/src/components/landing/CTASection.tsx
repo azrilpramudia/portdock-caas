@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 
 export default function CTASection() {
   return (
-    <section className="py-12 px-6 bg-[#f8fafc]/50 dark:bg-background pb-24 transition-colors duration-300">
+    <section className="py-12 px-6 bg-slate-50/50 dark:bg-background pb-24 transition-colors duration-300">
       <div className="max-w-6xl mx-auto relative overflow-hidden bg-gradient-to-r from-blue-50/80 to-blue-100/50 dark:from-blue-900/20 dark:to-blue-800/10 rounded-3xl border border-blue-100/50 dark:border-blue-900/50 shadow-sm p-12 md:p-16 flex flex-col md:flex-row items-center justify-center gap-12 transition-colors duration-300">
         {/* Decorative Rocket */}
         <div className="hidden md:flex relative w-48 h-48 items-center justify-center">

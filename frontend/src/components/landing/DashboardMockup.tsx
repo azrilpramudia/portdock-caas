@@ -102,7 +102,7 @@ function FloatingTerminal() {
   return (
     <div className="hidden sm:block absolute -bottom-8 -right-8 w-72 bg-portdock-navy rounded-xl shadow-2xl shadow-blue-900/20 border border-slate-700/50 overflow-hidden z-20 animate-[float_8s_ease-in-out_infinite_reverse]">
       {/* Terminal Header */}
-      <div className="flex items-center px-4 py-3 bg-[#1e293b]/50 border-b border-slate-700/50">
+      <div className="flex items-center px-4 py-3 bg-slate-800/50 border-b border-slate-700/50">
         <span className="text-slate-400 text-xs font-mono">$ docker ps</span>
         <div className="ml-auto w-1 h-3 bg-slate-400 animate-pulse" />
       </div>

@@ -1,42 +1,15 @@
 "use client";
 
 import { 
-  Search,
-  ChevronDown,
-  Calendar as CalendarIcon,
-  Download,
-  MoreHorizontal,
-  Rocket,
-  Box,
-  GitBranch,
-  Terminal,
-  Play,
-  Square,
-  AlertTriangle,
-  Key,
-  Atom,
-  Server,
-  FileCode,
-  Database,
-  Layers,
-  Shield,
-  ChevronLeft,
-  ChevronRight,
-  RefreshCw,
-  Trash2
+  Rocket, Box, Terminal, Play, Square, Layers, Trash2
 } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-
-import { Activity } from "lucide-react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { DateRange } from "react-day-picker";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
 import { useQuery } from "@tanstack/react-query";
 import { activityService } from "@/services/activity.service";
 import { useState } from "react";
 import { format } from "date-fns";
+import { DateRange } from "react-day-picker";
+import { ActivityLogsFilter } from "@/components/activity-logs/ActivityLogsFilter";
+import { ActivityLogsTable } from "@/components/activity-logs/ActivityLogsTable";
 
 export default function ActivityLogsPage() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -116,248 +89,29 @@ export default function ActivityLogsPage() {
   return (
     <div className="bg-card border border-border rounded-2xl shadow-sm overflow-hidden flex flex-col h-[calc(100vh-12rem)] min-h-[500px]">
       
-      {/* 1. TOP FILTER BAR */}
-      <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 p-6 border-b border-border">
-        <div className="flex flex-wrap items-center gap-4 w-full xl:w-auto">
-          
-          {/* Search */}
-          <div className="relative w-full sm:w-[280px]">
-            <input 
-              type="text" 
-              placeholder="Search activities..." 
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="w-full pl-4 pr-10 py-2.5 bg-muted/50 border border-border text-foreground text-[14px] rounded-xl outline-none focus:border-blue-500 focus:bg-card transition-all font-medium placeholder:text-muted-foreground/70"
-            />
-            <Search className="w-4 h-4 text-muted-foreground/70 absolute right-4 top-1/2 -translate-y-1/2" />
-          </div>
+      <ActivityLogsFilter 
+        search={search}
+        setSearch={setSearch}
+        actionFilter={actionFilter}
+        setActionFilter={setActionFilter}
+        statusFilter={statusFilter}
+        setStatusFilter={setStatusFilter}
+        date={date}
+        setDate={setDate}
+        setCurrentPage={setCurrentPage}
+        handleExport={handleExport}
+      />
 
-          {/* Action Dropdown */}
-          <div className="relative w-full sm:w-[180px]">
-            <Select value={actionFilter} onValueChange={(value) => { setActionFilter(value || "All Actions"); setCurrentPage(1); }}>
-              <SelectTrigger className="w-full bg-card border-border text-foreground text-[14px] rounded-xl h-11 px-4 font-bold focus:ring-blue-500/20">
-                <SelectValue placeholder="All Actions" />
-              </SelectTrigger>
-              <SelectContent className="rounded-xl border-border bg-card">
-                <SelectItem value="All Actions">All Actions</SelectItem>
-                <SelectItem value="Start">Started</SelectItem>
-                <SelectItem value="Stop">Stopped</SelectItem>
-                <SelectItem value="Create">Created</SelectItem>
-                <SelectItem value="Delete">Deleted</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Date Picker */}
-          <div className="relative w-full sm:w-[260px] xl:w-[280px]">
-            <Popover>
-              <PopoverTrigger className="w-full flex items-center justify-between bg-card border border-border text-foreground text-[14px] rounded-xl px-4 py-2.5 font-bold cursor-pointer hover:bg-muted transition-colors">
-                <span className="truncate">
-                    {date?.from ? (
-                      date.to ? (
-                        <>
-                          {format(date.from, "LLL dd, y")} -{" "}
-                          {format(date.to, "LLL dd, y")}
-                        </>
-                      ) : (
-                        format(date.from, "LLL dd, y")
-                      )
-                    ) : (
-                      <span className="text-muted-foreground/80 font-medium">Pick a date range</span>
-                    )}
-                  </span>
-                <CalendarIcon className="w-4 h-4 text-muted-foreground shrink-0 ml-2" />
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="center">
-                <Calendar
-                  mode="range"
-                  defaultMonth={date?.from}
-                  selected={date}
-                  onSelect={(newDate) => {
-                    setDate(newDate);
-                    setCurrentPage(1);
-                  }}
-                  numberOfMonths={1}
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-
-          {/* Status Dropdown */}
-          <div className="relative w-full sm:w-[150px]">
-            <Select value={statusFilter} onValueChange={(value) => { setStatusFilter(value || "All Status"); setCurrentPage(1); }}>
-              <SelectTrigger className="w-full bg-card border-border text-foreground text-[14px] rounded-xl h-11 px-4 font-bold focus:ring-blue-500/20">
-                <SelectValue placeholder="All Status" />
-              </SelectTrigger>
-              <SelectContent className="rounded-xl border-border bg-card">
-                <SelectItem value="All Status">All Status</SelectItem>
-                <SelectItem value="Success">Success</SelectItem>
-                <SelectItem value="Failed">Failed</SelectItem>
-                <SelectItem value="Pending">Pending</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-        </div>
-
-        {/* Export Button */}
-        <button 
-          onClick={handleExport}
-          className="flex items-center gap-2 px-5 py-2.5 bg-card border border-border hover:border-border/80 hover:bg-muted text-foreground rounded-xl text-[14px] font-bold transition-all whitespace-nowrap"
-        >
-          <Download className="w-4 h-4" />
-          Export
-        </button>
-      </div>
-
-      {/* 2. MAIN TABLE */}
-      <div className="flex-1 overflow-auto">
-        <table className="w-full text-left whitespace-nowrap">
-          <thead className="bg-card sticky top-0 z-10 border-b border-border">
-            <tr className="text-[12px] font-bold text-muted-foreground">
-              <th className="px-6 py-4 font-semibold">Time</th>
-              <th className="px-6 py-4 font-semibold">User</th>
-              <th className="px-6 py-4 font-semibold">Action</th>
-              <th className="px-6 py-4 font-semibold">Project / Container</th>
-              <th className="px-6 py-4 font-semibold">Status</th>
-              <th className="px-6 py-4 font-semibold">IP Address</th>
-              <th className="px-6 py-4 font-semibold w-10"></th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {isLoading ? (
-              <tr>
-                <td colSpan={7} className="px-6 py-16 text-center text-muted-foreground">
-                  <RefreshCw className="w-8 h-8 mx-auto mb-3 animate-spin text-blue-500" />
-                  <p className="font-medium text-sm">Loading activity logs...</p>
-                </td>
-              </tr>
-            ) : logs.length === 0 ? (
-              <tr>
-                <td colSpan={7} className="px-6 py-16 text-center text-muted-foreground">
-                  <Activity className="w-10 h-10 mx-auto mb-3 text-muted-foreground/30" />
-                  <p className="font-medium text-sm">No activity logs found</p>
-                </td>
-              </tr>
-            ) : (
-              logs.map((log: any) => (
-                <tr key={log.id} className="hover:bg-muted/50 transition-colors group">
-                  
-                  {/* Time */}
-                  <td className="px-6 py-4">
-                    <div className="text-[13px] font-medium text-muted-foreground">{log.date}</div>
-                    <div className="text-[12px] text-muted-foreground/70 mt-0.5">{log.time}</div>
-                  </td>
-
-                  {/* User */}
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <Avatar className="w-8 h-8 rounded-full border border-border bg-muted flex items-center justify-center">
-                        <span className="text-[10px] font-bold text-foreground">
-                          {log.user.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase()}
-                        </span>
-                      </Avatar>
-                      <div>
-                        <div className="text-[13px] font-bold text-foreground">{log.user}</div>
-                        <div className="text-[12px] font-medium text-muted-foreground mt-0.5">{log.role}</div>
-                      </div>
-                    </div>
-                  </td>
-
-                  {/* Action */}
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${log.actionBg}`}>
-                        {log.actionIcon}
-                      </div>
-                      <div className="max-w-[200px] xl:max-w-[250px]">
-                        <div className="text-[13px] font-bold text-foreground truncate">{log.actionTitle}</div>
-                        <div className="text-[12px] font-medium text-muted-foreground mt-0.5 truncate">{log.actionSub}</div>
-                      </div>
-                    </div>
-                  </td>
-
-                  {/* Project / Container */}
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${log.targetBg}`}>
-                        {log.targetIcon}
-                      </div>
-                      <div className="max-w-[200px] xl:max-w-[250px]">
-                        <div className="text-[13px] font-bold text-foreground truncate">{log.targetTitle}</div>
-                        <div className="text-[12px] font-medium text-muted-foreground mt-0.5 truncate">{log.targetSub}</div>
-                      </div>
-                    </div>
-                  </td>
-
-                  {/* Status */}
-                  <td className="px-6 py-4">
-                    {log.status === "Success" ? (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[12px] font-bold">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                        Success
-                      </span>
-                    ) : log.status === "Pending" ? (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[12px] font-bold">
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                        Pending
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-red-500/10 text-red-600 dark:text-red-400 text-[12px] font-bold">
-                        <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
-                        Failed
-                      </span>
-                    )}
-                  </td>
-
-                  {/* IP Address */}
-                  <td className="px-6 py-4">
-                    <span className="text-[13px] font-medium text-muted-foreground">{log.ip}</span>
-                  </td>
-
-                  {/* Actions (Three dots) */}
-                  <td className="px-6 py-4 text-right">
-                    <button className="p-1.5 text-muted-foreground/70 hover:text-foreground rounded-lg transition-colors opacity-0 group-hover:opacity-100">
-                      <MoreHorizontal className="w-4 h-4" />
-                    </button>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {/* 3. PAGINATION */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between p-6 border-t border-border">
-          <div className="text-[13px] font-medium text-muted-foreground">
-            Showing {startCount} to {endCount} of {totalLogs} activities
-          </div>
-          <div className="flex items-center gap-1.5">
-            <button 
-              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
-              className="w-8 h-8 flex items-center justify-center text-muted-foreground/70 bg-card border border-border rounded-lg hover:bg-muted hover:text-foreground transition-colors disabled:opacity-50"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <span className="text-[13px] font-bold text-foreground mx-2">
-              Page {currentPage} of {totalPages}
-            </span>
-            <button 
-              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
-              className="w-8 h-8 flex items-center justify-center text-muted-foreground/70 bg-card border border-border rounded-lg hover:bg-muted hover:text-foreground transition-colors disabled:opacity-50"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      )}
+      <ActivityLogsTable 
+        logs={logs}
+        isLoading={isLoading}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalLogs={totalLogs}
+        startCount={startCount}
+        endCount={endCount}
+        setCurrentPage={setCurrentPage}
+      />
 
     </div>
   );

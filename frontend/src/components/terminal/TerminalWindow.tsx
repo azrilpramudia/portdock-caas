@@ -50,7 +50,7 @@ export function TerminalWindow({
         </div>
       </div>
       
-      <div className={`bg-[#111827] rounded-xl p-3 overflow-hidden border border-slate-800 shadow-inner relative ${isMaximized ? 'flex-1 min-h-0' : 'h-[520px]'}`}>
+      <div className={`bg-gray-900 rounded-xl p-3 overflow-hidden border border-slate-800 shadow-inner relative ${isMaximized ? 'flex-1 min-h-0' : 'h-[520px]'}`}>
         <div className="absolute inset-3">
           <div ref={terminalRef} className="w-full h-full" />
         </div>

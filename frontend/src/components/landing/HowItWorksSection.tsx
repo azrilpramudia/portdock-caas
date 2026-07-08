@@ -3,7 +3,7 @@ import { MoveRight } from "lucide-react";
 
 export default function HowItWorksSection() {
   return (
-    <section className="py-24 px-6 bg-[#f8fafc]/50 dark:bg-slate-900/30 transition-colors duration-300">
+    <section className="py-24 px-6 bg-slate-50/50 dark:bg-slate-900/30 transition-colors duration-300">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16 flex flex-col items-center">
           <span className="text-blue-600 font-bold text-xs tracking-wider uppercase mb-3">

@@ -23,7 +23,7 @@ export default function LoginPage() {
   }, [isAuthenticated, router]);
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] dark:bg-background text-slate-900 dark:text-foreground flex flex-col relative overflow-hidden transition-colors duration-300">
+    <div className="min-h-screen bg-slate-50 dark:bg-background text-slate-900 dark:text-foreground flex flex-col relative overflow-hidden transition-colors duration-300">
       {/* Dot Pattern Background */}
       <div 
         className="absolute inset-0 z-0 opacity-40 dark:opacity-20 pointer-events-none"

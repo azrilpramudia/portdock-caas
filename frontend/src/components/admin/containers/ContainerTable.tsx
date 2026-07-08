@@ -9,11 +9,9 @@ import Link from "next/link";
 import { useAdminContainerAction } from "@/hooks/useAdmin";
 import { useRouter } from "next/navigation";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { ViewContainerModal } from "./ContainerModals";
 import { toast } from "sonner";
-
 interface ContainerTableProps {
   paginatedContainers: any[];
   filteredContainers: any[];
@@ -38,14 +36,6 @@ export function ContainerTable({
   const { mutate: performAction, isPending } = useAdminContainerAction();
   const router = useRouter();
   const [viewContainer, setViewContainer] = useState<any | null>(null);
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = (text: string) => {
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-    toast.success("JSON berhasil disalin!");
-  };
 
   const handleAction = (containerId: string, action: 'start'|'stop'|'restart'|'delete') => {
     const actionText = action === 'start' ? 'menyalakan' : action === 'stop' ? 'mematikan' : action === 'restart' ? 'memulai ulang' : 'menghapus';
@@ -385,65 +375,11 @@ export function ContainerTable({
         </div>
       </Card>
 
-      {/* Container Details Modal */}
-      <Dialog open={!!viewContainer} onOpenChange={(open) => !open && setViewContainer(null)}>
-        <DialogContent className="max-w-[95vw] sm:max-w-[80vw] md:max-w-[70vw] lg:max-w-[60vw] xl:max-w-4xl w-full max-h-[85vh] flex flex-col">
-          <DialogHeader>
-            <DialogTitle>Container Details: {viewContainer?.name}</DialogTitle>
-            <DialogDescription>Full properties of the selected container.</DialogDescription>
-          </DialogHeader>
-          
-          <Tabs defaultValue="overview" className="mt-2 flex-1 flex flex-col overflow-hidden">
-            <TabsList className="mb-2 w-fit">
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="json">Raw JSON</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="overview" className="flex-1 overflow-y-auto outline-none">
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 pr-2 pb-2">
-                {viewContainer && [
-                  { label: 'Container Name', value: viewContainer.name },
-                  { label: 'Docker ID', value: viewContainer.dockerContainerId?.substring(0, 12) || '-' },
-                  { label: 'Image', value: `${viewContainer.imageName}:${viewContainer.imageTag}` },
-                  { label: 'Project', value: viewContainer.project?.name || '-' },
-                  { label: 'Domain', value: viewContainer.project?.domain || viewContainer.subdomain || '-' },
-                  { label: 'Status', value: viewContainer.status },
-                  { label: 'Memory Limit', value: viewContainer.memoryLimit ? `${viewContainer.memoryLimit} MB` : 'Unlimited' },
-                  { label: 'CPU Limit', value: viewContainer.cpuLimit ? `${viewContainer.cpuLimit} Core` : 'Unlimited' },
-                  { label: 'Port Mapping', value: viewContainer.hostPort ? `${viewContainer.hostPort} ➔ ${viewContainer.internalPort}` : '-' },
-                  { label: 'Restart Policy', value: viewContainer.restartPolicy || 'Unless Stopped' },
-                  { label: 'Volume Mount', value: viewContainer.volumeMountPath || 'None' },
-                  { label: 'Created At', value: viewContainer.createdAt ? new Date(viewContainer.createdAt).toLocaleString('id-ID') : '-' },
-                ].map((item, idx) => (
-                  <div key={idx} className="bg-muted/50 border border-border/50 rounded-lg p-3 flex flex-col gap-1 transition-colors hover:bg-muted">
-                    <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">{item.label}</span>
-                    <span className="text-sm font-semibold text-foreground truncate" title={String(item.value)}>{item.value}</span>
-                  </div>
-                ))}
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="json" className="flex-1 flex flex-col overflow-hidden outline-none">
-              <div className="relative flex-1 bg-muted/30 border border-border rounded-lg flex flex-col overflow-hidden">
-                <Button 
-                  size="icon-sm" 
-                  variant="ghost" 
-                  className="absolute top-2 right-2 bg-background/50 hover:bg-background/80 backdrop-blur-sm z-10 border border-border"
-                  onClick={() => handleCopy(JSON.stringify(viewContainer, null, 2))}
-                  aria-label="Salin JSON"
-                >
-                  {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4 text-muted-foreground" />}
-                </Button>
-                <div className="flex-1 overflow-y-auto overflow-x-hidden p-4">
-                  <pre className="text-foreground text-[10px] sm:text-xs whitespace-pre-wrap break-all m-0">
-                    {viewContainer ? JSON.stringify(viewContainer, null, 2) : ''}
-                  </pre>
-                </div>
-              </div>
-            </TabsContent>
-          </Tabs>
-        </DialogContent>
-      </Dialog>
+      <ViewContainerModal 
+        isOpen={!!viewContainer} 
+        onClose={() => setViewContainer(null)} 
+        container={viewContainer} 
+      />
     </>
   );
 }

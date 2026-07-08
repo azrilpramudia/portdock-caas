@@ -31,7 +31,7 @@ export class AdminService {
       containerRunning,
       containerStopped,
       containerError,
-      recentProjects,
+      recentDeploymentsData,
       recentActivities,
       resources,
       serviceStatus,
@@ -51,10 +51,10 @@ export class AdminService {
       this.prisma.container.count({ where: { status: 'RUNNING' } }),
       this.prisma.container.count({ where: { status: 'STOPPED' } }),
       this.prisma.container.count({ where: { status: 'ERROR' } }),
-      this.prisma.project.findMany({
+      this.prisma.deployment.findMany({
         take: 5,
-        orderBy: { updatedAt: 'desc' },
-        include: { user: true },
+        orderBy: { startedAt: 'desc' },
+        include: { project: { include: { user: true } } },
       }),
       this.prisma.activityLog.findMany({
         take: 5,
@@ -78,10 +78,10 @@ export class AdminService {
     const successRateLastWeek = projectsLastWeek > 0 ? 
       Math.round((activeDeploymentsLastWeek / projectsLastWeek) * 100) : 100;
 
-    const recentDeployments = recentProjects.map(p => {
+    const recentDeployments = recentDeploymentsData.map(d => {
       let durationStr = '-';
-      if (p.updatedAt && p.createdAt) {
-        const diffInSeconds = Math.floor((p.updatedAt.getTime() - p.createdAt.getTime()) / 1000);
+      if (d.endedAt && d.startedAt) {
+        const diffInSeconds = Math.floor((d.endedAt.getTime() - d.startedAt.getTime()) / 1000);
         if (diffInSeconds > 0) {
           const m = Math.floor(diffInSeconds / 60);
           const s = diffInSeconds % 60;
@@ -92,11 +92,11 @@ export class AdminService {
       }
       
       return {
-        id: `#DEP-${p.id.substring(p.id.length - 4).toUpperCase()}`,
-        project: p.name,
-        user: p.user.email,
-        status: (p.status === 'ACTIVE' ? 'Success' : p.status === 'FAILED' ? 'Failed' : 'Building') as 'Success' | 'Failed' | 'Building',
-        time: p.updatedAt.toISOString(),
+        id: `#DEP-${d.id.substring(d.id.length - 4).toUpperCase()}`,
+        project: d.project.name,
+        user: d.project.user.email,
+        status: (d.status === 'Success' ? 'Success' : d.status === 'Failed' ? 'Failed' : 'Building') as 'Success' | 'Failed' | 'Building',
+        time: d.startedAt.toISOString(),
         duration: durationStr,
       };
     });

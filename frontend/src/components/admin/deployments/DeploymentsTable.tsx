@@ -3,7 +3,7 @@ import { ChevronLeft, ChevronRight, Rocket, Terminal } from "lucide-react";
 import { Eye, Square, RotateCw, ExternalLink, List, CheckCircle2, XCircle, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { DeploymentDetailsModal, DeploymentLogsModal } from "./DeploymentModals";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
 
@@ -309,99 +309,19 @@ export function DeploymentsTable({
         </div>
       </div>
 
-      {/* Details Dialog */}
-      <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>Deployment Details</DialogTitle>
-            <DialogDescription>
-              Detailed information about this deployment.
-            </DialogDescription>
-          </DialogHeader>
-          
-          {selectedDep && (
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <span className="font-semibold text-right text-sm text-slate-700 dark:text-slate-300">ID:</span>
-                <span className="col-span-3 text-sm font-mono text-muted-foreground">{selectedDep.id}</span>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <span className="font-semibold text-right text-sm text-slate-700 dark:text-slate-300">Project:</span>
-                <span className="col-span-3 text-sm font-medium text-foreground">{selectedDep.project?.name}</span>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <span className="font-semibold text-right text-sm text-slate-700 dark:text-slate-300">Status:</span>
-                <span className="col-span-3 text-sm">{getStatusBadge(selectedDep.status)}</span>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <span className="font-semibold text-right text-sm text-slate-700 dark:text-slate-300">Progress:</span>
-                <span className="col-span-3 text-sm font-medium text-foreground">{selectedDep.progress}%</span>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <span className="font-semibold text-right text-sm text-slate-700 dark:text-slate-300">Started At:</span>
-                <span className="col-span-3 text-sm text-muted-foreground">{format(new Date(selectedDep.startedAt), "dd MMM yyyy, HH:mm:ss", { locale: id })}</span>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <span className="font-semibold text-right text-sm text-slate-700 dark:text-slate-300">Ended At:</span>
-                <span className="col-span-3 text-sm text-muted-foreground">{selectedDep.endedAt ? format(new Date(selectedDep.endedAt), "dd MMM yyyy, HH:mm:ss", { locale: id }) : '-'}</span>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <span className="font-semibold text-right text-sm text-slate-700 dark:text-slate-300">Duration:</span>
-                <span className="col-span-3 text-sm font-medium text-foreground">{calculateDuration(selectedDep.startedAt, selectedDep.endedAt)}</span>
-              </div>
-              {selectedDep.domain && (
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <span className="font-semibold text-right text-sm text-slate-700 dark:text-slate-300">Domain:</span>
-                  <a href={`http://${selectedDep.domain}`} target="_blank" rel="noreferrer" className="col-span-3 text-sm text-blue-500 hover:underline">
-                    {selectedDep.domain}
-                  </a>
-                </div>
-              )}
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      <DeploymentDetailsModal 
+        isOpen={isDetailsOpen} 
+        onClose={() => setIsDetailsOpen(false)} 
+        deployment={selectedDep} 
+        getStatusBadge={getStatusBadge} 
+        calculateDuration={calculateDuration} 
+      />
 
-      {/* Logs Dialog */}
-      <Dialog open={isLogsOpen} onOpenChange={setIsLogsOpen}>
-        <DialogContent className="sm:max-w-[700px]">
-          <DialogHeader>
-            <DialogTitle>Build Logs</DialogTitle>
-            <DialogDescription>
-              Terminal output for {selectedDep?.project?.name}
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="bg-[#0D1117] text-[#C9D1D9] font-mono text-[13px] p-5 rounded-md h-[400px] overflow-y-auto mt-2 border border-slate-700/50">
-            <div className="flex flex-col gap-1.5">
-              <div className="text-blue-400 mb-2 flex items-center gap-2">
-                <Terminal className="w-4 h-4" />
-                <span>Starting deployment process...</span>
-              </div>
-              <div>&gt; Fetching project configuration for <span className="font-bold text-white">{selectedDep?.project?.name}</span></div>
-              <div className="text-emerald-400">✓ Configuration loaded successfully.</div>
-              <div>&gt; Pulling dependencies...</div>
-              <div>&gt; Building Docker image...</div>
-              <div className="text-slate-500">Step 1/5 : FROM node:18-alpine</div>
-              <div className="text-slate-500">Step 2/5 : WORKDIR /app</div>
-              <div className="text-slate-500">Step 3/5 : COPY package*.json ./</div>
-              <div className="text-slate-500">Step 4/5 : RUN npm install</div>
-              <div className="text-slate-500">Step 5/5 : COPY . .</div>
-              <div>&gt; Exporting image...</div>
-              
-              <div className="mt-4 border-t border-slate-700/50 pt-4">
-                {selectedDep?.status === "Success" ? (
-                  <div className="text-emerald-400 font-medium">✓ Deployment completed successfully. Container is now running.</div>
-                ) : selectedDep?.status === "Failed" ? (
-                  <div className="text-rose-400 font-medium">✗ Deployment failed: Build process exited with error code 1.</div>
-                ) : (
-                  <div className="text-blue-400 animate-pulse font-medium">... Processing ...</div>
-                )}
-              </div>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <DeploymentLogsModal 
+        isOpen={isLogsOpen} 
+        onClose={() => setIsLogsOpen(false)} 
+        deployment={selectedDep} 
+      />
     </div>
   );
 }

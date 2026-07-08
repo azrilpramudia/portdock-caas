@@ -18,9 +18,9 @@ export function ContainerStatus({ data }: ContainerStatusProps) {
   const getPercentage = (val: number) => total > 0 ? ((val / total) * 100).toFixed(1) : "0.0";
 
   const statusData = [
-    { name: "Running", value: active, color: "#10B981", bgClass: "bg-[#10B981]", percentage: getPercentage(active) },
-    { name: "Stopped", value: stopped, color: "#F59E0B", bgClass: "bg-[#F59E0B]", percentage: getPercentage(stopped) },
-    { name: "Failed/Error", value: failed, color: "#EF4444", bgClass: "bg-[#EF4444]", percentage: getPercentage(failed) },
+    { name: "Running", value: active, color: "#10B981", bgClass: "bg-emerald-500", percentage: getPercentage(active) },
+    { name: "Stopped", value: stopped, color: "#F59E0B", bgClass: "bg-amber-500", percentage: getPercentage(stopped) },
+    { name: "Failed/Error", value: failed, color: "#EF4444", bgClass: "bg-red-500", percentage: getPercentage(failed) },
   ];
 
   const totalContainers = total;
@@ -73,9 +73,9 @@ export function ContainerStatus({ data }: ContainerStatusProps) {
       </div>
 
       <div className="mt-auto pt-4">
-        <button className="text-sm font-bold text-primary hover:text-primary/80 flex items-center transition-colors">
-          Lihat semua container <ArrowRight className="w-4 h-4 ml-1" />
-        </button>
+        <Link href="/admin/containers" className="text-sm font-bold text-primary hover:text-primary/80 inline-flex items-center transition-colors group">
+          Lihat semua container <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+        </Link>
       </div>
     </div>
   );

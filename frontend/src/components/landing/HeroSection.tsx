@@ -103,7 +103,7 @@ function HeroButtons() {
         </button>
       </Link>
       <Link href="#docs">
-        <button className="inline-flex items-center gap-2 border border-gray-200 dark:border-slate-700 bg-white dark:bg-card hover:bg-gray-50 dark:hover:bg-[#1e293b] text-gray-700 dark:text-slate-300 font-semibold px-7 py-3 rounded-xl transition-all duration-200 hover:-translate-y-0.5 text-sm shadow-sm">
+        <button className="inline-flex items-center gap-2 border border-gray-200 dark:border-slate-700 bg-white dark:bg-card hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-700 dark:text-slate-300 font-semibold px-7 py-3 rounded-xl transition-all duration-200 hover:-translate-y-0.5 text-sm shadow-sm">
           <BookOpen className="w-4 h-4" />
           Documentation
         </button>

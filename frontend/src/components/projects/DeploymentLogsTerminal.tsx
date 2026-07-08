@@ -109,15 +109,15 @@ export function DeploymentLogsTerminal({
 
   return (
     <div className="w-full max-w-4xl mx-auto flex flex-col items-center">
-      <div className="w-full bg-[#0d1117] border border-[#30363d] rounded-xl overflow-hidden shadow-2xl">
+      <div className="w-full bg-slate-950 border border-slate-800 rounded-xl overflow-hidden shadow-2xl">
         {/* Terminal Header */}
-        <div className="flex items-center px-4 py-3 bg-[#161b22] border-b border-[#30363d]">
-          <div className="flex gap-2">
-            <div className="w-3 h-3 rounded-full bg-[#ff5f56]" />
-            <div className="w-3 h-3 rounded-full bg-[#ffbd2e]" />
-            <div className="w-3 h-3 rounded-full bg-[#27c93f]" />
+        <div className="flex items-center px-4 py-3 bg-slate-900 border-b border-slate-800">
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-red-500" />
+            <div className="w-3 h-3 rounded-full bg-yellow-500" />
+            <div className="w-3 h-3 rounded-full bg-green-500" />
           </div>
-          <div className="mx-auto flex items-center gap-2 text-[#8b949e] text-xs font-mono">
+          <div className="mx-auto flex items-center gap-2 text-slate-400 text-xs font-mono">
             <Terminal className="w-3.5 h-3.5" />
             Deployment Status
           </div>
@@ -130,13 +130,13 @@ export function DeploymentLogsTerminal({
           style={{ fontFamily: "'Fira Code', 'Courier New', Courier, monospace" }}
         >
           {logs.map((log) => (
-            <div key={log.id} className="flex gap-4 mb-2 animate-in fade-in slide-in-from-bottom-1">
-              <span className="text-[#484f58] shrink-0">{log.timestamp}</span>
+            <div key={log.id} className="flex gap-4 font-mono text-[13px] leading-relaxed group">
+              <span className="text-slate-500 shrink-0">{log.timestamp}</span>
               <span className={
-                log.type === 'info' ? 'text-[#8b949e]' :
-                log.type === 'process' ? 'text-[#c9d1d9]' :
-                log.type === 'success' ? 'text-[#3fb950]' :
-                'text-[#f85149]'
+                log.type === 'info' ? 'text-slate-400' :
+                log.type === 'process' ? 'text-slate-300' :
+                log.type === 'success' ? 'text-green-500' :
+                'text-red-500'
               }>
                 {log.type === 'error' ? '✖ ' : log.type === 'success' ? '✔ ' : '❯ '}
                 {log.text}
@@ -145,9 +145,9 @@ export function DeploymentLogsTerminal({
           ))}
           
           {isDeploying && !isSuccess && !isError && (
-            <div className="flex gap-4 mt-4 animate-pulse">
-              <span className="text-[#484f58]">{new Date().toLocaleTimeString('en-US', { hour12: false })}</span>
-              <span className="text-[#58a6ff] flex items-center gap-2">
+            <div className="flex gap-4 font-mono text-[13px] leading-relaxed">
+              <span className="text-slate-500">{new Date().toLocaleTimeString('en-US', { hour12: false })}</span>
+              <span className="text-blue-500 flex items-center gap-2">
                 <Loader2 className="w-4 h-4 animate-spin" />
                 Processing...
               </span>

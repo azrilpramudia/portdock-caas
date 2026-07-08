@@ -134,7 +134,7 @@ export function ContainerDetails({ container, onClose, onRefresh, initialTab = "
             </TabsContent>
 
             <TabsContent value="logs" className="mt-0">
-              <div className="bg-muted/20 dark:bg-[#111827] border border-border dark:border-slate-800 rounded-xl p-8 flex flex-col items-center justify-center text-center shadow-inner relative overflow-hidden group">
+              <div className="bg-muted/20 dark:bg-gray-900 border border-border dark:border-slate-800 rounded-xl p-8 flex flex-col items-center justify-center text-center shadow-inner relative overflow-hidden group">
                 <div className="absolute inset-0 bg-gradient-to-b from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
                 <TerminalSquare className="w-16 h-16 text-blue-500/40 mb-4" />
                 <h3 className="text-lg font-bold text-foreground dark:text-slate-200 mb-2">View Application Logs</h3>

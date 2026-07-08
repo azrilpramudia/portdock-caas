@@ -1,4 +1,4 @@
-import { Folder, ClipboardCheck, Rocket, PauseCircle, XCircle } from "lucide-react";
+import { Folder, ClipboardCheck, Rocket, PauseCircle, XCircle, ArrowUp, ArrowDown } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
 interface ProjectStatsProps {
@@ -14,17 +14,17 @@ interface ProjectStatsProps {
   deploymentsTrend?: number;
 }
 
-const TrendIndicator = ({ value, label1, label2 }: { value?: number, label1: string, label2: string }) => {
+const TrendIndicator = ({ value, timeframe }: { value?: number, timeframe: string }) => {
   if (value === undefined || value === null) return null;
   const isPositive = value >= 0;
-  const colorClass = isPositive ? 'text-emerald-500' : 'text-rose-500';
   
   return (
-    <div className="mt-2 grid grid-cols-[auto_1fr] gap-x-2 gap-y-0.5 text-[11px] leading-tight">
-      <span className={colorClass}>{isPositive ? '↑' : '↓'}</span>
-      <span className="text-muted-foreground">{label1}</span>
-      <span className={`font-bold ${colorClass}`}>{Math.abs(value)}%</span>
-      <span className="text-muted-foreground">{label2}</span>
+    <div className="flex items-start text-[10px] xl:text-[11px] mt-0.5">
+      <span className={`font-bold flex items-center shrink-0 ${isPositive ? 'text-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 px-1.5 py-0.5 rounded' : 'text-red-500 bg-red-50 dark:bg-red-500/10 px-1.5 py-0.5 rounded'}`}>
+        {isPositive ? <ArrowUp className="w-2.5 h-2.5 mr-0.5" /> : <ArrowDown className="w-2.5 h-2.5 mr-0.5" />}
+        {Math.abs(value)}%
+      </span>
+      <span className="text-muted-foreground ml-1.5 font-medium leading-tight pt-[1px]">{timeframe}</span>
     </div>
   );
 };
@@ -51,7 +51,7 @@ export function ProjectStats({
           <div>
             <p className="text-sm font-medium text-muted-foreground">Total Projects</p>
             <h3 className="text-2xl font-bold mt-1">{totalProjects}</h3>
-            <TrendIndicator value={totalProjectsTrend} label1="dari minggu" label2="lalu" />
+            <TrendIndicator value={totalProjectsTrend} timeframe="dari minggu lalu" />
           </div>
         </CardContent>
       </Card>
@@ -64,7 +64,7 @@ export function ProjectStats({
           <div>
             <p className="text-sm font-medium text-muted-foreground">Active Projects</p>
             <h3 className="text-2xl font-bold mt-1">{activeProjects}</h3>
-            <TrendIndicator value={activeProjectsTrend} label1="dari minggu" label2="lalu" />
+            <TrendIndicator value={activeProjectsTrend} timeframe="dari minggu lalu" />
           </div>
         </CardContent>
       </Card>
@@ -77,7 +77,7 @@ export function ProjectStats({
           <div>
             <p className="text-sm font-medium text-muted-foreground">Inactive Projects</p>
             <h3 className="text-2xl font-bold mt-1">{pausedProjects}</h3>
-            <TrendIndicator value={pausedProjectsTrend} label1="dari minggu" label2="lalu" />
+            <TrendIndicator value={pausedProjectsTrend} timeframe="dari minggu lalu" />
           </div>
         </CardContent>
       </Card>
@@ -90,7 +90,7 @@ export function ProjectStats({
           <div>
             <p className="text-sm font-medium text-muted-foreground">Failed Projects</p>
             <h3 className="text-2xl font-bold mt-1">{failedProjects}</h3>
-            <TrendIndicator value={failedProjectsTrend} label1="dari minggu" label2="lalu" />
+            <TrendIndicator value={failedProjectsTrend} timeframe="dari minggu lalu" />
           </div>
         </CardContent>
       </Card>
@@ -103,7 +103,7 @@ export function ProjectStats({
           <div>
             <p className="text-sm font-medium text-muted-foreground">Deployments Today</p>
             <h3 className="text-2xl font-bold mt-1">{deploymentsToday}</h3>
-            <TrendIndicator value={deploymentsTrend} label1="dari" label2="kemarin" />
+            <TrendIndicator value={deploymentsTrend} timeframe="dari kemarin" />
           </div>
         </CardContent>
       </Card>

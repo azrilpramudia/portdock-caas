@@ -25,7 +25,7 @@ export function NetworkTab({
   return (
     <div className="space-y-6">
       {/* Existing Allocations */}
-      <div className="bg-muted/20 dark:bg-[#111827] border border-border dark:border-slate-800 rounded-xl p-6 shadow-inner">
+      <div className="bg-muted/20 dark:bg-gray-900 border border-border dark:border-slate-800 rounded-xl p-6 shadow-inner">
         <div className="flex justify-between items-center mb-6">
           <div>
             <h3 className="text-lg font-bold text-foreground dark:text-slate-200">Network Allocation</h3>
@@ -72,7 +72,7 @@ export function NetworkTab({
       </div>
 
       {/* Create Allocation Form */}
-      <div className="bg-muted/20 dark:bg-[#111827] border border-border dark:border-slate-800 rounded-xl p-6 shadow-inner">
+      <div className="bg-muted/20 dark:bg-gray-900 border border-border dark:border-slate-800 rounded-xl p-6 shadow-inner">
         <h3 className="text-lg font-bold text-foreground dark:text-slate-200 mb-2">Create Allocation</h3>
         <p className="text-xs text-muted-foreground dark:text-slate-400 mb-4">Choose a specific port for this server (allowed range: 19000-25999).</p>
         
