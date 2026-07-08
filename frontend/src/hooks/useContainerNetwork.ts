@@ -55,12 +55,33 @@ export function useContainerNetwork(container: any, onRefresh?: () => void) {
     }
   };
 
+  const [internalPort, setInternalPort] = useState<number | ''>(container.internalPort || 80);
+  const [isUpdatingInternalPort, setIsUpdatingInternalPort] = useState(false);
+
+  const handleUpdateInternalPort = async () => {
+    if (internalPort === '') return;
+    setIsUpdatingInternalPort(true);
+    try {
+      await containersService.updateInternalPort(container.id, internalPort);
+      toast.success("Target internal port berhasil diperbarui");
+      if (onRefresh) onRefresh();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Gagal memperbarui target internal port");
+    } finally {
+      setIsUpdatingInternalPort(false);
+    }
+  };
+
   return {
     newPort,
     setNewPort,
     isCreatingAllocation,
     allocations,
     handleCreateAllocation,
-    handleRemovePort
+    handleRemovePort,
+    internalPort,
+    setInternalPort,
+    isUpdatingInternalPort,
+    handleUpdateInternalPort
   };
 }

@@ -10,8 +10,6 @@ interface SettingsTabProps {
   setRestartPolicy: (val: string) => void;
   volumeMountPath: string;
   setVolumeMountPath: (val: string) => void;
-  internalPort: number | '';
-  setInternalPort: (val: number | '') => void;
   handleSaveResources: () => void;
   isSavingResources: boolean;
 }
@@ -26,8 +24,6 @@ export function SettingsTab({
   setRestartPolicy,
   volumeMountPath,
   setVolumeMountPath,
-  internalPort,
-  setInternalPort,
   handleSaveResources,
   isSavingResources
 }: SettingsTabProps) {
@@ -133,29 +129,10 @@ export function SettingsTab({
           </div>
         </div>
 
-        {/* Internal Port */}
-        <div className="space-y-3">
-          <label className="text-sm font-semibold text-foreground/80 dark:text-slate-300">
-            Target Internal Port
-          </label>
-          <div className="relative">
-            <input 
-              type="number" 
-              placeholder="80" 
-              value={internalPort}
-              onChange={(e) => setInternalPort(e.target.value === '' ? '' : parseInt(e.target.value))}
-              className="w-full bg-background dark:bg-slate-900 border border-border dark:border-slate-800 rounded-lg px-4 py-2.5 text-sm text-foreground dark:text-slate-200 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all placeholder:text-muted-foreground/50"
-            />
-            <p className="text-xs text-muted-foreground dark:text-slate-500 mt-2">
-              Port di mana aplikasi Anda (Nginx/Node.js) berjalan di dalam kontainer. Mengubah pengaturan ini akan merakit ulang kontainer saat Anda menekan Restart.
-            </p>
-          </div>
-        </div>
-
         <div className="pt-4 flex justify-end border-t border-border dark:border-slate-800">
           <button 
             onClick={handleSaveResources}
-            disabled={isSavingResources || (memoryLimit === container.memoryLimit && cpuLimit === container.cpuLimit && restartPolicy === (container.restartPolicy || 'unless-stopped') && volumeMountPath === (container.volumeMountPath || '') && internalPort === (container.internalPort || 80))}
+            disabled={isSavingResources || (memoryLimit === container.memoryLimit && cpuLimit === container.cpuLimit && restartPolicy === (container.restartPolicy || 'unless-stopped') && volumeMountPath === (container.volumeMountPath || ''))}
             className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold transition-all shadow-lg shadow-emerald-900/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             {isSavingResources ? (

@@ -10,9 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useRouter } from "next/navigation";
 import { ContainerHeader } from "./details/ContainerHeader";
 import { NetworkTab } from "./details/NetworkTab";
-import { SettingsTab } from "./details/SettingsTab";
 import { useContainerNetwork } from "@/hooks/useContainerNetwork";
-import { useContainerResources } from "@/hooks/useContainerResources";
 
 interface ContainerDetailsProps {
   container: any;
@@ -33,7 +31,6 @@ export function ContainerDetails({ container, onClose, onRefresh, initialTab = "
   }, []);
   
   const networkState = useContainerNetwork(container, onRefresh);
-  const resourcesState = useContainerResources(container, onRefresh);
 
   const router = useRouter();
 
@@ -86,11 +83,10 @@ export function ContainerDetails({ container, onClose, onRefresh, initialTab = "
         {/* Body Tabs */}
         <div className="flex-1 overflow-y-auto p-6">
           <Tabs defaultValue={initialTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-4 mb-6 bg-muted/50 border border-border/50 h-11">
+            <TabsList className="grid w-full grid-cols-3 mb-6 bg-muted/50 border border-border/50 h-11">
               <TabsTrigger value="overview" className="gap-2 data-[state=active]:bg-card data-[state=active]:shadow-sm"><Layout className="w-4 h-4" /> Overview</TabsTrigger>
               <TabsTrigger value="network" className="gap-2 data-[state=active]:bg-card data-[state=active]:shadow-sm"><Globe className="w-4 h-4" /> Network</TabsTrigger>
               <TabsTrigger value="logs" className="gap-2 data-[state=active]:bg-card data-[state=active]:shadow-sm"><TerminalSquare className="w-4 h-4" /> Logs</TabsTrigger>
-              <TabsTrigger value="settings" className="gap-2 data-[state=active]:bg-card data-[state=active]:shadow-sm"><Settings className="w-4 h-4" /> Settings</TabsTrigger>
             </TabsList>
             
             <TabsContent value="overview" className="space-y-6 mt-0">
@@ -129,7 +125,11 @@ export function ContainerDetails({ container, onClose, onRefresh, initialTab = "
                 setNewPort={networkState.setNewPort} 
                 isCreatingAllocation={networkState.isCreatingAllocation} 
                 handleCreateAllocation={networkState.handleCreateAllocation} 
-                handleRemovePort={networkState.handleRemovePort} 
+                handleRemovePort={networkState.handleRemovePort}
+                internalPort={networkState.internalPort}
+                setInternalPort={networkState.setInternalPort}
+                isUpdatingInternalPort={networkState.isUpdatingInternalPort}
+                handleUpdateInternalPort={networkState.handleUpdateInternalPort}
               />
             </TabsContent>
 
@@ -151,23 +151,6 @@ export function ContainerDetails({ container, onClose, onRefresh, initialTab = "
               </div>
             </TabsContent>
 
-            <TabsContent value="settings" className="mt-0 space-y-6">
-              <SettingsTab 
-                container={container}
-                memoryLimit={resourcesState.memoryLimit}
-                setMemoryLimit={resourcesState.setMemoryLimit}
-                cpuLimit={resourcesState.cpuLimit}
-                setCpuLimit={resourcesState.setCpuLimit}
-                restartPolicy={resourcesState.restartPolicy}
-                setRestartPolicy={resourcesState.setRestartPolicy}
-                volumeMountPath={resourcesState.volumeMountPath}
-                setVolumeMountPath={resourcesState.setVolumeMountPath}
-                internalPort={resourcesState.internalPort}
-                setInternalPort={resourcesState.setInternalPort}
-                isSavingResources={resourcesState.isSavingResources}
-                handleSaveResources={resourcesState.handleSaveResources}
-              />
-            </TabsContent>
           </Tabs>
         </div>
 

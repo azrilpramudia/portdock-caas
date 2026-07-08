@@ -4,6 +4,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { SettingsTab } from "@/components/containers/details/SettingsTab";
+import { useContainerResources } from "@/hooks/useContainerResources";
 
 interface ViewContainerModalProps {
   isOpen: boolean;
@@ -13,6 +15,9 @@ interface ViewContainerModalProps {
 
 export function ViewContainerModal({ isOpen, onClose, container }: ViewContainerModalProps) {
   const [copied, setCopied] = useState(false);
+  const resourcesState = useContainerResources(container || {}, () => {
+    // Optionally refresh admin data here if needed
+  });
 
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -33,6 +38,7 @@ export function ViewContainerModal({ isOpen, onClose, container }: ViewContainer
           <TabsList className="mb-2 w-fit">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="json">Raw JSON</TabsTrigger>
+            <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
           
           <TabsContent value="overview" className="flex-1 overflow-y-auto outline-none">
@@ -76,6 +82,24 @@ export function ViewContainerModal({ isOpen, onClose, container }: ViewContainer
                 </pre>
               </div>
             </div>
+          </TabsContent>
+
+          <TabsContent value="settings" className="flex-1 overflow-y-auto outline-none pr-2 pb-2">
+            {container && (
+              <SettingsTab 
+                container={container}
+                memoryLimit={resourcesState.memoryLimit}
+                setMemoryLimit={resourcesState.setMemoryLimit}
+                cpuLimit={resourcesState.cpuLimit}
+                setCpuLimit={resourcesState.setCpuLimit}
+                restartPolicy={resourcesState.restartPolicy}
+                setRestartPolicy={resourcesState.setRestartPolicy}
+                volumeMountPath={resourcesState.volumeMountPath}
+                setVolumeMountPath={resourcesState.setVolumeMountPath}
+                handleSaveResources={resourcesState.handleSaveResources}
+                isSavingResources={resourcesState.isSavingResources}
+              />
+            )}
           </TabsContent>
         </Tabs>
       </DialogContent>

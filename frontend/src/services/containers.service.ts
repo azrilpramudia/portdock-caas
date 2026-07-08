@@ -22,7 +22,11 @@ export const containersService = {
     return res.data;
   },
   updateResources: async (id: string, data: { memoryLimit?: number | null; cpuLimit?: number | null; restartPolicy?: string; volumeMountPath?: string | null; internalPort?: number }) => {
-    const res = await api.patch(`/containers/${id}/resources`, data);
+    const res = await api.patch(`/admin/containers/${id}/resources`, data);
+    return res.data;
+  },
+  updateInternalPort: async (id: string, port: number) => {
+    const res = await api.patch(`/containers/${id}/internal-port`, { port });
     return res.data;
   },
   allocatePort: async (id: string, port: number) => {

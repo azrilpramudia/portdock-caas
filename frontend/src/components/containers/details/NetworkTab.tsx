@@ -10,6 +10,10 @@ interface NetworkTabProps {
   newPort: string;
   setNewPort: (val: string) => void;
   isCreatingAllocation: boolean;
+  internalPort: number | '';
+  setInternalPort: (val: number | '') => void;
+  isUpdatingInternalPort: boolean;
+  handleUpdateInternalPort: () => void;
 }
 
 export function NetworkTab({
@@ -20,10 +24,50 @@ export function NetworkTab({
   handleCreateAllocation,
   newPort,
   setNewPort,
-  isCreatingAllocation
+  isCreatingAllocation,
+  internalPort,
+  setInternalPort,
+  isUpdatingInternalPort,
+  handleUpdateInternalPort
 }: NetworkTabProps) {
   return (
     <div className="space-y-6">
+      {/* Target Internal Port */}
+      <div className="bg-muted/20 dark:bg-gray-900 border border-border dark:border-slate-800 rounded-xl p-6 shadow-inner">
+        <h3 className="text-lg font-bold text-foreground dark:text-slate-200 mb-2">Target Internal Port</h3>
+        <p className="text-xs text-muted-foreground dark:text-slate-400 mb-4">
+          Port di mana aplikasi Anda (Nginx/Node.js) berjalan di dalam kontainer. Mengubah pengaturan ini akan merakit ulang kontainer saat Anda menyimpan.
+        </p>
+        <div className="flex gap-4 items-end">
+          <div className="flex-1">
+            <input 
+              type="number" 
+              placeholder="80" 
+              value={internalPort ?? ''}
+              onChange={(e) => {
+                const val = e.target.value;
+                setInternalPort(val === '' ? '' : parseInt(val));
+              }}
+              className="w-full px-4 py-2.5 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all font-mono"
+            />
+          </div>
+          <button 
+            onClick={handleUpdateInternalPort}
+            disabled={isUpdatingInternalPort || internalPort === (container.internalPort || 80)}
+            className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold transition-all shadow-lg shadow-emerald-900/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            {isUpdatingInternalPort ? (
+              <>
+                <RefreshCw className="w-4 h-4 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              'Save Port'
+            )}
+          </button>
+        </div>
+      </div>
+
       {/* Existing Allocations */}
       <div className="bg-muted/20 dark:bg-gray-900 border border-border dark:border-slate-800 rounded-xl p-6 shadow-inner">
         <div className="flex justify-between items-center mb-6">

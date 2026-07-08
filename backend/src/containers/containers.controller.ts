@@ -15,7 +15,7 @@ import { ApiTags, ApiCookieAuth, ApiOperation } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ContainersService } from './containers.service';
 import { CreateContainerDto } from './dto/create-container.dto';
-import { UpdateResourcesDto } from './dto/update-resources.dto';
+
 
 @ApiTags('containers')
 @ApiCookieAuth()
@@ -71,16 +71,23 @@ export class ContainersController {
     return this.containersService.remove(id, req.user.id, ip);
   }
 
-  @Patch(':id/resources')
-  @ApiOperation({ summary: 'Update container resource limits' })
-  updateResources(
+
+
+  @Patch(':id/internal-port')
+  @ApiOperation({ summary: 'Update container internal port' })
+  updateInternalPort(
     @Request() req: any,
     @Param('id') id: string,
-    @Body() dto: UpdateResourcesDto,
+    @Body('port') port: number,
     @Ip() ip: string,
   ) {
-    console.log('UPDATE RESOURCES DTO RECEIVED:', dto);
-    return this.containersService.updateResources(id, req.user.id, dto, ip);
+    return this.containersService.updateResources(
+      id,
+      req.user.id,
+      { internalPort: port },
+      ip,
+      false,
+    );
   }
 
   @Post(':id/allocate-port')

@@ -7,7 +7,6 @@ export function useContainerResources(container: any, onRefresh?: () => void) {
   const [cpuLimit, setCpuLimit] = useState<number>(container.cpuLimit || 0.5);
   const [restartPolicy, setRestartPolicy] = useState<string>(container.restartPolicy || 'unless-stopped');
   const [volumeMountPath, setVolumeMountPath] = useState<string>(container.volumeMountPath || '');
-  const [internalPort, setInternalPort] = useState<number | ''>(container.internalPort || 80);
   const [isSavingResources, setIsSavingResources] = useState(false);
 
   const handleSaveResources = async () => {
@@ -18,7 +17,6 @@ export function useContainerResources(container: any, onRefresh?: () => void) {
         cpuLimit, 
         restartPolicy,
         volumeMountPath: volumeMountPath.trim() === '' ? null : volumeMountPath.trim(),
-        internalPort: internalPort === '' ? undefined : Number(internalPort)
       });
       toast.success("Settings updated successfully");
       if (onRefresh) onRefresh();
@@ -34,7 +32,6 @@ export function useContainerResources(container: any, onRefresh?: () => void) {
     cpuLimit, setCpuLimit,
     restartPolicy, setRestartPolicy,
     volumeMountPath, setVolumeMountPath,
-    internalPort, setInternalPort,
     isSavingResources,
     handleSaveResources
   };

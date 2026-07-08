@@ -133,7 +133,7 @@ export class ContainersService {
     return enriched;
   }
 
-  async findOne(id: string, userId: string) {
+  async findOne(id: string, userId: string, isAdmin: boolean = false) {
     const container = await this.prisma.container.findUnique({
       where: { id },
       include: {
@@ -144,7 +144,7 @@ export class ContainersService {
     });
 
     if (!container) throw new NotFoundException('Container not found');
-    if (container.project.userId !== userId) throw new ForbiddenException();
+    if (!isAdmin && container.project.userId !== userId) throw new ForbiddenException();
 
     if (container.dockerContainerId) {
       try {
@@ -370,8 +370,9 @@ export class ContainersService {
     userId: string,
     dto: UpdateResourcesDto,
     ip?: string,
+    isAdmin: boolean = false
   ) {
-    const container = await this.findOne(id, userId);
+    const container = await this.findOne(id, userId, isAdmin);
 
     // Convert memory (MB) to bytes and CPU (cores) to nanoCPUs
     const memoryBytes = dto.memoryLimit
