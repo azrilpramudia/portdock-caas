@@ -19,7 +19,7 @@ interface NewProjectFormProps {
   setValue: any;
   control: any;
   errors: any;
-  deploymentType: string;
+  deploymentType: "ZIP" | "GITHUB" | "DOCKERFILE";
   file: File | null;
   setFile: (file: File | null) => void;
   dragOver: boolean;
