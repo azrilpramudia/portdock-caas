@@ -65,6 +65,7 @@ model Project {
   containers   Container[]
   activityLogs ActivityLog[]
   terminalLogs TerminalLog[]
+  deployments  Deployment[]
 
   @@map("projects")
 }
@@ -120,6 +121,21 @@ model TerminalLog {
   project Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
 
   @@map("terminal_logs")
+}
+
+model Deployment {
+  id          String   @id @default(cuid())
+  projectId   String   @map("project_id")
+  status      String   @default("In Progress")
+  progress    Int      @default(0)
+  startedAt   DateTime @default(now()) @map("started_at")
+  endedAt     DateTime? @map("ended_at")
+  domain      String?
+  commitHash  String?  @map("commit_hash")
+
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  @@map("deployments")
 }
 
 enum DatabaseType {

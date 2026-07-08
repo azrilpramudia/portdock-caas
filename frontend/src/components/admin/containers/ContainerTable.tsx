@@ -181,14 +181,14 @@ export function ContainerTable({
 
                     {/* Status */}
                     <td className="px-2 py-3">
-                      <Badge variant="outline" className={`font-semibold border-0 gap-1 px-2 py-0.5 text-[11px] ${getStatusColor(container.status)}`}>
+                      <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-semibold text-[11px] ${getStatusColor(container.status)}`}>
                         {container.status === 'ERROR' || container.status === 'FAILED' ? (
-                          <span className="w-2 h-2 flex items-center justify-center text-[9px] font-bold">×</span>
+                          <div className={`w-1.5 h-1.5 rounded-full ${getStatusDot(container.status)}`} />
                         ) : (
-                          <span className={`w-1.5 h-1.5 rounded-full ${getStatusDot(container.status)}`}></span>
+                          <div className={`w-1.5 h-1.5 rounded-full ${getStatusDot(container.status)}${container.status === 'INACTIVE' || container.status === 'STOPPED' ? ' animate-pulse' : ''}`} />
                         )}
-                        {container.status === 'RUNNING' ? 'Running' : container.status === 'STOPPED' ? 'Stopped' : 'Exited'}
-                      </Badge>
+                        {container.status === 'RUNNING' ? 'Active' : container.status === 'STOPPED' ? 'Stopped' : 'Exited'}
+                      </div>
                     </td>
 
                     {/* Image */}

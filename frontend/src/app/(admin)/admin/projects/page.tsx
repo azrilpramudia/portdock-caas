@@ -9,33 +9,24 @@ import { Button } from "@/components/ui/button";
 
 // Extracted Components
 import { ProjectStats } from "@/components/admin/projects/ProjectStats";
-import { ProjectToolbar } from "@/components/admin/projects/ProjectToolbar";
+import { AdminDataFilters, FilterValues } from "@/components/admin/AdminDataFilters";
 import { ProjectTable } from "@/components/admin/projects/ProjectTable";
 import { ViewProjectModal, EditProjectModal, DeleteProjectModal } from "@/components/admin/projects/ProjectModals";
 
 export default function AdminProjectsPage() {
+  const [filters, setFilters] = useState<FilterValues>({
+    search: "",
+    status: "all",
+    projectId: "all",
+    userId: "all",
+    dateRange: "all",
+  });
+
   const { data: responseData, isLoading } = useAdminProjects();
   
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("All Status");
-  const [ownerFilter, setOwnerFilter] = useState("All Users");
   const [sortBy, setSortBy] = useState("Newest");
-  const [dateFilter, setDateFilter] = useState("ALL"); // ALL, 7DAYS, 30DAYS
-
-  const activeFilterCount = (statusFilter !== "All Status" ? 1 : 0) + 
-                            (ownerFilter !== "All Users" ? 1 : 0) + 
-                            (dateFilter !== "ALL" ? 1 : 0) + 
-                            (searchQuery !== "" ? 1 : 0);
-
-  const resetFilters = () => {
-    setStatusFilter("All Status");
-    setOwnerFilter("All Users");
-    setDateFilter("ALL");
-    setSearchQuery("");
-    setCurrentPage(1);
-  };
   
   // Modal states
   const [isViewProjectOpen, setIsViewProjectOpen] = useState(false);
@@ -61,37 +52,52 @@ export default function AdminProjectsPage() {
     deploymentsTrend
   } = responseData?.stats || {};
 
-  const uniqueOwners = useMemo(() => {
-    const owners = new Set<string>();
-    projects.forEach(p => owners.add(p.user.name));
-    return Array.from(owners).sort();
-  }, [projects]);
+  const projectOptions = useMemo(() => {
+    if (!responseData?.projects) return [{ label: "All Projects", value: "all" }];
+    const uniqueProjects = Array.from(new Set(responseData.projects.map(p => p.id)));
+    return [
+      { label: "All Projects", value: "all" },
+      ...uniqueProjects.map(id => {
+        const p = responseData.projects.find(p => p.id === id);
+        return { label: p?.name || id, value: id };
+      })
+    ];
+  }, [responseData?.projects]);
 
-  // Filter projects
+  const userOptions = useMemo(() => {
+    if (!responseData?.projects) return [{ label: "All Users", value: "all" }];
+    const uniqueUsers = Array.from(new Set(responseData.projects.map(p => p.user.id)));
+    return [
+      { label: "All Users", value: "all" },
+      ...uniqueUsers.map(id => {
+        const p = responseData.projects.find(p => p.user.id === id);
+        return { label: p?.user.name || id, value: id };
+      })
+    ];
+  }, [responseData?.projects]);
+
+  // Sort and filter projects
   const filteredProjects = useMemo(() => {
-    let result = projects.filter(project => {
-      const matchesSearch = 
-        project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        project.user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (project.domain && project.domain.toLowerCase().includes(searchQuery.toLowerCase()));
-      
-      const matchesStatus = statusFilter === "All Status" || project.status === statusFilter.toUpperCase();
-      const matchesOwner = ownerFilter === "All Users" || project.user.name === ownerFilter;
-      
-      let matchesDate = true;
-      if (dateFilter !== "ALL") {
-        const projectDate = new Date(project.createdAt).getTime();
-        const now = new Date().getTime();
-        const daysDiff = (now - projectDate) / (1000 * 3600 * 24);
-        
-        if (dateFilter === "7DAYS") matchesDate = daysDiff <= 7;
-        if (dateFilter === "30DAYS") matchesDate = daysDiff <= 30;
-      }
-      
-      return matchesSearch && matchesStatus && matchesOwner && matchesDate;
-    });
+    let result = [...projects];
 
-    // Sort projects
+    if (filters.search) {
+      const q = filters.search.toLowerCase();
+      result = result.filter(p => 
+        p.name.toLowerCase().includes(q) || 
+        (p.domain && p.domain.toLowerCase().includes(q)) ||
+        p.user.name.toLowerCase().includes(q)
+      );
+    }
+    if (filters.status && filters.status !== "all") {
+      result = result.filter(p => p.status === filters.status);
+    }
+    if (filters.projectId && filters.projectId !== "all") {
+      result = result.filter(p => p.id === filters.projectId);
+    }
+    if (filters.userId && filters.userId !== "all") {
+      result = result.filter(p => p.user.id === filters.userId);
+    }
+
     result = result.sort((a, b) => {
       if (sortBy === "Newest") {
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
@@ -106,7 +112,7 @@ export default function AdminProjectsPage() {
     });
 
     return result;
-  }, [projects, searchQuery, statusFilter, ownerFilter, sortBy, dateFilter]);
+  }, [projects, sortBy, filters]);
 
   const totalPages = Math.ceil(filteredProjects.length / itemsPerPage) || 1;
   const paginatedProjects = filteredProjects.slice(
@@ -197,21 +203,21 @@ export default function AdminProjectsPage() {
       />
 
       <div className="space-y-4">
-        <ProjectToolbar 
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          statusFilter={statusFilter}
-          setStatusFilter={setStatusFilter}
-          ownerFilter={ownerFilter}
-          setOwnerFilter={setOwnerFilter}
-          uniqueOwners={uniqueOwners}
-          sortBy={sortBy}
-          setSortBy={setSortBy}
-          dateFilter={dateFilter}
-          setDateFilter={setDateFilter}
-          setCurrentPage={setCurrentPage}
-          activeFilterCount={activeFilterCount}
-          resetFilters={resetFilters}
+        <AdminDataFilters 
+          searchPlaceholder="Search projects by name, domain, or user..."
+          statusOptions={[
+            { label: "All Status", value: "all" },
+            { label: "Active", value: "ACTIVE" },
+            { label: "Inactive", value: "INACTIVE" },
+            { label: "Failed", value: "FAILED" },
+            { label: "Building", value: "BUILDING" }
+          ]}
+          projectOptions={projectOptions}
+          userOptions={userOptions}
+          onFilterChange={(newFilters) => {
+            setFilters(newFilters);
+            setCurrentPage(1);
+          }}
         />
 
         <ProjectTable 

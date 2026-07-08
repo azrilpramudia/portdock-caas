@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Delete, Param, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Param, Body, UseGuards, Query } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -22,13 +22,18 @@ export class AdminController {
   }
 
   @Get('projects')
-  async getAllProjects() {
-    return this.adminService.getAllProjects();
+  async getAllProjects(@Query() filters: any) {
+    return this.adminService.getAllProjects(filters);
+  }
+
+  @Get('deployments')
+  async getAllDeployments(@Query() filters: any) {
+    return this.adminService.getAllDeployments(filters);
   }
 
   @Get('containers')
-  async getAllContainers() {
-    return this.adminService.getAllContainers();
+  async getAllContainers(@Query() filters: any) {
+    return this.adminService.getAllContainers(filters);
   }
 
   @Post('containers/:id/start')

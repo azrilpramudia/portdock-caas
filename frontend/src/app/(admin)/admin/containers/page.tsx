@@ -7,38 +7,26 @@ import Link from "next/link";
 import { Download, Loader2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-// Extracted Components
 import { ContainerStats } from "@/components/admin/containers/ContainerStats";
-import { ContainerToolbar } from "@/components/admin/containers/ContainerToolbar";
+import { AdminDataFilters, FilterValues } from "@/components/admin/AdminDataFilters";
 import { ContainerTable } from "@/components/admin/containers/ContainerTable";
 
 export default function AdminContainersPage() {
+  const [filters, setFilters] = useState<FilterValues>({
+    search: "",
+    status: "all",
+    projectId: "all",
+    userId: "all",
+    dateRange: "all",
+  });
+
   const { data: responseData, isLoading } = useAdminContainers();
   
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("All Status");
-  const [projectFilter, setProjectFilter] = useState("All Projects");
-  const [userFilter, setUserFilter] = useState("All Users");
-  const [dateFilter, setDateFilter] = useState("ALL"); // ALL, 7DAYS, 30DAYS
 
-  const activeFilterCount = (statusFilter !== "All Status" ? 1 : 0) + 
-                            (projectFilter !== "All Projects" ? 1 : 0) +
-                            (userFilter !== "All Users" ? 1 : 0) + 
-                            (dateFilter !== "ALL" ? 1 : 0) + 
-                            (searchQuery !== "" ? 1 : 0);
-
-  const resetFilters = () => {
-    setStatusFilter("All Status");
-    setProjectFilter("All Projects");
-    setUserFilter("All Users");
-    setDateFilter("ALL");
-    setSearchQuery("");
-    setCurrentPage(1);
-  };
-  
   const containers = responseData?.containers || [];
+  
   const { 
     totalContainers = 0, 
     runningContainers = 0, 
@@ -52,53 +40,51 @@ export default function AdminContainersPage() {
     totalImagesTrend
   } = responseData?.stats || {};
 
-  const uniqueProjects = useMemo(() => {
-    const projs = new Set<string>();
-    containers.forEach(c => projs.add(c.project.name));
-    return Array.from(projs).sort();
-  }, [containers]);
+  const projectOptions = useMemo(() => {
+    if (!responseData?.containers) return [{ label: "All Projects", value: "all" }];
+    const uniqueProjects = Array.from(new Set(responseData.containers.map(c => c.project.id)));
+    return [
+      { label: "All Projects", value: "all" },
+      ...uniqueProjects.map(id => {
+        const c = responseData.containers.find(c => c.project.id === id);
+        return { label: c?.project.name || id, value: id };
+      })
+    ];
+  }, [responseData?.containers]);
 
-  const uniqueUsers = useMemo(() => {
-    const users = new Set<string>();
-    containers.forEach(c => users.add(c.project.user.name));
-    return Array.from(users).sort();
-  }, [containers]);
+  const userOptions = useMemo(() => {
+    if (!responseData?.containers) return [{ label: "All Users", value: "all" }];
+    const uniqueUsers = Array.from(new Set(responseData.containers.map(c => c.project.user.id)));
+    return [
+      { label: "All Users", value: "all" },
+      ...uniqueUsers.map(id => {
+        const c = responseData.containers.find(c => c.project.user.id === id);
+        return { label: c?.project.user.name || id, value: id };
+      })
+    ];
+  }, [responseData?.containers]);
 
-  // Filter containers
   const filteredContainers = useMemo(() => {
-    let result = containers.filter(container => {
-      const matchesSearch = 
-        container.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        container.project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        container.project.user.name.toLowerCase().includes(searchQuery.toLowerCase());
-      
-      let matchesStatus = true;
-      if (statusFilter !== "All Status") {
-        if (statusFilter === "Exited") {
-          matchesStatus = container.status === "ERROR" || container.status === "FAILED" || container.status === "REMOVING";
-        } else {
-          matchesStatus = container.status === statusFilter.toUpperCase();
-        }
-      }
-
-      const matchesProject = projectFilter === "All Projects" || container.project.name === projectFilter;
-      const matchesUser = userFilter === "All Users" || container.project.user.name === userFilter;
-      
-      let matchesDate = true;
-      if (dateFilter !== "ALL") {
-        const itemDate = new Date(container.createdAt).getTime();
-        const now = new Date().getTime();
-        const daysDiff = (now - itemDate) / (1000 * 3600 * 24);
-        
-        if (dateFilter === "7DAYS") matchesDate = daysDiff <= 7;
-        if (dateFilter === "30DAYS") matchesDate = daysDiff <= 30;
-      }
-      
-      return matchesSearch && matchesStatus && matchesProject && matchesUser && matchesDate;
-    });
-
+    let result = containers;
+    if (filters.search) {
+      const q = filters.search.toLowerCase();
+      result = result.filter(c => 
+        c.name.toLowerCase().includes(q) || 
+        c.project.name.toLowerCase().includes(q) ||
+        c.project.user.name.toLowerCase().includes(q)
+      );
+    }
+    if (filters.status && filters.status !== "all") {
+      result = result.filter(c => c.status === filters.status);
+    }
+    if (filters.projectId && filters.projectId !== "all") {
+      result = result.filter(c => c.project.id === filters.projectId);
+    }
+    if (filters.userId && filters.userId !== "all") {
+      result = result.filter(c => c.project.user.id === filters.userId);
+    }
     return result;
-  }, [containers, searchQuery, statusFilter, projectFilter, userFilter, dateFilter]);
+  }, [containers, filters]);
 
   const totalPages = Math.ceil(filteredContainers.length / itemsPerPage) || 1;
   const paginatedContainers = filteredContainers.slice(
@@ -189,22 +175,20 @@ export default function AdminContainersPage() {
       />
 
       <div className="space-y-4">
-        <ContainerToolbar 
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          statusFilter={statusFilter}
-          setStatusFilter={setStatusFilter}
-          projectFilter={projectFilter}
-          setProjectFilter={setProjectFilter}
-          uniqueProjects={uniqueProjects}
-          userFilter={userFilter}
-          setUserFilter={setUserFilter}
-          uniqueUsers={uniqueUsers}
-          dateFilter={dateFilter}
-          setDateFilter={setDateFilter}
-          setCurrentPage={setCurrentPage}
-          activeFilterCount={activeFilterCount}
-          resetFilters={resetFilters}
+        <AdminDataFilters 
+          searchPlaceholder="Search containers by name, project, or user..."
+          statusOptions={[
+            { label: "All Status", value: "all" },
+            { label: "Running", value: "RUNNING" },
+            { label: "Stopped", value: "STOPPED" },
+            { label: "Exited", value: "EXITED" }
+          ]}
+          projectOptions={projectOptions}
+          userOptions={userOptions}
+          onFilterChange={(newFilters) => {
+            setFilters(newFilters);
+            setCurrentPage(1);
+          }}
         />
 
         <ContainerTable 

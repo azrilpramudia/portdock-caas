@@ -64,6 +64,15 @@ export class DeploymentsService {
       data: { status: ProjectStatus.BUILDING },
     });
 
+    const deployment = await this.prisma.deployment.create({
+      data: {
+        projectId,
+        domain: project.domain,
+        status: 'In Progress',
+        progress: 0,
+      }
+    });
+
     try {
       await this.archive.extractAndFlatten(file.path, extractDir);
 
@@ -174,6 +183,15 @@ export class DeploymentsService {
         ipAddress: ip,
       });
 
+      await this.prisma.deployment.update({
+        where: { id: deployment.id },
+        data: {
+          status: 'Success',
+          progress: 100,
+          endedAt: new Date(),
+        },
+      });
+
       // Generate Nginx config if domain exists
       if (project.domain) {
         const domain = project.domain;
@@ -210,6 +228,14 @@ export class DeploymentsService {
         action: 'DEPLOYMENT_FAILED',
         description: `Deployment failed: ${err.message}`,
         ipAddress: ip,
+      });
+
+      await this.prisma.deployment.update({
+        where: { id: deployment.id },
+        data: {
+          status: 'Failed',
+          endedAt: new Date(),
+        },
       });
 
       this.archive.cleanup(extractDir, file.path);
@@ -249,6 +275,15 @@ export class DeploymentsService {
     await this.prisma.project.update({
       where: { id: projectId },
       data: { status: ProjectStatus.BUILDING, repositoryUrl },
+    });
+
+    const deployment = await this.prisma.deployment.create({
+      data: {
+        projectId,
+        domain: project.domain,
+        status: 'In Progress',
+        progress: 0,
+      }
     });
 
     const user = await this.prisma.user.findUnique({
@@ -368,6 +403,15 @@ export class DeploymentsService {
         ipAddress: ip,
       });
 
+      await this.prisma.deployment.update({
+        where: { id: deployment.id },
+        data: {
+          status: 'Success',
+          progress: 100,
+          endedAt: new Date(),
+        },
+      });
+
       // Generate Nginx config if domain exists
       if (project.domain) {
         const domain = project.domain;
@@ -402,6 +446,14 @@ export class DeploymentsService {
         action: 'DEPLOYMENT_FAILED',
         description: `GitHub deployment failed: ${err.message}`,
         ipAddress: ip,
+      });
+
+      await this.prisma.deployment.update({
+        where: { id: deployment.id },
+        data: {
+          status: 'Failed',
+          endedAt: new Date(),
+        },
       });
 
       this.archive.cleanup(cloneDir);
@@ -444,6 +496,15 @@ export class DeploymentsService {
     await this.prisma.project.update({
       where: { id: projectId },
       data: { status: ProjectStatus.BUILDING },
+    });
+
+    const deployment = await this.prisma.deployment.create({
+      data: {
+        projectId,
+        domain: project.domain,
+        status: 'In Progress',
+        progress: 0,
+      }
     });
 
     try {
@@ -523,6 +584,15 @@ export class DeploymentsService {
         ipAddress: ip,
       });
 
+      await this.prisma.deployment.update({
+        where: { id: deployment.id },
+        data: {
+          status: 'Success',
+          progress: 100,
+          endedAt: new Date(),
+        },
+      });
+
       if (project.domain) {
         const domain = project.domain;
         await this.nginx.generateHttpConfig(domain, hostPort);
@@ -558,6 +628,14 @@ export class DeploymentsService {
         action: 'DEPLOYMENT_FAILED',
         description: `Custom Dockerfile deployment failed: ${err.message}`,
         ipAddress: ip,
+      });
+
+      await this.prisma.deployment.update({
+        where: { id: deployment.id },
+        data: {
+          status: 'Failed',
+          endedAt: new Date(),
+        },
       });
 
       this.archive.cleanup(extractDir, file.path);

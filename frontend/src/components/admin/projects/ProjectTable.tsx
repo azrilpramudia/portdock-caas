@@ -137,14 +137,14 @@ export function ProjectTable({
 
                     {/* Status */}
                     <td className="px-4 py-3">
-                      <Badge variant="outline" className={`font-semibold border-0 gap-1.5 px-2.5 py-1 ${getStatusColor(project.status)}`}>
-                        {project.status === 'FAILED' ? (
-                          <X className="w-2.5 h-2.5 stroke-[3.5]" />
+                      <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-semibold text-[11px] ${getStatusColor(project.status)}`}>
+                        {project.status === 'INACTIVE' ? (
+                          <div className={`w-1.5 h-1.5 rounded-full ${getStatusDot(project.status)} animate-pulse`}></div>
                         ) : (
-                          <span className={`w-1.5 h-1.5 rounded-full ${getStatusDot(project.status)}`}></span>
+                          <div className={`w-1.5 h-1.5 rounded-full ${getStatusDot(project.status)}`}></div>
                         )}
                         {project.status === 'ACTIVE' ? 'Active' : project.status === 'INACTIVE' ? 'Inactive' : project.status === 'FAILED' ? 'Failed' : project.status}
-                      </Badge>
+                      </div>
                     </td>
 
                     {/* Containers */}
