@@ -203,3 +203,14 @@ enum ContainerStatus {
   ERROR
   REMOVING
 }
+
+model SystemMetric {
+  id         String   @id @default(cuid())
+  cpu        Float
+  ram        Float
+  disk       Float?
+  networkOut Float?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@map("system_metrics")
+}

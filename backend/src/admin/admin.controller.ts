@@ -6,6 +6,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '@generated/prisma';
 import { ContainersService } from '../containers/containers.service';
 import { UpdateResourcesDto } from '../containers/dto/update-resources.dto';
+import { SystemService } from './system.service';
 
 @Controller('admin')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -13,12 +14,39 @@ import { UpdateResourcesDto } from '../containers/dto/update-resources.dto';
 export class AdminController {
   constructor(
     private readonly adminService: AdminService,
-    private readonly containersService: ContainersService
+    private readonly containersService: ContainersService,
+    private readonly systemService: SystemService
   ) {}
 
   @Get('dashboard')
   async getDashboardStats() {
     return this.adminService.getDashboardStats();
+  }
+
+  @Get('monitoring')
+  async getMonitoringStats(@Query('range') range?: string) {
+    const [overview, serverInfo, services, topContainers] = await Promise.all([
+      this.systemService.getSystemResources(),
+      this.systemService.getServerInfo(),
+      this.systemService.getServiceHealth(),
+      this.systemService.getTopContainers(),
+    ]);
+
+    const historical = await this.systemService.getHistoricalStats(range || '7d');
+
+    // Add uptime to overview to match frontend interface
+    const overviewData = {
+      ...overview,
+      uptime: serverInfo.uptime
+    };
+
+    return {
+      overview: overviewData,
+      serverInfo,
+      services,
+      topContainers,
+      historical
+    };
   }
 
   @Get('users')
