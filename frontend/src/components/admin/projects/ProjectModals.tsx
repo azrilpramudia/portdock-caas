@@ -6,13 +6,7 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
-import { 
-  useDeleteAdminProject, 
-  useUpdateAdminProject,
-  useSuspendAdminProject,
-  useResumeAdminProject,
-  useResetAdminProjectStatus
-} from "@/hooks/useAdmin";
+import { useDeleteAdminProject, useUpdateAdminProject, useSuspendAdminProject, useResumeAdminProject, useResetAdminProjectStatus } from "@/hooks/useAdminProjects";;
 import { Badge } from "@/components/ui/badge";
 import { AlertCircle, PauseCircle, RefreshCw, PlayCircle } from "lucide-react";
 

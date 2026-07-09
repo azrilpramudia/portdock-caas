@@ -15,7 +15,7 @@ import { ContainerStatus } from "@/components/admin/ContainerStatus";
 import { RecentDeployments } from "@/components/admin/RecentDeployments";
 import { RecentActivity } from "@/components/admin/RecentActivity";
 import { ServiceStatus } from "@/components/admin/ServiceStatus";
-import { useAdminDashboard } from "@/hooks/useAdmin";
+import { useAdminDashboard } from "@/hooks/useAdminDashboard";;
 import { Loader2 } from "lucide-react";
 
 export default function AdminRootPage() {

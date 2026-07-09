@@ -1,4 +1,4 @@
-import { Eye, Terminal, MoreVertical, Play, RotateCw, Trash2, ChevronLeft, ChevronRight, Box, PauseCircle, Copy, Check } from "lucide-react";
+import { Eye, ChevronLeft, ChevronRight, Box, Copy, Check } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import { Card } from "@/components/ui/card";
@@ -6,12 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import Link from "next/link";
-import { useAdminContainerAction } from "@/hooks/useAdmin";
 import { useRouter } from "next/navigation";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ViewContainerModal } from "./ContainerModals";
-import { toast } from "sonner";
+import { ContainerRowActions } from "./ContainerRowActions";
 interface ContainerTableProps {
   paginatedContainers: any[];
   filteredContainers: any[];
@@ -33,18 +30,8 @@ export function ContainerTable({
   handlePrevPage,
   handleNextPage
 }: ContainerTableProps) {
-  const { mutate: performAction, isPending } = useAdminContainerAction();
   const router = useRouter();
   const [viewContainer, setViewContainer] = useState<any | null>(null);
-
-  const handleAction = (containerId: string, action: 'start'|'stop'|'restart'|'delete') => {
-    const actionText = action === 'start' ? 'menyalakan' : action === 'stop' ? 'mematikan' : action === 'restart' ? 'memulai ulang' : 'menghapus';
-    performAction({ id: containerId, action }, {
-      onSuccess: () => toast.success(`Berhasil ${actionText} kontainer!`),
-      onError: (err: any) => toast.error(`Gagal ${actionText} kontainer: ${err.message}`)
-    });
-  };
-  
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'RUNNING': return 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600';
@@ -221,92 +208,7 @@ export function ContainerTable({
 
                     {/* Actions */}
                     <td className="px-2 py-3 text-center">
-                      <div className="flex items-center justify-center gap-2">
-                        <TooltipProvider delay={300}>
-                          <Tooltip>
-                            <TooltipTrigger render={<Button aria-label="Lihat detail kontainer" onClick={() => setViewContainer(container)} variant="outline" size="icon" className="h-8 w-8 rounded-lg bg-card border-slate-200 dark:border-slate-800 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 shadow-none shrink-0" />}>
-                              <Eye className="w-4 h-4" />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>Lihat Detail</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                        
-                        {container.status === 'RUNNING' && (
-                          <TooltipProvider delay={300}>
-                            <Tooltip>
-                              <TooltipTrigger render={<Button aria-label="Buka terminal kontainer" variant="outline" size="icon" onClick={() => router.push(`/admin/terminal?containerId=${container.id}`)} className="h-8 w-8 rounded-lg bg-card border-slate-200 dark:border-slate-800 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 shadow-none shrink-0" />}>
-                                <Terminal className="w-4 h-4" />
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Buka Terminal</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        )}
-                        
-                        {container.status === 'STOPPED' && (
-                          <TooltipProvider delay={300}>
-                            <Tooltip>
-                              <TooltipTrigger render={<Button onClick={() => handleAction(container.id, 'start')} disabled={isPending} variant="outline" size="icon" className="h-8 w-8 rounded-lg bg-card border-slate-200 dark:border-slate-800 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 shadow-none shrink-0" />}>
-                                <Play className="w-4 h-4" />
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Start Container</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        )}
-
-                        {(container.status === 'ERROR' || container.status === 'FAILED') && (
-                          <>
-                            <TooltipProvider delay={300}>
-                              <Tooltip>
-                                <TooltipTrigger render={<Button onClick={() => handleAction(container.id, 'restart')} disabled={isPending} variant="outline" size="icon" className="h-8 w-8 rounded-lg bg-card border-slate-200 dark:border-slate-800 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 shadow-none shrink-0" />}>
-                                  <RotateCw className="w-4 h-4" />
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Restart Container</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                            <TooltipProvider delay={300}>
-                              <Tooltip>
-                                <TooltipTrigger render={<Button onClick={() => handleAction(container.id, 'delete')} disabled={isPending} variant="outline" size="icon" className="h-8 w-8 rounded-lg bg-card border-rose-100 dark:border-rose-900/30 text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 shadow-none shrink-0" />}>
-                                  <Trash2 className="w-4 h-4" />
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Delete Container</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          </>
-                        )}
-
-                        {(container.status === 'RUNNING' || container.status === 'STOPPED') && (
-                          <DropdownMenu>
-                            <DropdownMenuTrigger render={<Button variant="outline" size="icon" className="h-8 w-8 rounded-lg bg-card border-slate-200 dark:border-slate-800 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 shadow-none shrink-0" />}>
-                              <MoreVertical className="w-4 h-4" />
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              {container.status === 'RUNNING' && (
-                                <DropdownMenuItem onClick={() => handleAction(container.id, 'stop')} disabled={isPending}>
-                                  <PauseCircle className="w-4 h-4 mr-2" /> Stop Container
-                                </DropdownMenuItem>
-                              )}
-                              {container.status === 'RUNNING' && (
-                                <DropdownMenuItem onClick={() => handleAction(container.id, 'restart')} disabled={isPending}>
-                                  <RotateCw className="w-4 h-4 mr-2" /> Restart Container
-                                </DropdownMenuItem>
-                              )}
-                              <DropdownMenuItem className="text-rose-500 focus:text-rose-500" onClick={() => handleAction(container.id, 'delete')} disabled={isPending}>
-                                <Trash2 className="w-4 h-4 mr-2" /> Delete Container
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        )}
-                      </div>
+                      <ContainerRowActions container={container} onView={setViewContainer} />
                     </td>
                   </tr>
                 );

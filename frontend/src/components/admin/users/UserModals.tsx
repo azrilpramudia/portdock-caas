@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { formatDistanceToNow, format } from "date-fns";
 import { id } from "date-fns/locale";
 import { useQueryClient } from "@tanstack/react-query";
-import { useDeleteAdminUser, useUpdateAdminUser } from "@/hooks/useAdmin";
+import { useDeleteAdminUser, useUpdateAdminUser } from "@/hooks/useAdminUsers";;
 import api from "@/lib/api";
 
 export function AddUserModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {

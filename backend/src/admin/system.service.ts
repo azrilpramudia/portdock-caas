@@ -197,6 +197,21 @@ export class SystemService implements OnModuleInit {
     });
   }
 
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  async cleanupOldMetrics() {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    const result = await this.prisma.systemMetric.deleteMany({
+      where: {
+        createdAt: {
+          lt: thirtyDaysAgo
+        }
+      }
+    });
+    console.log(`Cleaned up ${result.count} system metrics older than 30 days`);
+  }
+
   async getHistoricalStats(range: string = '7d') {
     let days = 7;
     if (range === '24h') days = 1;

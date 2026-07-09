@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ArrowRight, Code } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { id } from "date-fns/locale";
-import { RecentActivityDto } from "@/hooks/useAdmin";
+import { RecentActivityDto } from "@/hooks/useAdminDashboard";
 
 interface RecentActivityProps {
   data?: RecentActivityDto[];

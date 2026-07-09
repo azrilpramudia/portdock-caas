@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { DeploymentStats } from "@/components/admin/deployments/DeploymentStats";
 import { AdminDataFilters, FilterValues } from "@/components/admin/AdminDataFilters";
 import { DeploymentsTable } from "@/components/admin/deployments/DeploymentsTable";
-import { useAdminDeployments } from "@/hooks/useAdmin";
+import { useAdminDeployments } from "@/hooks/useAdminDeployments";;
 
 export default function AdminDeploymentsPage() {
   const [filters, setFilters] = useState<FilterValues>({

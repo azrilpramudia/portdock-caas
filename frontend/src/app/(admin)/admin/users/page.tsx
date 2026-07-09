@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useAdminUsers } from "@/hooks/useAdmin";
+import { useAdminUsers } from "@/hooks/useAdminUsers";;
 import {
   Users, UserCheck, UserX, UserPlus, 
   Download, Plus, Loader2, ArrowUp

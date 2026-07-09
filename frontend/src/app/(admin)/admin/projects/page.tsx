@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { useAdminProjects } from "@/hooks/useAdmin";
+import { useAdminProjects } from "@/hooks/useAdminProjects";;
 import { format } from "date-fns";
 import Link from "next/link";
 import { Download, Loader2 } from "lucide-react";

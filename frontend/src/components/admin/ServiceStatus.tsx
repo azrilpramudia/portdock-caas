@@ -1,7 +1,7 @@
 "use client";
 
 import { CheckCircle2, XCircle, AlertCircle } from "lucide-react";
-import { ServiceStatusDto } from "@/hooks/useAdmin";
+import { ServiceStatusDto } from "@/hooks/useAdminDashboard";
 
 interface ServiceStatusProps {
   data?: ServiceStatusDto[];

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ArrowRight, CheckCircle2, XCircle, Clock } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { id } from "date-fns/locale";
-import { RecentDeploymentDto } from "@/hooks/useAdmin";
+import { RecentDeploymentDto } from "@/hooks/useAdminDashboard";
 
 interface RecentDeploymentsProps {
   data?: RecentDeploymentDto[];

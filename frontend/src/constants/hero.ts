@@ -11,10 +11,10 @@ export const SIDEBAR_ITEMS = [
 
 /* ── Stats cards ── */
 export const DASHBOARD_STATS = [
-  { label: "Total Projects", value: "12", color: "text-gray-900", bg: "bg-gray-50" },
-  { label: "Running Containers", value: "8", color: "text-blue-600", bg: "bg-blue-50" },
-  { label: "CPU Usage", value: "23%", color: "text-emerald-600", bg: "bg-emerald-50" },
-  { label: "Memory", value: "45%", color: "text-amber-600", bg: "bg-amber-50" },
+  { label: "Total Projects", value: "12", color: "text-gray-900 dark:text-gray-100", bg: "bg-gray-50 dark:bg-gray-800/50" },
+  { label: "Running Containers", value: "8", color: "text-blue-600 dark:text-blue-400", bg: "bg-blue-50 dark:bg-blue-900/30" },
+  { label: "CPU Usage", value: "23%", color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-50 dark:bg-emerald-900/30" },
+  { label: "Memory", value: "45%", color: "text-amber-600 dark:text-amber-400", bg: "bg-amber-50 dark:bg-amber-900/30" },
 ];
 
 /* ── Container table rows ── */

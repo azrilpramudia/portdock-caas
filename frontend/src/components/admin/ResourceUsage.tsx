@@ -1,7 +1,7 @@
 "use client";
 
 import { Cpu, HardDrive, Network, MemoryStick } from "lucide-react";
-import { ResourceUsageDto } from "@/hooks/useAdmin";
+import { ResourceUsageDto } from "@/hooks/useAdminDashboard";
 
 interface ResourceUsageProps {
   data?: ResourceUsageDto;

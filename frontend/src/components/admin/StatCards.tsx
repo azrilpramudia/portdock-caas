@@ -1,7 +1,7 @@
 "use client";
 
 import { Users, Folder, Box, Rocket, ArrowUp, ArrowDown } from "lucide-react";
-import { AdminDashboardStatsDto } from "@/hooks/useAdmin";
+import { AdminDashboardStatsDto } from "@/hooks/useAdminDashboard";;
 
 interface StatCardsProps {
   data?: AdminDashboardStatsDto;

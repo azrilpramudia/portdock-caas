@@ -52,9 +52,9 @@ function StatsGrid() {
   return (
     <div className="grid grid-cols-4 gap-2">
       {DASHBOARD_STATS.map((stat) => (
-        <div key={stat.label} className={`${stat.bg} rounded-lg p-2 text-center`}>
-          <p className="text-[9px] text-gray-500 mb-0.5 leading-tight">{stat.label}</p>
-          <p className={`text-lg font-bold ${stat.color}`}>{stat.value}</p>
+        <div key={stat.label} className={`${stat.bg} rounded-lg p-2 text-center transition-colors duration-300`}>
+          <p className="text-[9px] text-gray-500 dark:text-gray-400 mb-0.5 leading-tight">{stat.label}</p>
+          <p className={`text-lg font-bold ${stat.color} transition-colors duration-300`}>{stat.value}</p>
         </div>
       ))}
     </div>

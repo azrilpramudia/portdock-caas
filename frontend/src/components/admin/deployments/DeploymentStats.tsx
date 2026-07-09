@@ -1,6 +1,6 @@
 import { Rocket, CheckCircle2, Clock, XCircle, Activity, ArrowUp, ArrowDown } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { DeploymentStatsDto } from "@/hooks/useAdmin";
+import { DeploymentStatsDto } from "@/hooks/useAdminDeployments";;
 
 interface DeploymentStatsProps {
   stats?: DeploymentStatsDto;

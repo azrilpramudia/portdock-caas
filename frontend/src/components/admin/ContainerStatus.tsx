@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
-import { ContainerStatusSummaryDto } from "@/hooks/useAdmin";
+import { ContainerStatusSummaryDto } from "@/hooks/useAdminDashboard";
 
 interface ContainerStatusProps {
   data?: ContainerStatusSummaryDto;
