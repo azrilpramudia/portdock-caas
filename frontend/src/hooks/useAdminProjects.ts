@@ -5,6 +5,8 @@ export interface AdminProjectListItemDto {
   id: string;
   name: string;
   domain: string | null;
+  sslExpiresAt: string | null;
+  domainExpiresAt: string | null;
   status: "ACTIVE" | "INACTIVE" | "BUILDING" | "FAILED";
   createdAt: string;
   updatedAt: string;

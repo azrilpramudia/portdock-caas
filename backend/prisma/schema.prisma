@@ -56,6 +56,8 @@ model Project {
   buildCommand   String?        @map("build_command")
   startCommand   String?        @map("start_command")
   domain         String?
+  domainExpiresAt DateTime?      @map("domain_expires_at")
+  sslExpiresAt   DateTime?      @map("ssl_expires_at")
   envVars        Json?          @map("env_vars")
   status         ProjectStatus  @default(INACTIVE)
   createdAt      DateTime       @default(now()) @map("created_at")

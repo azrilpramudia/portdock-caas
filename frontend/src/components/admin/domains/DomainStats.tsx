@@ -21,7 +21,48 @@ const TrendIndicator = ({ value, timeframe, isPositive = true }: { value: number
   );
 };
 
-export function DomainStats() {
+export function DomainStats({ domains }: { domains: any[] }) {
+  const totalDomains = domains?.length || 0;
+  const activeDomainsList = domains?.filter(d => d.status === 'ACTIVE') || [];
+  const activeDomains = activeDomainsList.length;
+
+  const now = new Date();
+  const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+  const expiringSoonList = domains?.filter(d => {
+    if (!d.sslExpiresAt) return false;
+    const expiresAt = new Date(d.sslExpiresAt);
+    return expiresAt > now && expiresAt <= thirtyDaysFromNow;
+  }) || [];
+  const expiringSoonCount = expiringSoonList.length;
+
+  const expiredList = domains?.filter(d => {
+    if (!d.sslExpiresAt) return false;
+    const expiresAt = new Date(d.sslExpiresAt);
+    return expiresAt <= now;
+  }) || [];
+  const expiredCount = expiredList.length;
+
+  const getGrowth = (items: any[]) => {
+    if (!items || items.length === 0) return { value: 0, isPositive: true };
+    
+    const totalNow = items.length;
+    const totalLastWeek = items.filter(d => new Date(d.createdAt) < oneWeekAgo).length;
+    
+    if (totalLastWeek === 0) {
+      return { value: totalNow > 0 ? 100 : 0, isPositive: true };
+    }
+    
+    const growth = Math.round(((totalNow - totalLastWeek) / totalLastWeek) * 100);
+    return { value: Math.abs(growth), isPositive: growth >= 0 };
+  };
+
+  const totalGrowth = getGrowth(domains);
+  const activeGrowth = getGrowth(activeDomainsList);
+  const expiringSoonGrowth = getGrowth(expiringSoonList);
+  const expiredGrowth = getGrowth(expiredList);
+  
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
       {/* Total Domains */}
@@ -32,8 +73,8 @@ export function DomainStats() {
           </div>
           <div>
             <p className="text-[13px] font-semibold text-muted-foreground">Total Domains</p>
-            <h3 className="text-2xl font-bold text-foreground mt-0.5">156</h3>
-            <TrendIndicator value={12} timeframe="dari minggu lalu" isPositive={true} />
+            <h3 className="text-2xl font-bold text-foreground mt-0.5">{totalDomains}</h3>
+            <TrendIndicator value={totalGrowth.value} timeframe="dari minggu lalu" isPositive={totalGrowth.isPositive} />
           </div>
         </div>
       </div>
@@ -46,8 +87,8 @@ export function DomainStats() {
           </div>
           <div>
             <p className="text-[13px] font-semibold text-muted-foreground">Active Domains</p>
-            <h3 className="text-2xl font-bold text-foreground mt-0.5">128</h3>
-            <TrendIndicator value={10} timeframe="dari minggu lalu" isPositive={true} />
+            <h3 className="text-2xl font-bold text-foreground mt-0.5">{activeDomains}</h3>
+            <TrendIndicator value={activeGrowth.value} timeframe="dari minggu lalu" isPositive={activeGrowth.isPositive} />
           </div>
         </div>
       </div>
@@ -60,8 +101,8 @@ export function DomainStats() {
           </div>
           <div>
             <p className="text-[13px] font-semibold text-muted-foreground">Expiring Soon</p>
-            <h3 className="text-2xl font-bold text-foreground mt-0.5">15</h3>
-            <TrendIndicator value={8} timeframe="dari minggu lalu" isPositive={false} />
+            <h3 className="text-2xl font-bold text-foreground mt-0.5">{expiringSoonCount}</h3>
+            <TrendIndicator value={expiringSoonGrowth.value} timeframe="dari minggu lalu" isPositive={expiringSoonGrowth.isPositive} />
           </div>
         </div>
       </div>
@@ -74,8 +115,8 @@ export function DomainStats() {
           </div>
           <div>
             <p className="text-[13px] font-semibold text-muted-foreground">Expired Domains</p>
-            <h3 className="text-2xl font-bold text-foreground mt-0.5">3</h3>
-            <TrendIndicator value={25} timeframe="dari minggu lalu" isPositive={false} />
+            <h3 className="text-2xl font-bold text-foreground mt-0.5">{expiredCount}</h3>
+            <TrendIndicator value={expiredGrowth.value} timeframe="dari minggu lalu" isPositive={expiredGrowth.isPositive} />
           </div>
         </div>
       </div>
@@ -88,8 +129,8 @@ export function DomainStats() {
           </div>
           <div>
             <p className="text-[13px] font-semibold text-muted-foreground">Total SSL</p>
-            <h3 className="text-2xl font-bold text-foreground mt-0.5">128</h3>
-            <TrendIndicator value={14} timeframe="dari minggu lalu" isPositive={true} />
+            <h3 className="text-2xl font-bold text-foreground mt-0.5">{activeDomains}</h3>
+            <TrendIndicator value={activeGrowth.value} timeframe="dari minggu lalu" isPositive={activeGrowth.isPositive} />
           </div>
         </div>
       </div>
