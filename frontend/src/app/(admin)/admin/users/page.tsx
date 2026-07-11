@@ -62,6 +62,7 @@ export default function AdminUsersPage() {
     a.download = `portdock_users_${format(new Date(), 'yyyyMMdd')}.csv`;
     a.click();
     window.URL.revokeObjectURL(url);
+    import('sonner').then(({ toast }) => toast.success("Export downloaded successfully"));
   };
 
   if (isLoading) {

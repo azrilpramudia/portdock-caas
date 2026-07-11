@@ -8,7 +8,7 @@ import { DomainFilters } from '@/components/admin/domains/DomainFilters';
 import { DomainTable } from '@/components/admin/domains/DomainTable';
 import { useAdminProjects } from '@/hooks/useAdminProjects';
 import { ViewProjectModal, DeleteProjectModal } from "@/components/admin/projects/ProjectModals";
-import { EditDomainModal } from "@/components/admin/domains/DomainModals";
+import { EditDomainModal, AddDomainModal } from "@/components/admin/domains/DomainModals";
 
 export default function AdminDomainsPage() {
   const { data: responseData, isLoading } = useAdminProjects();
@@ -21,6 +21,7 @@ export default function AdminDomainsPage() {
   const [dateRange, setDateRange] = React.useState('All Time');
 
   // Modal states
+  const [isAddModalOpen, setIsAddModalOpen] = React.useState(false);
   const [domainToView, setDomainToView] = React.useState<any>(null);
   const [isViewModalOpen, setIsViewModalOpen] = React.useState(false);
   const [domainToEdit, setDomainToEdit] = React.useState<any>(null);
@@ -120,6 +121,35 @@ export default function AdminDomainsPage() {
     return result;
   }, [rawDomains, searchQuery, statusFilter, sslStatusFilter, sortBy, dateRange]);
 
+  const handleExport = () => {
+    const csvContent = [
+      ["Domain", "Project", "Status", "SSL Expires At", "Created Date"].join(","),
+      ...filteredDomains.map(d => [
+        d.domain || "-",
+        d.name || "-",
+        d.status || "-",
+        d.sslExpiresAt ? new Date(d.sslExpiresAt).toISOString() : "-",
+        new Date(d.createdAt).toISOString()
+      ].join(","))
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `domains_export_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    import('sonner').then(({ toast }) => toast.success("Export downloaded successfully"));
+  };
+
+  const handleAddDomain = () => {
+    setIsAddModalOpen(true);
+  };
+
   return (
     <div className="space-y-6 pb-10">
       {/* Header */}
@@ -134,11 +164,17 @@ export default function AdminDomainsPage() {
         </div>
         
         <div className="flex items-center gap-3">
-          <button className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
+          <button 
+            onClick={handleExport}
+            className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2"
+          >
             <Download className="w-4 h-4 mr-2" />
             Export
           </button>
-          <button className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 shadow-sm">
+          <button 
+            onClick={handleAddDomain}
+            className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 shadow-sm"
+          >
             <Plus className="w-4 h-4 mr-2" />
             Add Domain
           </button>
@@ -183,6 +219,10 @@ export default function AdminDomainsPage() {
         />
       )}
       
+      <AddDomainModal 
+        isOpen={isAddModalOpen} 
+        onClose={() => setIsAddModalOpen(false)} 
+      />
       <ViewProjectModal 
         isOpen={isViewModalOpen} 
         onClose={() => setIsViewModalOpen(false)} 

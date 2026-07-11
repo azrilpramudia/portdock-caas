@@ -37,7 +37,7 @@ export function AdminSidebar({ mobile, onClose }: AdminSidebarProps) {
     { name: "Deployments", href: "/admin/deployments", icon: Rocket },
     { name: "Monitoring", href: "/admin/monitoring", icon: Activity },
     { name: "Domains", href: "/admin/domains", icon: Globe },
-    { name: "Activity Logs", href: "/admin/activity", icon: List },
+    { name: "Activity Logs", href: "/admin/activity-logs", icon: List },
     { name: "Server Settings", href: "/admin/server", icon: Settings2 },
     { name: "Settings", href: "/admin/settings", icon: Settings },
   ];

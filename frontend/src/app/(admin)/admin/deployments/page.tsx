@@ -122,6 +122,7 @@ export default function AdminDeploymentsPage() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    import('sonner').then(({ toast }) => toast.success("Export downloaded successfully"));
   };
 
   if (isLoading && !data) {

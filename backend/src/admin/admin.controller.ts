@@ -69,6 +69,11 @@ export class AdminController {
     return this.adminService.getAllContainers(filters);
   }
 
+  @Get('activity-logs')
+  async getAllActivityLogs(@Query() filters: any) {
+    return this.adminService.getAllActivityLogs(filters);
+  }
+
   @Post('containers/:id/start')
   async startContainer(@Param('id') id: string) {
     return this.adminService.startContainer(id);

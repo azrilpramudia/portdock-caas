@@ -689,4 +689,89 @@ export class AdminService {
       containers: augmentedContainers,
     };
   }
+
+  async getAllActivityLogs(filters: any = {}) {
+    const { page = 1, limit = 50, search, action, status, dateRange, userId } = filters;
+    const skip = (Number(page) - 1) * Number(limit);
+
+    const where: any = {};
+
+    if (search) {
+      where.OR = [
+        { action: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+        { user: { name: { contains: search, mode: 'insensitive' } } },
+        { project: { name: { contains: search, mode: 'insensitive' } } },
+      ];
+    }
+
+    if (action && action !== 'all') {
+      where.action = action;
+    }
+
+    if (status && status !== 'all') {
+      where.status = status;
+    }
+
+    if (userId && userId !== 'all') {
+      where.userId = userId;
+    }
+
+    if (dateRange && dateRange !== 'all') {
+      const date = new Date();
+      if (dateRange === '7days') {
+        date.setDate(date.getDate() - 7);
+        where.createdAt = { gte: date };
+      } else if (dateRange === '30days') {
+        date.setDate(date.getDate() - 30);
+        where.createdAt = { gte: date };
+      }
+    }
+
+    const [logs, total] = await Promise.all([
+      this.prisma.activityLog.findMany({
+        where,
+        include: {
+          user: {
+            select: { name: true, email: true, role: true }
+          },
+          project: {
+            select: { name: true }
+          }
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: Number(limit),
+      }),
+      this.prisma.activityLog.count({ where })
+    ]);
+
+    // Calculate overall stats for the cards
+    const [totalActivities, userActivities, systemActivities, deploymentActivities, securityActivities] = await Promise.all([
+      this.prisma.activityLog.count(),
+      this.prisma.activityLog.count({ where: { user: { role: 'USER' } } }),
+      this.prisma.activityLog.count({ where: { user: { role: 'ADMIN' } } }),
+      this.prisma.activityLog.count({ where: { action: { in: ['Deploy', 'Start', 'Stop', 'Restart', 'Delete'] } } }),
+      this.prisma.activityLog.count({ where: { action: { in: ['Login', 'Update', 'Alert', 'Failed Login'] } } }),
+    ]);
+
+    return {
+      stats: {
+        totalActivities,
+        userActivities,
+        systemActivities,
+        deploymentActivities,
+        securityActivities,
+        totalActivitiesTrend: '+0%',
+        userActivitiesTrend: '+0%',
+        systemActivitiesTrend: '+0%',
+        deploymentActivitiesTrend: '+0%',
+        securityActivitiesTrend: '+0%',
+      },
+      activities: logs,
+      total,
+      page: Number(page),
+      totalPages: Math.ceil(total / Number(limit))
+    };
+  }
 }
