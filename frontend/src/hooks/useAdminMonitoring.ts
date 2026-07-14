@@ -8,6 +8,11 @@ export interface AdminMonitoringOverviewDto {
   disk: number;
   network: string;
   uptime: string;
+  diskPartitions: {
+    path: string;
+    size: string;
+    percent: number;
+  }[];
 }
 
 export interface AdminMonitoringServerInfoDto {
@@ -15,8 +20,14 @@ export interface AdminMonitoringServerInfoDto {
   ip: string;
   provider: string;
   os: string;
+  kernel: string;
+  architecture: string;
   dockerVersion: string;
+  dockerCompose: string;
   uptime: string;
+  timezone: string;
+  lastReboot: string;
+  currentLoad: string;
 }
 
 export interface AdminMonitoringServiceDto {
@@ -36,6 +47,7 @@ export interface AdminMonitoringHistoricalDto {
   name: string;
   cpu: number;
   ram: number;
+  disk: number;
 }
 
 export interface AdminMonitoringResponseDto {
@@ -55,5 +67,25 @@ export function useAdminMonitoring(range: string = '7d') {
     },
     refetchInterval: 5000, // Refresh stats every 5s
     placeholderData: keepPreviousData,
+  });
+}
+
+export function useAdminServerAction() {
+  return useMutation({
+    mutationFn: async (action: string) => {
+      const res = await api.post<{ success: boolean; message: string }>('/admin/server/action', { action });
+      return res.data;
+    }
+  });
+}
+
+export function useAdminServerLogs() {
+  return useQuery({
+    queryKey: ["adminServerLogs"],
+    queryFn: async () => {
+      const res = await api.get<{ logs: string }>('/admin/server/logs');
+      return res.data.logs;
+    },
+    enabled: false, // Only fetch when triggered manually by UI
   });
 }

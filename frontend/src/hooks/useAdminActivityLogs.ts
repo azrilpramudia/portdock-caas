@@ -60,3 +60,17 @@ export function useAdminActivityLogs(filters?: Record<string, string | number | 
     refetchInterval: 10000,
   });
 }
+
+export async function exportAdminActivityLogs(filters?: Record<string, string | number | undefined>): Promise<Blob> {
+  const params = new URLSearchParams();
+  if (filters) {
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== "") {
+        params.append(key, value.toString());
+      }
+    });
+  }
+  const queryString = params.toString() ? `?${params.toString()}` : "";
+  const res = await api.get(`/admin/activity-logs/export${queryString}`, { responseType: 'blob' });
+  return res.data;
+}

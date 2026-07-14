@@ -10,7 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useAdminActivityLogs } from "@/hooks/useAdminActivityLogs";
+import { useAdminActivityLogs, exportAdminActivityLogs } from "@/hooks/useAdminActivityLogs";
 import { AdminActivityLogsStats } from "@/components/admin/activity-logs/AdminActivityLogsStats";
 import { AdminActivityLogsFilters } from "@/components/admin/activity-logs/AdminActivityLogsFilters";
 import { AdminActivityLogsTable } from "@/components/admin/activity-logs/AdminActivityLogsTable";
@@ -52,8 +52,26 @@ export default function ActivityLogsPage() {
     return matchesUser && matchesResource;
   });
 
-  const handleExport = () => {
-    toast.success("Activity logs exported successfully!");
+  const handleExport = async () => {
+    try {
+      const blob = await exportAdminActivityLogs({
+        search: searchQuery,
+        action: actionFilter !== "all" ? actionFilter : undefined,
+        status: statusFilter !== "all" ? statusFilter : undefined,
+        dateRange: dateRange !== "all" ? dateRange : undefined,
+      });
+      const url = window.URL.createObjectURL(new Blob([blob]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `admin-activity-logs-${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode?.removeChild(link);
+      toast.success("Activity logs exported successfully!");
+    } catch (error) {
+      console.error("Failed to export logs:", error);
+      toast.error("Failed to export activity logs.");
+    }
   };
 
   const getTypeColor = (type: string) => {

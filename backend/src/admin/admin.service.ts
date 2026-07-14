@@ -774,4 +774,66 @@ export class AdminService {
       totalPages: Math.ceil(total / Number(limit))
     };
   }
+
+  async exportAllActivityLogs(filters: any = {}): Promise<string> {
+    const { search, action, status, dateRange, userId } = filters;
+
+    const where: any = {};
+
+    if (search) {
+      where.OR = [
+        { action: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+        { user: { name: { contains: search, mode: 'insensitive' } } },
+        { project: { name: { contains: search, mode: 'insensitive' } } },
+      ];
+    }
+
+    if (action && action !== 'all') {
+      where.action = action;
+    }
+
+    if (status && status !== 'all') {
+      where.status = status;
+    }
+
+    if (userId && userId !== 'all') {
+      where.userId = userId;
+    }
+
+    if (dateRange && dateRange !== 'all') {
+      const date = new Date();
+      if (dateRange === '7days') {
+        date.setDate(date.getDate() - 7);
+        where.createdAt = { gte: date };
+      } else if (dateRange === '30days') {
+        date.setDate(date.getDate() - 30);
+        where.createdAt = { gte: date };
+      }
+    }
+
+    const logs = await this.prisma.activityLog.findMany({
+      where,
+      include: {
+        user: { select: { name: true, email: true } },
+        project: { select: { name: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const header = ['Date', 'Time', 'User', 'Email', 'Action', 'Resource', 'Status', 'IP Address', 'Description'];
+    const rows = logs.map(log => [
+      log.createdAt.toISOString().split('T')[0],
+      log.createdAt.toISOString().split('T')[1].split('.')[0],
+      log.user.name,
+      log.user.email,
+      log.action,
+      log.project?.name || 'System',
+      log.status,
+      log.ipAddress || '-',
+      `"${(log.description || '').replace(/"/g, '""')}"`,
+    ]);
+
+    return [header.join(','), ...rows.map(row => row.join(','))].join('\n');
+  }
 }

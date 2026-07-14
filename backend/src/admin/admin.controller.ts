@@ -1,4 +1,6 @@
-import { Controller, Get, Post, Patch, Delete, Param, Body, UseGuards, Query, Request } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Param, Body, UseGuards, Query, Request, Res, StreamableFile } from '@nestjs/common';
+import type { Response } from 'express';
+import { ApiOperation } from '@nestjs/swagger';
 import { AdminService } from './admin.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -74,6 +76,20 @@ export class AdminController {
     return this.adminService.getAllActivityLogs(filters);
   }
 
+  @Get('activity-logs/export')
+  @ApiOperation({ summary: 'Export all activity logs to CSV' })
+  async exportAllActivityLogs(
+    @Query() filters: any,
+    @Res({ passthrough: true }) res: Response
+  ) {
+    const csv = await this.adminService.exportAllActivityLogs(filters);
+    res.set({
+      'Content-Type': 'text/csv',
+      'Content-Disposition': `attachment; filename="admin-activity-logs-${new Date().toISOString().split('T')[0]}.csv"`,
+    });
+    return new StreamableFile(Buffer.from(csv));
+  }
+
   @Post('containers/:id/start')
   async startContainer(@Param('id') id: string) {
     return this.adminService.startContainer(id);
@@ -142,5 +158,19 @@ export class AdminController {
   @Delete('users/:id')
   async deleteUser(@Param('id') id: string) {
     return this.adminService.deleteUser(id);
+  }
+
+  @Post('server/action')
+  async executeServerAction(@Body('action') action: string) {
+    if (!action) {
+      throw new Error('Action is required');
+    }
+    return this.systemService.executeAction(action);
+  }
+
+  @Get('server/logs')
+  async getServerLogs() {
+    const logs = await this.systemService.getSystemLogs();
+    return { logs };
   }
 }

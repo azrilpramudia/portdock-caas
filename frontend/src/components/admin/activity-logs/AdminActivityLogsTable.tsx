@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import { ChevronLeft, ChevronRight, Eye, ClipboardList, Loader2, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format, formatDistanceToNow } from "date-fns";
 import { id as localeId } from "date-fns/locale";
+import { ActivityLogDetailsModal } from "./AdminActivityLogsModals";
 
 interface AdminActivityLogsTableProps {
   isLoading: boolean;
@@ -31,6 +32,14 @@ export function AdminActivityLogsTable({
   getTypeColor,
   getStatusColor,
 }: AdminActivityLogsTableProps) {
+  const [selectedLog, setSelectedLog] = useState<any>(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+
+  const handleOpenDetails = (log: any) => {
+    setSelectedLog(log);
+    setIsDetailsOpen(true);
+  };
+
   return (
     <div className="bg-card border border-border shadow-sm rounded-xl overflow-hidden flex flex-col">
       <div className="overflow-x-auto">
@@ -108,7 +117,12 @@ export function AdminActivityLogsTable({
                     </span>
                   </td>
                   <td className="px-4 py-3 align-top text-right">
-                    <Button variant="outline" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
+                    <Button 
+                      variant="outline" 
+                      size="icon" 
+                      className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                      onClick={() => handleOpenDetails(activity)}
+                    >
                       <Eye className="w-4 h-4" />
                     </Button>
                   </td>
@@ -184,6 +198,12 @@ export function AdminActivityLogsTable({
           </Button>
         </div>
       </div>
+
+      <ActivityLogDetailsModal 
+        isOpen={isDetailsOpen} 
+        onClose={() => setIsDetailsOpen(false)} 
+        log={selectedLog} 
+      />
     </div>
   );
 }

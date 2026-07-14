@@ -4,6 +4,10 @@ import * as si from 'systeminformation';
 import * as fs from 'fs';
 import Dockerode from 'dockerode';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+
+const execAsync = promisify(exec);
 
 @Injectable()
 export class SystemService implements OnModuleInit {
@@ -27,12 +31,18 @@ export class SystemService implements OnModuleInit {
       const mainDisk = disk[0];
       const diskUsage = mainDisk ? Math.round(mainDisk.use) : 0;
       const net = networkStats[0];
-      const network = net ? `${(net.rx_sec / 1024 / 1024).toFixed(1)} MB/s` : '0 MB/s';
+      const network = net ? `${(net.tx_sec / 1024 / 1024).toFixed(1)} MB/s` : '0 MB/s';
 
-      return { cpu, ram, disk: diskUsage, network };
+      const diskPartitions = disk.map(d => ({
+        path: d.mount,
+        size: `${(d.size / 1073741824).toFixed(0)} GB`,
+        percent: Math.round(d.use)
+      }));
+
+      return { cpu, ram, disk: diskUsage, network, diskPartitions };
     } catch (e) {
       console.error('Failed to get system resources', e);
-      return { cpu: 0, ram: 0, disk: 0, network: '0 MB/s' };
+      return { cpu: 0, ram: 0, disk: 0, network: '0 MB/s', diskPartitions: [] };
     }
   }
 
@@ -70,32 +80,55 @@ export class SystemService implements OnModuleInit {
     // WebSocket (App is running, so WS gateway is running)
     const wsStatus = 'Active';
 
+    // Check Firewall
+    let firewallStatus: 'Active' | 'Warning' | 'Down' = 'Down';
+    try {
+      const { execSync } = require('child_process');
+      const ufw = execSync('systemctl is-active ufw', { stdio: 'pipe' }).toString().trim();
+      firewallStatus = ufw === 'active' ? 'Active' : 'Warning';
+    } catch (e) {
+      firewallStatus = 'Warning';
+    }
+
     return [
       { name: "Docker Engine", status: dockerStatus },
       { name: "Nginx", status: nginxStatus as 'Active' | 'Warning' | 'Error' },
       { name: "PostgreSQL", status: pgStatus },
       { name: "SSL (Let's Encrypt)", status: sslStatus },
       { name: "Web Socket", status: wsStatus },
+      { name: "Firewall (UFW)", status: firewallStatus },
     ];
   }
 
   async getServerInfo() {
     try {
-      const [osInfo, netInterfaces, dockerInfo] = await Promise.all([
+      const [osInfo, netInterfaces, dockerInfo, cpuLoad] = await Promise.all([
         si.osInfo(),
         si.networkInterfaces(),
         this.docker.version().catch(() => ({ Version: 'Unknown' })),
+        si.currentLoad(),
       ]);
 
       const time = si.time();
       const uptimeDays = Math.floor(time.uptime / 86400);
       const uptimeHours = Math.floor((time.uptime % 86400) / 3600);
       const uptimeStr = `${uptimeDays} Days, ${uptimeHours} Hours`;
+      
+      const lastRebootDate = new Date(Date.now() - (time.uptime * 1000));
+      const lastReboot = lastRebootDate.toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
 
       let ip = 'Unknown';
       if (Array.isArray(netInterfaces)) {
         const primaryInterface = netInterfaces.find(n => !n.internal && n.ip4);
         if (primaryInterface) ip = primaryInterface.ip4;
+      }
+      
+      let dockerCompose = 'Unknown';
+      try {
+        const { execSync } = require('child_process');
+        dockerCompose = execSync('docker compose version --short').toString().trim();
+      } catch (e) {
+        // Ignore
       }
 
       return {
@@ -103,13 +136,19 @@ export class SystemService implements OnModuleInit {
         ip,
         provider: process.env.SERVER_PROVIDER || 'Self-Hosted',
         os: `${osInfo.distro} ${osInfo.release}`,
+        kernel: osInfo.kernel,
+        architecture: osInfo.arch,
         dockerVersion: dockerInfo.Version,
+        dockerCompose,
         uptime: uptimeStr,
+        timezone: time.timezone || 'Unknown',
+        lastReboot,
+        currentLoad: `${cpuLoad.avgLoad?.toFixed(2) || '0.00'} (1m)`,
       };
     } catch (e) {
       console.error('Failed to get server info', e);
       return {
-        name: 'Unknown', ip: 'Unknown', provider: 'Unknown', os: 'Unknown', dockerVersion: 'Unknown', uptime: 'Unknown'
+        name: 'Unknown', ip: 'Unknown', provider: 'Unknown', os: 'Unknown', dockerVersion: 'Unknown', uptime: 'Unknown', kernel: 'Unknown', architecture: 'Unknown', dockerCompose: 'Unknown', timezone: 'Unknown', lastReboot: 'Unknown', currentLoad: 'Unknown'
       };
     }
   }
@@ -233,10 +272,6 @@ export class SystemService implements OnModuleInit {
 
     const aggregated: any[] = [];
     
-    // To make sure XAxis labels aren't too cluttered
-    // We only set the label for the first point of a day or hour
-    let lastLabel = '';
-
     for (const metric of metrics) {
       let label = '';
       if (range === '24h') {
@@ -246,14 +281,73 @@ export class SystemService implements OnModuleInit {
       }
 
       aggregated.push({
-        name: label !== lastLabel ? label : '', // empty string if same as previous to reduce clutter
+        name: label,
         cpu: metric.cpu,
-        ram: metric.ram
+        ram: metric.ram,
+        disk: metric.disk
       });
-
-      lastLabel = label;
     }
 
     return aggregated;
+  }
+
+  async executeAction(action: string): Promise<{ success: boolean; message: string }> {
+    try {
+      switch (action) {
+        case 'restart-server':
+          setTimeout(() => {
+            execAsync('sudo reboot').catch(e => {
+              console.error('Server restart failed:', e);
+            });
+          }, 1000);
+          return { success: true, message: 'Server sedang di-restart. Anda akan kehilangan koneksi sementara dalam beberapa detik.' };
+        
+        case 'restart-docker':
+          await execAsync('sudo systemctl restart docker').catch(e => {
+            console.error('Docker restart failed:', e);
+            throw new Error('Gagal me-restart Docker. Membutuhkan akses sudo tanpa password.');
+          });
+          return { success: true, message: 'Docker service berhasil di-restart.' };
+        
+        case 'restart-nginx':
+          try {
+            const container = this.docker.getContainer('portdock-nginx');
+            await container.restart();
+          } catch (e) {
+            await execAsync('docker restart portdock-nginx').catch(() => {
+              throw new Error('Container portdock-nginx tidak ditemukan atau gagal di-restart.');
+            });
+          }
+          return { success: true, message: 'Nginx berhasil di-restart.' };
+        
+        case 'clear-cache':
+          await execAsync('docker system prune -f');
+          return { success: true, message: 'Sistem cache (Docker build cache & unused data) berhasil dibersihkan.' };
+        
+        case 'run-backup':
+          await new Promise(resolve => setTimeout(resolve, 3000));
+          return { success: true, message: 'Backup berhasil dijalankan (Simulasi).' };
+          
+        default:
+          throw new Error('Aksi tidak dikenali.');
+      }
+    } catch (error: any) {
+      console.error(`Failed to execute action ${action}:`, error);
+      throw new Error(`Gagal mengeksekusi aksi: ${error.message}`);
+    }
+  }
+
+  async getSystemLogs(): Promise<string> {
+    try {
+      try {
+        const { stdout } = await execAsync('journalctl -n 200 --no-pager');
+        return stdout;
+      } catch {
+        const { stdout } = await execAsync('tail -n 200 /var/log/syslog 2>/dev/null || tail -n 200 /var/log/messages');
+        return stdout;
+      }
+    } catch (e) {
+      return 'Gagal mengambil system logs. Pastikan Anda memiliki izin akses yang cukup (root/sudo) atau file log tersedia.';
+    }
   }
 }
