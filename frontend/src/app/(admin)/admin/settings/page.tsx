@@ -63,18 +63,12 @@ export default function SettingsPage() {
       <div className="mt-6 w-full">
         {activeTab === "General" && (
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 w-full">
-            <div className="xl:col-span-1 space-y-6 flex flex-col">
               <GeneralSettingsCard />
-              <AppearanceSettingsCard />
-            </div>
-            <div className="xl:col-span-1 space-y-6 flex flex-col">
               <SecuritySettingsCard />
-              <SystemSettingsCard />
-            </div>
-            <div className="xl:col-span-1 space-y-6 flex flex-col">
               <NotificationSettingsCard />
+              <AppearanceSettingsCard />
+              <SystemSettingsCard />
               <BackupRestoreCard />
-            </div>
           </div>
         )}
         

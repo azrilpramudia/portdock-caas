@@ -105,11 +105,7 @@ export function NotificationSettingsCard() {
           />
         </div>
 
-        <div className="pt-3 mt-auto">
-          <button className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 shadow-sm">
-            Save Changes
-          </button>
-        </div>
+
       </div>
     </div>
   );
