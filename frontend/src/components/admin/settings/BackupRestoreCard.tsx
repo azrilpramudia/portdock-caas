@@ -1,79 +1,91 @@
 "use client";
 
 import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CheckCircle2, RefreshCw } from "lucide-react";
+import { CheckCircle2, Download, History } from "lucide-react";
 
 export function BackupRestoreCard() {
   const [backupSchedule, setBackupSchedule] = useState("daily");
-  const [backupRetention, setBackupRetention] = useState("7");
+  const [backupRetention, setBackupRetention] = useState("30");
 
   return (
-    <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden flex flex-col h-full mt-6">
-      <div className="p-6 border-b border-border/50">
-        <h3 className="text-lg font-bold text-foreground">Backup & Restore</h3>
-        <p className="text-sm text-muted-foreground mt-1">Manajemen backup otomatis dan pemulihan data</p>
+    <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden flex flex-col h-full w-full">
+      <div className="px-6 pt-6 pb-5">
+        <h3 className="text-base font-bold text-foreground">Backup & Restore</h3>
+        <p className="text-[13px] text-muted-foreground mt-0.5">Kelola backup dan restore sistem</p>
       </div>
       
-      <div className="p-6 flex-1 flex flex-col gap-6">
+      <div className="px-6 pb-6 flex-1 flex flex-col gap-5">
         
-        <div className="bg-green-50/50 dark:bg-green-900/10 border border-green-200 dark:border-green-900 rounded-lg p-4 flex items-center justify-between">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold text-foreground">Last Backup</span>
-              <div className="flex items-center gap-1 text-green-600 dark:text-green-500 bg-green-100 dark:bg-green-900/30 px-2 py-0.5 rounded-full text-xs font-medium">
-                <CheckCircle2 className="w-3 h-3" />
-                Success
-              </div>
+        {/* Last Backup Status */}
+        <div className="border border-border/50 rounded-lg p-4 flex items-center justify-between">
+          <div className="flex gap-3 items-center">
+            <div className="w-10 h-10 rounded-full bg-green-50 dark:bg-green-500/10 flex items-center justify-center text-green-500 shrink-0">
+              <CheckCircle2 className="w-5 h-5" />
             </div>
-            <p className="text-xs text-muted-foreground mt-1">26 Mei 2026, 02:00 AM</p>
+            <div>
+              <p className="text-xs text-muted-foreground">Last Backup</p>
+              <h4 className="text-sm font-bold text-foreground">2 Jun 2026 02:15</h4>
+              <p className="text-[11px] text-muted-foreground">oleh system</p>
+            </div>
           </div>
-          <Button variant="outline" className="h-10 px-4 py-2 shadow-sm rounded-md font-medium">
-            View Details
-          </Button>
+          <span className="text-xs font-semibold text-green-600 dark:text-green-500 bg-green-50 dark:bg-green-500/10 px-2.5 py-1 rounded-md shrink-0">
+            Success
+          </span>
         </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-foreground">Backup Schedule</label>
-          <div className="w-full">
+        {/* Backup Schedule */}
+        <div className="flex items-center justify-between gap-4">
+          <div className="space-y-0.5">
+            <h4 className="text-sm font-semibold text-foreground">Backup Schedule</h4>
+            <p className="text-xs text-muted-foreground">Atur jadwal backup otomatis.</p>
+          </div>
+          <div className="w-[180px] shrink-0">
             <Select value={backupSchedule} onValueChange={setBackupSchedule}>
-              <SelectTrigger className="h-10 rounded-md">
+              <SelectTrigger className="rounded-md border-border w-full">
                 <SelectValue placeholder="Select" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="daily">Daily at 02:00 AM</SelectItem>
-                <SelectItem value="weekly">Weekly on Sunday</SelectItem>
-                <SelectItem value="monthly">Monthly on 1st</SelectItem>
+                <SelectItem value="daily">Setiap hari pukul 02:00</SelectItem>
+                <SelectItem value="weekly">Setiap minggu</SelectItem>
+                <SelectItem value="monthly">Setiap bulan</SelectItem>
               </SelectContent>
             </Select>
           </div>
         </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-foreground">Backup Retention</label>
-          <div className="w-full">
+        <div className="border-t border-border/50" />
+
+        {/* Backup Retention */}
+        <div className="flex items-center justify-between gap-4">
+          <div className="space-y-0.5">
+            <h4 className="text-sm font-semibold text-foreground">Backup Retention</h4>
+            <p className="text-xs text-muted-foreground">Simpan backup selama periode tertentu.</p>
+          </div>
+          <div className="w-[180px] shrink-0">
             <Select value={backupRetention} onValueChange={setBackupRetention}>
-              <SelectTrigger className="h-10 rounded-md">
+              <SelectTrigger className="rounded-md border-border w-full">
                 <SelectValue placeholder="Select" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="7">7 Days</SelectItem>
-                <SelectItem value="14">14 Days</SelectItem>
-                <SelectItem value="30">30 Days</SelectItem>
+                <SelectItem value="7">7 hari</SelectItem>
+                <SelectItem value="14">14 hari</SelectItem>
+                <SelectItem value="30">30 hari</SelectItem>
               </SelectContent>
             </Select>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 pt-2 mt-auto">
-          <Button className="bg-primary hover:bg-primary/90 text-primary-foreground h-10 px-4 py-2 shadow-sm rounded-md font-medium flex-1">
-            <RefreshCw className="w-4 h-4 mr-2" />
+        {/* Action Buttons */}
+        <div className="pt-1 mt-auto grid grid-cols-2 gap-3">
+          <button className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
+            <Download className="w-4 h-4 mr-2" />
             Run Backup Now
-          </Button>
-          <Button variant="outline" className="h-10 px-4 py-2 shadow-sm rounded-md font-medium flex-1">
+          </button>
+          <button className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
+            <History className="w-4 h-4 mr-2" />
             Restore Backup
-          </Button>
+          </button>
         </div>
       </div>
     </div>

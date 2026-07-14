@@ -17,45 +17,45 @@ export function GeneralSettingsCard() {
 
   return (
     <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden flex flex-col h-full w-full">
-      <div className="p-6 border-b border-border/50">
-        <h3 className="text-lg font-bold text-foreground">General Settings</h3>
-        <p className="text-sm text-muted-foreground mt-1">Pengaturan dasar sistem Portdock</p>
+      <div className="px-6 pt-6 pb-5">
+        <h3 className="text-base font-bold text-foreground">General Settings</h3>
+        <p className="text-[13px] text-muted-foreground mt-0.5">Pengaturan dasar sistem Portdock</p>
       </div>
       
-      <div className="p-6 flex-1 flex flex-col gap-6">
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-foreground">Site Name</label>
+      <div className="px-6 pb-6 flex-1 flex flex-col gap-5">
+        <div className="space-y-1.5">
+          <label className="text-[13px] font-medium text-muted-foreground">Site Name</label>
           <Input 
             value={siteName} 
             onChange={(e) => setSiteName(e.target.value)} 
-            className="h-10 rounded-md"
+            className="rounded-md border-border"
           />
         </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-foreground">Site Description</label>
+        <div className="space-y-1.5">
+          <label className="text-[13px] font-medium text-muted-foreground">Site Description</label>
           <Input 
             value={siteDesc} 
             onChange={(e) => setSiteDesc(e.target.value)} 
-            className="h-10 rounded-md"
+            className="rounded-md border-border"
           />
         </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-foreground">Admin Email</label>
+        <div className="space-y-1.5">
+          <label className="text-[13px] font-medium text-muted-foreground">Admin Email</label>
           <Input 
             type="email"
             value={email} 
             onChange={(e) => setEmail(e.target.value)} 
-            className="h-10 rounded-md"
+            className="rounded-md border-border"
           />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Timezone</label>
+          <div className="space-y-1.5">
+            <label className="text-[13px] font-medium text-muted-foreground">Timezone</label>
             <Select value={timezone} onValueChange={setTimezone}>
-              <SelectTrigger className="h-10 rounded-md">
+              <SelectTrigger className="rounded-md border-border w-full">
                 <SelectValue placeholder="Select Timezone" />
               </SelectTrigger>
               <SelectContent>
@@ -65,10 +65,10 @@ export function GeneralSettingsCard() {
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Language</label>
+          <div className="space-y-1.5">
+            <label className="text-[13px] font-medium text-muted-foreground">Language</label>
             <Select value={language} onValueChange={setLanguage}>
-              <SelectTrigger className="h-10 rounded-md">
+              <SelectTrigger className="rounded-md border-border w-full">
                 <SelectValue placeholder="Select Language" />
               </SelectTrigger>
               <SelectContent>
@@ -80,35 +80,35 @@ export function GeneralSettingsCard() {
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Date Format</label>
+          <div className="space-y-1.5">
+            <label className="text-[13px] font-medium text-muted-foreground">Date Format</label>
             <div className="relative">
               <Input 
                 value={dateFormat} 
                 onChange={(e) => setDateFormat(e.target.value)}
-                className="h-10 rounded-md pr-10"
+                className="pr-10 rounded-md border-border"
               />
-              <CalendarIcon className="absolute right-3 top-1/2 -translate-y-1/2 h-[15px] w-[15px] text-muted-foreground" />
+              <CalendarIcon className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             </div>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Time Format</label>
+          <div className="space-y-1.5">
+            <label className="text-[13px] font-medium text-muted-foreground">Time Format</label>
             <div className="relative">
               <Input 
                 value={timeFormat} 
                 onChange={(e) => setTimeFormat(e.target.value)}
-                className="h-10 rounded-md pr-10"
+                className="pr-10 rounded-md border-border"
               />
-              <Clock className="absolute right-3 top-1/2 -translate-y-1/2 h-[15px] w-[15px] text-muted-foreground" />
+              <Clock className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             </div>
           </div>
         </div>
 
-        <div className="pt-2 mt-auto">
-          <Button className="bg-primary hover:bg-primary/90 text-primary-foreground h-10 px-4 py-2 shadow-sm rounded-md font-medium">
+        <div className="pt-1 mt-auto">
+          <button className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 shadow-sm">
             Save Changes
-          </Button>
+          </button>
         </div>
       </div>
     </div>
