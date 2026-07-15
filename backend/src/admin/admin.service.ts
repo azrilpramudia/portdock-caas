@@ -1,4 +1,5 @@
 import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrismaService } from '../prisma/prisma.service';
 import { AdminDashboardResponseDto } from './dto/admin-dashboard.dto';
 import { SystemService } from './system.service';
@@ -16,6 +17,7 @@ export class AdminService {
     private prisma: PrismaService,
     private system: SystemService,
     private dockerService: DockerService,
+    private eventEmitter: EventEmitter2,
   ) {}
 
   async getDashboardStats(): Promise<AdminDashboardResponseDto> {
@@ -145,6 +147,14 @@ export class AdminService {
   }
 
   async updateSettings(data: Record<string, string>): Promise<void> {
+    let previousMaintenanceState = 'false';
+    if (data.notifyMaintenance !== undefined) {
+      const prevSetting = await this.prisma.systemSetting.findUnique({
+        where: { key: 'notifyMaintenance' }
+      });
+      previousMaintenanceState = prevSetting?.value || 'false';
+    }
+
     const operations = Object.entries(data).map(([key, value]) => {
       let category = 'general';
       if (['twoFactor', 'sessionTimeout', 'loginAttempts'].includes(key)) category = 'security';
@@ -161,6 +171,10 @@ export class AdminService {
     });
 
     await this.prisma.$transaction(operations);
+
+    if (data.notifyMaintenance !== undefined && data.notifyMaintenance !== previousMaintenanceState) {
+      this.eventEmitter.emit('system.maintenance.toggled', { enabled: data.notifyMaintenance === 'true' });
+    }
   }
 
   async getAllUsers() {

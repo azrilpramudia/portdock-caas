@@ -5,6 +5,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
 import { ProjectsService } from '../projects/projects.service';
@@ -28,6 +29,7 @@ export class AuthService {
     private prisma: PrismaService,
     private jwtService: JwtService,
     private projectsService: ProjectsService,
+    private eventEmitter: EventEmitter2,
   ) {}
 
   async register(dto: RegisterDto, ip: string, userAgent: string) {
@@ -108,6 +110,11 @@ export class AuthService {
       });
 
       if (lockoutUntil) {
+        this.eventEmitter.emit('security.alert', {
+          title: 'Account Locked',
+          message: `User ${user.email} has been locked out due to too many failed login attempts.`,
+          ip,
+        });
         throw new UnauthorizedException(`Account locked due to too many failed attempts. Try again in 15 minutes.`);
       }
       throw new UnauthorizedException('Invalid credentials');
@@ -476,4 +483,15 @@ export class AuthService {
     return { user: userWithoutPassword, token: jwtToken };
   }
 
+  async turnOff2fa(userId: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new UnauthorizedException('User not found');
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { isTwoFactorEnabled: false, twoFactorSecret: null }
+    });
+
+    return { message: '2FA has been disabled' };
+  }
 }

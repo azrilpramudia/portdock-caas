@@ -5,6 +5,7 @@ import { ThemeProvider as NextThemesProvider } from "next-themes";
 import * as React from "react";
 import { useState, useEffect } from "react";
 import { useSettingsStore } from "@/store/settings";
+import { DynamicSettingsProvider } from "./DynamicSettingsProvider";
 
 export function Providers({ 
   children,
@@ -34,7 +35,9 @@ export function Providers({
   return (
     <NextThemesProvider {...themeProps}>
       <QueryClientProvider client={queryClient}>
-        {children}
+        <DynamicSettingsProvider>
+          {children}
+        </DynamicSettingsProvider>
       </QueryClientProvider>
     </NextThemesProvider>
   );

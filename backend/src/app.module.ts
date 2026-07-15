@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { PrismaModule } from './prisma/prisma.module';
 import { DockerModule } from './docker/docker.module';
 import { AuthModule } from './auth/auth.module';
@@ -21,11 +22,13 @@ import { DatabasesModule } from './databases/databases.module';
 import { AdminModule } from './admin/admin.module';
 import { MailerModule } from './mailer/mailer.module';
 import { SettingsModule } from './settings/settings.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     ScheduleModule.forRoot(),
+    EventEmitterModule.forRoot(),
     ThrottlerModule.forRoot([{ ttl: 60000, limit: 100 }]),
     PrismaModule,
     DockerModule,
@@ -43,8 +46,9 @@ import { SettingsModule } from './settings/settings.module';
     WebhooksModule,
     DatabasesModule,
     AdminModule,
-    SettingsModule,
     MailerModule,
+    SettingsModule,
+    NotificationsModule,
   ],
   providers: [
     {

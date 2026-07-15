@@ -4,6 +4,7 @@ import * as si from 'systeminformation';
 import * as fs from 'fs';
 import Dockerode from 'dockerode';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 
@@ -13,7 +14,10 @@ const execAsync = promisify(exec);
 export class SystemService implements OnModuleInit {
   private docker: Dockerode;
 
-  constructor(private prisma: PrismaService) {
+  constructor(
+    private prisma: PrismaService,
+    private eventEmitter: EventEmitter2
+  ) {
     this.docker = new Dockerode({ socketPath: '/var/run/docker.sock' });
   }
 
@@ -234,6 +238,20 @@ export class SystemService implements OnModuleInit {
         networkOut: networkVal,
       }
     });
+
+    if (resources.cpu >= 90) {
+      this.eventEmitter.emit('system.alert', {
+        title: 'High CPU Usage Detected',
+        message: `System CPU load is currently at ${resources.cpu}%. Please check running containers.`,
+      });
+    }
+    
+    if (resources.ram >= 90) {
+      this.eventEmitter.emit('system.alert', {
+        title: 'High Memory Usage Detected',
+        message: `System Memory usage is currently at ${resources.ram}%. Please check running containers.`,
+      });
+    }
   }
 
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)

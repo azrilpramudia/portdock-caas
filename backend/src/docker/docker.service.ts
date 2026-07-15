@@ -338,6 +338,16 @@ export class DockerService implements OnModuleInit {
       netTx += iface.tx_bytes || 0;
     }
 
+    let diskReadMb = 0;
+    let diskWriteMb = 0;
+    const blkio = stats.blkio_stats?.io_service_bytes_recursive;
+    if (Array.isArray(blkio)) {
+      for (const io of blkio) {
+        if (io.op?.toLowerCase() === 'read') diskReadMb += io.value || 0;
+        if (io.op?.toLowerCase() === 'write') diskWriteMb += io.value || 0;
+      }
+    }
+
     return {
       cpuPercent: Math.round(cpuPercent * 100) / 100,
       memUsageMb: Math.round(memUsage / 1024 / 1024),
@@ -345,6 +355,8 @@ export class DockerService implements OnModuleInit {
       memPercent: Math.round(memPercent * 100) / 100,
       netRxMb: Math.round(netRx / 1024 / 1024),
       netTxMb: Math.round(netTx / 1024 / 1024),
+      diskReadMb: Math.round((diskReadMb / 1024 / 1024) * 100) / 100,
+      diskWriteMb: Math.round((diskWriteMb / 1024 / 1024) * 100) / 100,
     };
   }
 }

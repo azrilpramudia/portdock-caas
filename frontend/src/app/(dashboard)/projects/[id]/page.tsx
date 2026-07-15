@@ -24,6 +24,7 @@ import api from "@/lib/api";
 import { formatDistanceToNow, format } from "date-fns";
 import { id } from "date-fns/locale";
 import { ContainerDetails } from "@/components/containers/ContainerDetails";
+import { useSettingsStore } from "@/store/settings";
 
 function getContainerStatusBadge(status: string) {
   const map: Record<string, { label: string; className: string; icon: any }> = {
@@ -45,6 +46,7 @@ function getContainerStatusBadge(status: string) {
 export default function ProjectDetailPage() {
   const { id: projectId } = useParams();
   const [selectedContainerId, setSelectedContainerId] = useState<string | null>(null);
+  const { settings } = useSettingsStore();
 
   const { data: project, isLoading, refetch } = useQuery({
     queryKey: ["project", projectId],
@@ -93,12 +95,19 @@ export default function ProjectDetailPage() {
             <p className="text-muted-foreground mt-1 text-sm">{project.description}</p>
           )}
         </div>
-        <Link href={`/projects/${projectId}/deploy`}>
-          <Button className="portdock-gradient text-white shadow-lg shadow-blue-500/25 hover:opacity-90">
+        {settings.isMaintenanceMode ? (
+          <Button disabled className="bg-muted text-muted-foreground shadow-none">
             <Rocket className="w-4 h-4 mr-2" />
             Redeploy / Update
           </Button>
-        </Link>
+        ) : (
+          <Link href={`/projects/${projectId}/deploy`}>
+            <Button className="portdock-gradient text-white shadow-lg shadow-blue-500/25 hover:opacity-90">
+              <Rocket className="w-4 h-4 mr-2" />
+              Redeploy / Update
+            </Button>
+          </Link>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -146,12 +155,17 @@ export default function ProjectDetailPage() {
                 <div className="flex flex-col items-center justify-center py-10 text-center">
                   <Container className="w-8 h-8 text-muted-foreground/30 mb-2" />
                   <p className="text-sm text-muted-foreground">Belum ada container</p>
-                  <Link href={`/projects/${projectId}/deploy`} className="mt-3">
-                    <Button size="sm" className="portdock-gradient text-white hover:opacity-90">
-                      <Rocket className="w-3.5 h-3.5 mr-1.5" />
-                      Redeploy Project
+                  {settings.isMaintenanceMode ? (
+                    <Button disabled size="sm" className="mt-3 bg-muted text-muted-foreground shadow-none">
+                      Deploy Aplikasi
                     </Button>
-                  </Link>
+                  ) : (
+                    <Link href={`/projects/${projectId}/deploy`} className="mt-3">
+                      <Button size="sm" className="portdock-gradient text-white hover:opacity-90">
+                        Deploy Aplikasi
+                      </Button>
+                    </Link>
+                  )}
                 </div>
               )}
             </CardContent>

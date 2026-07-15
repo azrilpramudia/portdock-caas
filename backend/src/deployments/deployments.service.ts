@@ -13,6 +13,7 @@ import { DockerService } from '../docker/docker.service';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { ProjectStatus } from '@generated/prisma';
 import { ConfigService } from '@nestjs/config';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 import { NginxService } from '../nginx/nginx.service';
 import { ArchiveService } from '../archive/archive.service';
@@ -30,6 +31,7 @@ export class DeploymentsService {
     private nginx: NginxService,
     private archive: ArchiveService,
     private git: GitService,
+    private eventEmitter: EventEmitter2,
   ) {}
 
   async deployZip(
@@ -192,6 +194,12 @@ export class DeploymentsService {
         },
       });
 
+      this.eventEmitter.emit('deployment.success', {
+        projectName: project.name,
+        domain: project.domain,
+        timeMs: new Date().getTime() - deployment.startedAt.getTime()
+      });
+
       // Generate Nginx config if domain exists
       if (project.domain) {
         const domain = project.domain;
@@ -236,6 +244,11 @@ export class DeploymentsService {
           status: 'Failed',
           endedAt: new Date(),
         },
+      });
+
+      this.eventEmitter.emit('deployment.failed', {
+        projectName: project.name,
+        reason: err.message
       });
 
       this.archive.cleanup(extractDir, file.path);
@@ -412,6 +425,12 @@ export class DeploymentsService {
         },
       });
 
+      this.eventEmitter.emit('deployment.success', {
+        projectName: project.name,
+        domain: project.domain,
+        timeMs: new Date().getTime() - deployment.startedAt.getTime()
+      });
+
       // Generate Nginx config if domain exists
       if (project.domain) {
         const domain = project.domain;
@@ -454,6 +473,11 @@ export class DeploymentsService {
           status: 'Failed',
           endedAt: new Date(),
         },
+      });
+
+      this.eventEmitter.emit('deployment.failed', {
+        projectName: project.name,
+        reason: err.message
       });
 
       this.archive.cleanup(cloneDir);
@@ -593,6 +617,12 @@ export class DeploymentsService {
         },
       });
 
+      this.eventEmitter.emit('deployment.success', {
+        projectName: project.name,
+        domain: project.domain,
+        timeMs: new Date().getTime() - deployment.startedAt.getTime()
+      });
+
       if (project.domain) {
         const domain = project.domain;
         await this.nginx.generateHttpConfig(domain, hostPort);
@@ -636,6 +666,11 @@ export class DeploymentsService {
           status: 'Failed',
           endedAt: new Date(),
         },
+      });
+
+      this.eventEmitter.emit('deployment.failed', {
+        projectName: project.name,
+        reason: err.message
       });
 
       this.archive.cleanup(extractDir, file.path);

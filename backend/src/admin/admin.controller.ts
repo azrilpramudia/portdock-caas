@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Delete, Param, Body, UseGuards, Query, Request, Res, StreamableFile } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Param, Body, UseGuards, Query, Request, Res, StreamableFile, BadRequestException } from '@nestjs/common';
 import type { Response } from 'express';
 import { ApiOperation } from '@nestjs/swagger';
 import { AdminService } from './admin.service';
@@ -9,6 +9,7 @@ import { Role } from '@generated/prisma';
 import { ContainersService } from '../containers/containers.service';
 import { UpdateResourcesDto } from '../containers/dto/update-resources.dto';
 import { SystemService } from './system.service';
+import { TelegramService } from '../notifications/telegram.service';
 
 @Controller('admin')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -17,8 +18,21 @@ export class AdminController {
   constructor(
     private readonly adminService: AdminService,
     private readonly containersService: ContainersService,
-    private readonly systemService: SystemService
+    private readonly systemService: SystemService,
+    private readonly telegramService: TelegramService
   ) {}
+
+  @Post('settings/test-telegram')
+  async testTelegram(@Body() body: { token: string; chatId: string }) {
+    const result = await this.telegramService.sendMessage(
+      '👋 <b>Test Notification</b>\n\nThis is a test message from Portdock CAAS to verify your Telegram Bot configuration.',
+      { token: body.token, chatId: body.chatId }
+    );
+    if (!result.success) {
+      throw new BadRequestException(result.message || 'Failed to send test message');
+    }
+    return { success: true, message: 'Message sent successfully' };
+  }
 
   @Get('dashboard')
   async getDashboardStats() {

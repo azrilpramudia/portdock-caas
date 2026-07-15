@@ -17,7 +17,13 @@ export function useUpdateAdminSettings() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: Record<string, string>) => {
+    mutationFn: async (data: {
+      notifySystem?: string;
+      notifySecurity?: string;
+      notifyMaintenance?: string;
+      telegramBotToken?: string;
+      telegramChatId?: string;
+    }) => {
       const res = await api.patch("/admin/settings", data);
       return res.data;
     },

@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { useSettingsStore } from "@/store/settings";
 
 interface ProjectTableProps {
   isLoading: boolean;
@@ -75,6 +76,7 @@ function getStatusBadge(project: any) {
 export function ProjectTable({ isLoading, projects, setDeleteId }: ProjectTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
+  const { settings } = useSettingsStore();
 
   if (isLoading) {
     return (
@@ -94,11 +96,17 @@ export function ProjectTable({ isLoading, projects, setDeleteId }: ProjectTableP
         <p className="text-muted-foreground text-[13px] mb-6 max-w-sm leading-relaxed">
           You haven't created any deployment projects yet. Get started by creating your first project.
         </p>
-        <Link href="/projects/new">
-          <Button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold h-10 px-6 rounded-xl shadow-[0_4px_14px_0_rgba(37,99,235,0.39)]">
+        {settings.isMaintenanceMode ? (
+          <Button disabled className="bg-muted text-muted-foreground font-semibold h-10 px-6 rounded-xl shadow-[0_4px_14px_0_rgba(37,99,235,0.39)]">
             <Plus className="w-4 h-4 mr-2" /> Create First Project
           </Button>
-        </Link>
+        ) : (
+          <Link href="/projects/new">
+            <Button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold h-10 px-6 rounded-xl shadow-[0_4px_14px_0_rgba(37,99,235,0.39)]">
+              <Plus className="w-4 h-4 mr-2" /> Create First Project
+            </Button>
+          </Link>
+        )}
       </div>
     );
   }
@@ -178,14 +186,21 @@ export function ProjectTable({ isLoading, projects, setDeleteId }: ProjectTableP
                         <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-40 rounded-xl shadow-lg border-border">
-                        <Link href={`/projects/${project.id}/deploy`}>
-                          <DropdownMenuItem className="cursor-pointer text-foreground font-medium focus:text-foreground">
+                        {settings.isMaintenanceMode ? (
+                          <DropdownMenuItem disabled className="cursor-pointer text-muted-foreground font-medium focus:text-muted-foreground">
                             <Rocket className="w-4 h-4 mr-2 text-muted-foreground" /> Deploy
                           </DropdownMenuItem>
-                        </Link>
+                        ) : (
+                          <Link href={`/projects/${project.id}/deploy`}>
+                            <DropdownMenuItem className="cursor-pointer text-foreground font-medium focus:text-foreground">
+                              <Rocket className="w-4 h-4 mr-2 text-muted-foreground" /> Deploy
+                            </DropdownMenuItem>
+                          </Link>
+                        )}
                         <DropdownMenuSeparator className="bg-border my-1" />
                         <DropdownMenuItem
-                          className="cursor-pointer text-red-600 font-medium hover:text-red-700 focus:text-red-700 focus:bg-red-500/10"
+                          disabled={settings.isMaintenanceMode}
+                          className={`cursor-pointer font-medium ${settings.isMaintenanceMode ? 'text-muted-foreground' : 'text-red-600 hover:text-red-700 focus:text-red-700 focus:bg-red-500/10'}`}
                           onClick={() => setDeleteId(project.id)}
                         >
                           <Trash2 className="w-4 h-4 mr-2" /> Delete

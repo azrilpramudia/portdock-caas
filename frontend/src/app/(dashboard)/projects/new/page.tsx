@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -57,6 +57,10 @@ export default function NewProjectPage() {
   };
 
   const deploymentType = watch("deploymentType");
+
+  useEffect(() => {
+    setFile(null);
+  }, [deploymentType]);
 
   const createMutation = useMutation({
     mutationFn: async (data: FormData) => {

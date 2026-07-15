@@ -213,6 +213,12 @@ export class AuthController {
     return this.authService.setup2fa(req.user.id);
   }
 
+  @Post('2fa/turn-off')
+  @UseGuards(JwtAuthGuard)
+  async turnOff2fa(@Request() req: any) {
+    return this.authService.turnOff2fa(req.user.id);
+  }
+
   @Post('2fa/verify')
   async verify2fa(
     @Body() body: { token: string; setupToken: string; isSetup: boolean },

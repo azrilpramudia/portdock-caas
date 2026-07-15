@@ -9,7 +9,7 @@ export class SettingsService {
     const settings = await this.prisma.systemSetting.findMany({
       where: {
         key: {
-          in: ['siteName', 'siteDescription', 'language', 'timezone', 'dateFormat', 'timeFormat'],
+          in: ['siteName', 'siteDescription', 'language', 'timezone', 'dateFormat', 'timeFormat', 'notifyMaintenance', 'primaryColor', 'sidebarStyle'],
         },
       },
     });
@@ -25,7 +25,11 @@ export class SettingsService {
 
     settings.forEach((setting) => {
       if (setting.value) {
-        result[setting.key] = setting.value;
+        if (setting.key === 'notifyMaintenance') {
+          result['isMaintenanceMode'] = String(setting.value === 'true');
+        } else {
+          result[setting.key] = setting.value;
+        }
       }
     });
 

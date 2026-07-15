@@ -11,9 +11,12 @@ interface MonitoringStatsProps {
   memLimitMb: number;
   netTxMb: number;
   netRxMb: number;
+  diskReadMb: number;
+  diskWriteMb: number;
   sparklineDataCPU: DataPoint[];
   sparklineDataRAM: DataPoint[];
   sparklineDataNetwork: DataPoint[];
+  sparklineDataDisk: DataPoint[];
 }
 
 export function MonitoringStats({
@@ -23,9 +26,12 @@ export function MonitoringStats({
   memLimitMb,
   netTxMb,
   netRxMb,
+  diskReadMb,
+  diskWriteMb,
   sparklineDataCPU,
   sparklineDataRAM,
-  sparklineDataNetwork
+  sparklineDataNetwork,
+  sparklineDataDisk
 }: MonitoringStatsProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -96,21 +102,36 @@ export function MonitoringStats({
         </div>
       </div>
 
-      {/* Disk */}
-      <div className="bg-card border border-border rounded-2xl p-5 shadow-sm flex items-center justify-between opacity-60">
+      {/* Disk I/O */}
+      <div className="bg-card border border-border rounded-2xl p-5 shadow-sm flex items-center justify-between">
         <div className="flex gap-4">
           <div className="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center flex-shrink-0">
             <HardDrive className="w-6 h-6 text-purple-600 dark:text-purple-400" />
           </div>
           <div>
-            <p className="text-[12px] font-medium text-muted-foreground mb-0.5">Disk Usage</p>
-            <h3 className="text-2xl font-bold text-foreground leading-tight">0%</h3>
-            <p className="text-[11px] font-medium text-muted-foreground mt-1">N/A</p>
+            <p className="text-[12px] font-medium text-muted-foreground mb-0.5 flex items-center gap-1">
+              Disk I/O
+              <TooltipProvider delay={300}>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <HelpCircle className="w-3.5 h-3.5 text-muted-foreground/50 hover:text-muted-foreground cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-xs">Kecepatan baca (Read) dan tulis (Write) disk secara real-time.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </p>
+            <div className="flex items-center gap-2">
+              <h3 className="text-2xl font-bold text-foreground leading-tight">{parseFloat((diskReadMb + diskWriteMb).toFixed(2))}</h3>
+              <span className="text-[11px] font-bold text-muted-foreground">MB</span>
+            </div>
+            <p className="text-[11px] font-medium text-muted-foreground mt-1">Total</p>
           </div>
         </div>
         <div className="w-[80px] h-[40px]">
           <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-            <LineChart data={[]}>
+            <LineChart data={sparklineDataDisk}>
               <Line type="monotone" dataKey="value" stroke="#8b5cf6" strokeWidth={2} dot={false} isAnimationActive={false} />
             </LineChart>
           </ResponsiveContainer>
@@ -138,7 +159,7 @@ export function MonitoringStats({
               </TooltipProvider>
             </p>
             <div className="flex items-center gap-2">
-              <h3 className="text-xl font-bold text-foreground leading-tight">{parseFloat((netRxMb + netTxMb).toFixed(2))}</h3>
+              <h3 className="text-2xl font-bold text-foreground leading-tight">{parseFloat((netRxMb + netTxMb).toFixed(2))}</h3>
               <span className="text-[11px] font-bold text-muted-foreground">MB</span>
             </div>
             <p className="text-[11px] font-medium text-muted-foreground mt-1">Total</p>

@@ -115,7 +115,7 @@ export default function DeployPage() {
         />
       ) : (
         <Card className="bg-card border border-border shadow-sm">
-          <Tabs defaultValue={defaultTab}>
+          <Tabs defaultValue={defaultTab} onValueChange={() => setFile(null)}>
             <CardHeader className="pb-0">
               <TabsList className="grid grid-cols-3 w-full">
                 <TabsTrigger value="zip" className="text-xs sm:text-sm">

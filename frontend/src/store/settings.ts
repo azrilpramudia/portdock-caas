@@ -8,6 +8,9 @@ export interface SystemSettings {
   timezone: string;
   dateFormat: string;
   timeFormat: string;
+  isMaintenanceMode: boolean;
+  primaryColor?: string;
+  sidebarStyle?: string;
 }
 
 interface SettingsState {
@@ -23,6 +26,9 @@ const defaultSettings: SystemSettings = {
   timezone: "Asia/Jakarta",
   dateFormat: "DD/MM/YYYY",
   timeFormat: "24-hour",
+  isMaintenanceMode: false,
+  primaryColor: "blue",
+  sidebarStyle: "default",
 };
 
 export const useSettingsStore = create<SettingsState>((set) => ({
@@ -30,12 +36,14 @@ export const useSettingsStore = create<SettingsState>((set) => ({
   isLoading: true,
   fetchSettings: async () => {
     try {
-      // Create a raw axios request or fetch so we don't depend on interceptors for a public endpoint
-      // if not necessary, but using standard api is fine if it doesn't 401.
-      // We will use standard api instance, but catch errors.
       const res = await api.get("/settings/public");
       
-      const newSettings = { ...defaultSettings, ...res.data };
+      const newSettings = { 
+        ...defaultSettings, 
+        ...res.data,
+        isMaintenanceMode: res.data.isMaintenanceMode === "true" || res.data.isMaintenanceMode === true
+      };
+      
       set({ settings: newSettings, isLoading: false });
     } catch (error) {
       console.error("Failed to fetch public settings", error);

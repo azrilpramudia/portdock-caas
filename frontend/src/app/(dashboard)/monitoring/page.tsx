@@ -9,6 +9,7 @@ import { useContainerMonitoring } from "@/hooks/useContainerMonitoring";
 import { MonitoringStats } from "@/components/monitoring/MonitoringStats";
 import { MonitoringCharts } from "@/components/monitoring/MonitoringCharts";
 import { useRouter, useSearchParams } from "next/navigation";
+import { toast } from "sonner";
 
 export default function MonitoringIndexPage() {
   const router = useRouter();
@@ -41,10 +42,13 @@ export default function MonitoringIndexPage() {
     memPercent,
     netRxMb,
     netTxMb,
+    diskReadMb,
+    diskWriteMb,
     containerInfo,
     sparklineDataCPU,
     sparklineDataRAM,
     sparklineDataNetwork,
+    sparklineDataDisk,
     areaChartData,
     recentLogs,
     handleManualRefresh
@@ -83,18 +87,14 @@ export default function MonitoringIndexPage() {
         </div>
 
         <div className="flex items-center gap-3">
+
           <button 
-            onClick={() => setIsRealTime(!isRealTime)}
-            className={`flex items-center gap-2 h-10 px-4 rounded-lg border text-[13px] font-bold transition-colors ${
-              isRealTime 
-                ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400" 
-                : "bg-muted border-border text-muted-foreground"
-            }`}
+            onClick={() => {
+              handleManualRefresh();
+              toast.success("Monitoring data refreshed");
+            }} 
+            className="w-10 h-10 flex items-center justify-center rounded-lg bg-card border border-border text-muted-foreground hover:bg-muted transition-colors"
           >
-            <div className={`w-1.5 h-1.5 rounded-full ${isRealTime ? "bg-emerald-500 animate-pulse" : "bg-muted-foreground"}`} />
-            {isRealTime ? "Real-time" : "Paused"}
-          </button>
-          <button onClick={handleManualRefresh} className="w-10 h-10 flex items-center justify-center rounded-lg bg-card border border-border text-muted-foreground hover:bg-muted transition-colors">
             <RefreshCw className="w-4 h-4" />
           </button>
         </div>
@@ -108,9 +108,12 @@ export default function MonitoringIndexPage() {
         memLimitMb={memLimitMb}
         netTxMb={netTxMb}
         netRxMb={netRxMb}
+        diskReadMb={diskReadMb}
+        diskWriteMb={diskWriteMb}
         sparklineDataCPU={sparklineDataCPU}
         sparklineDataRAM={sparklineDataRAM}
         sparklineDataNetwork={sparklineDataNetwork}
+        sparklineDataDisk={sparklineDataDisk}
       />
 
       {/* 3. MAIN CHARTS */}

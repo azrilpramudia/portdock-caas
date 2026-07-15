@@ -3,20 +3,18 @@
 import React, { useState, useEffect } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Sun, Moon, Monitor, Loader2 } from "lucide-react";
+import { Monitor, Loader2 } from "lucide-react";
 import { useAdminSettings, useUpdateAdminSettings } from "@/hooks/useAdminSettings";
 
 export function AppearanceSettingsCard() {
   const { data: settings } = useAdminSettings();
   const updateSettings = useUpdateAdminSettings();
 
-  const [theme, setTheme] = useState("light");
   const [primaryColor, setPrimaryColor] = useState("blue");
   const [sidebarStyle, setSidebarStyle] = useState("default");
 
   useEffect(() => {
     if (settings) {
-      if (settings.theme) setTheme(settings.theme);
       if (settings.primaryColor) setPrimaryColor(settings.primaryColor);
       if (settings.sidebarStyle) setSidebarStyle(settings.sidebarStyle);
     }
@@ -24,7 +22,6 @@ export function AppearanceSettingsCard() {
 
   const handleSave = () => {
     updateSettings.mutate({
-      theme,
       primaryColor,
       sidebarStyle,
     });
@@ -52,41 +49,6 @@ export function AppearanceSettingsCard() {
       </div>
       
       <div className="px-6 pb-6 flex-1 flex flex-col gap-5">
-        <div className="space-y-2.5">
-          <label className="text-[13px] font-medium text-muted-foreground">Theme</label>
-          <div className="grid grid-cols-3 gap-3">
-            <button
-              onClick={() => setTheme("light")}
-              className={`flex items-center justify-center gap-2 h-10 border rounded-md text-sm font-medium transition-all ${
-                theme === "light" 
-                  ? "border-blue-600 text-blue-600 bg-blue-50 dark:bg-blue-900/20" 
-                  : "border-border text-foreground hover:bg-muted/50"
-              }`}
-            >
-              <Sun className="w-4 h-4" /> Light
-            </button>
-            <button
-              onClick={() => setTheme("dark")}
-              className={`flex items-center justify-center gap-2 h-10 border rounded-md text-sm font-medium transition-all ${
-                theme === "dark" 
-                  ? "border-blue-600 text-blue-600 bg-blue-50 dark:bg-blue-900/20" 
-                  : "border-border text-foreground hover:bg-muted/50"
-              }`}
-            >
-              <Moon className="w-4 h-4" /> Dark
-            </button>
-            <button
-              onClick={() => setTheme("system")}
-              className={`flex items-center justify-center gap-2 h-10 border rounded-md text-sm font-medium transition-all ${
-                theme === "system" 
-                  ? "border-blue-600 text-blue-600 bg-blue-50 dark:bg-blue-900/20" 
-                  : "border-border text-foreground hover:bg-muted/50"
-              }`}
-            >
-              <Monitor className="w-4 h-4" /> System
-            </button>
-          </div>
-        </div>
 
         <div className="space-y-2.5">
           <label className="text-[13px] font-medium text-muted-foreground">Primary Color</label>

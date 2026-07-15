@@ -47,6 +47,8 @@ export class MonitoringService {
         memPercent: 0,
         netRxMb: 0,
         netTxMb: 0,
+        diskReadMb: 0,
+        diskWriteMb: 0,
         timestamp: new Date().toISOString(),
       };
     }

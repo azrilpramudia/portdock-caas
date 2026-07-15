@@ -21,11 +21,13 @@ import { useProjectsList, useDeleteProject } from "@/hooks/useProjects";
 import { StatCard } from "@/components/projects/StatCard";
 import { ProjectTable } from "@/components/projects/ProjectTable";
 import { toast } from "sonner";
+import { useSettingsStore } from "@/store/settings";
 
 export default function ProjectsPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const { settings } = useSettingsStore();
 
   // Use the monitoring dashboard stats for the top cards
   const { data: stats, refetch: refetchStats, isRefetching: isRefetchingStats } = useQuery({
@@ -108,11 +110,17 @@ export default function ProjectsPage() {
                 <RefreshCw className={`w-4 h-4 mr-1.5 ${isRefetching || isRefetchingStats ? 'animate-spin' : ''}`} />
                 Refresh
               </Button>
-              <Link href="/projects/new">
-                <Button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold h-9 rounded-lg shadow-[0_4px_14px_0_rgba(37,99,235,0.39)] text-[13px]">
+              {settings.isMaintenanceMode ? (
+                <Button disabled className="bg-muted text-muted-foreground shadow-none font-semibold h-9 rounded-lg text-[13px]">
                   <Plus className="w-4 h-4 mr-1.5" /> Create New Project
                 </Button>
-              </Link>
+              ) : (
+                <Link href="/projects/new">
+                  <Button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold h-9 rounded-lg shadow-[0_4px_14px_0_rgba(37,99,235,0.39)] text-[13px]">
+                    <Plus className="w-4 h-4 mr-1.5" /> Create New Project
+                  </Button>
+                </Link>
+              )}
             </div>
           </div>
           

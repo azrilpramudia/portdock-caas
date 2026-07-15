@@ -13,6 +13,8 @@ import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
 import { useAdminSettings, useUpdateAdminSettings } from "@/hooks/useAdminSettings";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 export function PasswordPolicyModal() {
   const [isOpen, setIsOpen] = useState(false);
@@ -48,7 +50,7 @@ export function PasswordPolicyModal() {
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 mt-4 w-full">
+      <DialogTrigger className={cn(buttonVariants({ variant: "outline" }), "shrink-0 px-4 h-9")}>
         Configure
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">

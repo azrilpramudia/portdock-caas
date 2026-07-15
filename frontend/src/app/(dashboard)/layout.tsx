@@ -9,6 +9,7 @@ import { WelcomeModal } from "@/components/dashboard/WelcomeModal";
 import { FloatingSupport } from "@/components/dashboard/FloatingSupport";
 import { CommandPalette } from "@/components/shared/CommandPalette";
 import { DashboardErrorBoundary } from "@/components/shared/DashboardErrorBoundary";
+import { MaintenanceBanner } from "@/components/layout/MaintenanceBanner";
 
 export default function DashboardLayout({
   children,
@@ -40,9 +41,11 @@ export default function DashboardLayout({
   if (!isAuthenticated) return null;
 
   return (
-    <div className="flex h-screen bg-background overflow-hidden">
-      {/* Desktop Sidebar */}
-      <div className="hidden lg:flex lg:flex-shrink-0">
+    <div className="flex flex-col h-screen bg-background overflow-hidden">
+      <MaintenanceBanner />
+      <div className="flex flex-1 overflow-hidden">
+        {/* Desktop Sidebar */}
+        <div className="hidden lg:flex lg:flex-shrink-0">
         <DashboardSidebar />
       </div>
 
@@ -60,7 +63,7 @@ export default function DashboardLayout({
       )}
 
       {/* Main Content */}
-      <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
         <DashboardHeader onMenuClick={() => setSidebarOpen(true)} />
         
         {/* Page Content */}
@@ -69,6 +72,7 @@ export default function DashboardLayout({
             <div className="p-4 lg:p-8 animate-fade-in">{children}</div>
           </DashboardErrorBoundary>
         </main>
+      </div>
       </div>
 
       {/* Global Dashboard Elements */}

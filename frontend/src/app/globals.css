@@ -204,6 +204,15 @@
     background: var(--muted-foreground);
   }
 
+  /* Hide scrollbar completely but allow scrolling */
+  .scrollbar-hide {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
   /* Animations */
   .animate-pulse-blue {
     animation: pulseBlue 2s ease-in-out infinite;
