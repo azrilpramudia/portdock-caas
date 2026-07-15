@@ -19,6 +19,8 @@ import { BackupModule } from './backup/backup.module';
 import { WebhooksModule } from './webhooks/webhooks.module';
 import { DatabasesModule } from './databases/databases.module';
 import { AdminModule } from './admin/admin.module';
+import { MailerModule } from './mailer/mailer.module';
+import { SettingsModule } from './settings/settings.module';
 
 @Module({
   imports: [
@@ -41,6 +43,8 @@ import { AdminModule } from './admin/admin.module';
     WebhooksModule,
     DatabasesModule,
     AdminModule,
+    SettingsModule,
+    MailerModule,
   ],
   providers: [
     {

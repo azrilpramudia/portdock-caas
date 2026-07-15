@@ -10,7 +10,10 @@ export function useLoginMutation() {
 
   return useMutation({
     mutationFn: authService.login,
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
+      if (data.requires2fa || data.requires2faSetup) {
+        return;
+      }
       setAuth(data.user, data.token);
       toast.success(`Selamat datang, ${data.user.name}!`);
       router.push("/dashboard");

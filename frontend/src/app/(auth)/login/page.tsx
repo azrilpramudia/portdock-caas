@@ -7,10 +7,14 @@ import { ArrowLeft, Sparkles, Package } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuthStore } from "@/store/auth";
 import { LoginForm } from "@/components/forms/LoginForm";
+import { useTranslation } from "@/hooks/useTranslation";
+import { useSettingsStore } from "@/store/settings";
 
 export default function LoginPage() {
   const router = useRouter();
   const { isAuthenticated, initialize } = useAuthStore();
+  const { t } = useTranslation();
+  const siteName = useSettingsStore(state => state.settings.siteName);
 
   useEffect(() => {
     initialize();
@@ -40,7 +44,7 @@ export default function LoginPage() {
           className="flex items-center gap-1.5 text-sm font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-500 dark:hover:text-blue-400 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
-          Back to Home
+          {t.common.backToHome}
         </Link>
       </header>
 
@@ -51,10 +55,10 @@ export default function LoginPage() {
             {/* Header Area */}
             <div className="mb-5">
               <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
-                Welcome Back!
+                {t.auth.loginTitle}
               </h1>
               <p className="text-sm text-slate-500 dark:text-slate-400">
-                Sign in to manage your deployments.
+                {t.auth.loginDesc}
               </p>
             </div>
               

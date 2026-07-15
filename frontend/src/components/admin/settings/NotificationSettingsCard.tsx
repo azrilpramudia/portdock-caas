@@ -1,15 +1,33 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Box, Bell, ShieldAlert, Wrench, Mail } from "lucide-react";
+import { useAdminSettings, useUpdateAdminSettings } from "@/hooks/useAdminSettings";
 
 export function NotificationSettingsCard() {
+  const { data: settings } = useAdminSettings();
+  const updateSettings = useUpdateAdminSettings();
+
   const [deployment, setDeployment] = useState(true);
   const [systemAlerts, setSystemAlerts] = useState(true);
   const [securityAlerts, setSecurityAlerts] = useState(true);
   const [maintenance, setMaintenance] = useState(false);
   const [emailDigest, setEmailDigest] = useState(false);
+
+  useEffect(() => {
+    if (settings) {
+      if (settings.notifyDeployments !== undefined) setDeployment(settings.notifyDeployments === "true");
+      if (settings.notifySystem !== undefined) setSystemAlerts(settings.notifySystem === "true");
+      if (settings.notifySecurity !== undefined) setSecurityAlerts(settings.notifySecurity === "true");
+      if (settings.notifyMaintenance !== undefined) setMaintenance(settings.notifyMaintenance === "true");
+      if (settings.emailDigest !== undefined) setEmailDigest(settings.emailDigest === "true");
+    }
+  }, [settings]);
+
+  const handleToggle = (key: string, value: boolean) => {
+    updateSettings.mutate({ [key]: value ? "true" : "false" });
+  };
 
   return (
     <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden flex flex-col h-full w-full">
@@ -30,11 +48,11 @@ export function NotificationSettingsCard() {
               <p className="text-xs text-muted-foreground">Dapatkan notifikasi ketika deployment selesai.</p>
             </div>
           </div>
-          <Switch 
-            checked={deployment}
-            onCheckedChange={setDeployment}
-            className="data-[state=checked]:bg-blue-600 shrink-0"
-          />
+            <Switch 
+              checked={deployment}
+              onCheckedChange={(val) => { setDeployment(val); handleToggle('notifyDeployments', val); }}
+              className="data-[state=checked]:bg-green-500 shrink-0"
+            />
         </div>
 
         <div className="flex items-center justify-between py-4 border-b border-border/50">
@@ -47,11 +65,11 @@ export function NotificationSettingsCard() {
               <p className="text-xs text-muted-foreground">Notifikasi untuk alert dan peringatan sistem.</p>
             </div>
           </div>
-          <Switch 
-            checked={systemAlerts}
-            onCheckedChange={setSystemAlerts}
-            className="data-[state=checked]:bg-blue-600 shrink-0"
-          />
+            <Switch 
+              checked={systemAlerts}
+              onCheckedChange={(val) => { setSystemAlerts(val); handleToggle('notifySystem', val); }}
+              className="data-[state=checked]:bg-blue-600 shrink-0"
+            />
         </div>
 
         <div className="flex items-center justify-between py-4 border-b border-border/50">
@@ -64,11 +82,11 @@ export function NotificationSettingsCard() {
               <p className="text-xs text-muted-foreground">Notifikasi untuk aktivitas keamanan penting.</p>
             </div>
           </div>
-          <Switch 
-            checked={securityAlerts}
-            onCheckedChange={setSecurityAlerts}
-            className="data-[state=checked]:bg-blue-600 shrink-0"
-          />
+            <Switch 
+              checked={securityAlerts}
+              onCheckedChange={(val) => { setSecurityAlerts(val); handleToggle('notifySecurity', val); }}
+              className="data-[state=checked]:bg-red-500 shrink-0"
+            />
         </div>
 
         <div className="flex items-center justify-between py-4 border-b border-border/50">
@@ -81,11 +99,11 @@ export function NotificationSettingsCard() {
               <p className="text-xs text-muted-foreground">Informasi tentang pemeliharaan sistem.</p>
             </div>
           </div>
-          <Switch 
-            checked={maintenance}
-            onCheckedChange={setMaintenance}
-            className="data-[state=checked]:bg-blue-600 shrink-0"
-          />
+            <Switch 
+              checked={maintenance}
+              onCheckedChange={(val) => { setMaintenance(val); handleToggle('notifyMaintenance', val); }}
+              className="data-[state=checked]:bg-amber-500 shrink-0"
+            />
         </div>
 
         <div className="flex items-center justify-between py-4">
@@ -98,11 +116,11 @@ export function NotificationSettingsCard() {
               <p className="text-xs text-muted-foreground">Kirim ringkasan aktivitas harian via email.</p>
             </div>
           </div>
-          <Switch 
-            checked={emailDigest}
-            onCheckedChange={setEmailDigest}
-            className="data-[state=checked]:bg-blue-600 shrink-0"
-          />
+            <Switch 
+              checked={emailDigest}
+              onCheckedChange={(val) => { setEmailDigest(val); handleToggle('emailDigest', val); }}
+              className="data-[state=checked]:bg-purple-500 shrink-0"
+            />
         </div>
 
 

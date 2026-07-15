@@ -3,7 +3,8 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 import * as React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSettingsStore } from "@/store/settings";
 
 export function Providers({ 
   children,
@@ -23,6 +24,12 @@ export function Providers({
         },
       })
   );
+
+  const fetchSettings = useSettingsStore(state => state.fetchSettings);
+
+  useEffect(() => {
+    fetchSettings();
+  }, [fetchSettings]);
 
   return (
     <NextThemesProvider {...themeProps}>

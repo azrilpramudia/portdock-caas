@@ -135,6 +135,34 @@ export class AdminService {
     };
   }
 
+  async getSettings(): Promise<Record<string, string>> {
+    const settings = await this.prisma.systemSetting.findMany();
+    const formatted: Record<string, string> = {};
+    for (const setting of settings) {
+      formatted[setting.key] = setting.value;
+    }
+    return formatted;
+  }
+
+  async updateSettings(data: Record<string, string>): Promise<void> {
+    const operations = Object.entries(data).map(([key, value]) => {
+      let category = 'general';
+      if (['twoFactor', 'sessionTimeout', 'loginAttempts'].includes(key)) category = 'security';
+      if (['theme', 'primaryColor', 'sidebarStyle'].includes(key)) category = 'appearance';
+      if (['dataRetention', 'autoCleanup', 'maintenanceMode', 'checkUpdates'].includes(key)) category = 'system';
+      if (['backupSchedule', 'backupRetention'].includes(key)) category = 'backup';
+      if (['notifyDeployments', 'notifySystem', 'notifySecurity', 'notifyMaintenance', 'emailDigest'].includes(key)) category = 'notifications';
+
+      return this.prisma.systemSetting.upsert({
+        where: { key },
+        update: { value, category },
+        create: { key, value, category },
+      });
+    });
+
+    await this.prisma.$transaction(operations);
+  }
+
   async getAllUsers() {
     const users = await this.prisma.user.findMany({
       select: {

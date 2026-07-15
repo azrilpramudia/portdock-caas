@@ -9,10 +9,14 @@ import { cn } from "@/lib/utils";
 import { navItems } from "@/constants/nav";
 import { Button } from "@/components/ui/button";
 import portdockLogo from "@/assets/portdock.png";
+import { useTranslation } from "@/hooks/useTranslation";
+import { useSettingsStore } from "@/store/settings";
 
 export function DashboardSidebar({ mobile = false, onClose }: { mobile?: boolean; onClose?: () => void }) {
   const pathname = usePathname();
   const user = useAuthStore((state) => state.user);
+  const { t } = useTranslation();
+  const siteName = useSettingsStore(state => state.settings.siteName);
 
   return (
     <aside
@@ -34,7 +38,7 @@ export function DashboardSidebar({ mobile = false, onClose }: { mobile?: boolean
             className="h-9 w-auto object-contain"
           />
           <span className="font-bold text-[1.35rem] leading-none tracking-tight select-none mt-1">
-            <span className="text-foreground transition-colors duration-300">Port</span><span className="text-blue-600">Dock</span>
+            <span className="text-foreground transition-colors duration-300">{siteName}</span>
           </span>
         </Link>
       </div>
@@ -58,11 +62,14 @@ export function DashboardSidebar({ mobile = false, onClose }: { mobile?: boolean
             >
               <item.icon
                 className={cn(
-                  "w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110",
+                  "w-5 h-5 transition-colors duration-200",
                   isActive ? "text-primary-foreground" : "text-muted-foreground group-hover:text-foreground"
                 )}
               />
-              <span>{item.label}</span>
+              {(() => {
+                const key = item.id as keyof typeof t.sidebar;
+                return t.sidebar[key] || item.label;
+              })()}
             </Link>
           );
         })}

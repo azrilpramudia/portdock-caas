@@ -1,5 +1,4 @@
-import {
-  Controller,
+import { Controller, UnauthorizedException,
   Post,
   Get,
   Body,
@@ -13,8 +12,7 @@ import {
 } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import type { Response, Request as ExpressRequest } from 'express';
-import {
-  ApiTags,
+import { ApiTags,
   ApiOperation,
   ApiCookieAuth,
   ApiParam,
@@ -71,12 +69,14 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const data = await this.authService.login(dto, ip);
-    res.cookie('access_token', data.token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    });
+    if (data.token) {
+      res.cookie('access_token', data.token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      });
+    }
     return data;
   }
 
@@ -202,4 +202,39 @@ export class AuthController {
   deleteUserById(@Param('id') id: string) {
     return this.authService.deleteAccount(id);
   }
+
+  @Post('2fa/setup')
+  @UseGuards(JwtAuthGuard)
+  async setup2fa(@Request() req: any) {
+    return this.authService.setup2fa(req.user.id);
+  }
+
+  @Post('2fa/verify')
+  async verify2fa(
+    @Body() body: { token: string; setupToken: string; isSetup: boolean },
+    @Request() req: any,
+    @Res({ passthrough: true }) res: Response
+  ) {
+    // We need to decode the setupToken (or tempToken) to get the user ID.
+    let payload;
+    try {
+      payload = this.authService['jwtService'].verify(body.setupToken);
+    } catch (e) {
+      throw new UnauthorizedException('Invalid or expired 2FA session');
+    }
+    
+    const data = await this.authService.verify2fa(payload.sub, body.token, body.isSetup, req.ip || req.connection.remoteAddress);
+    
+    if (data.token) {
+      res.cookie('access_token', data.token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      });
+    }
+    
+    return data;
+  }
+
 }

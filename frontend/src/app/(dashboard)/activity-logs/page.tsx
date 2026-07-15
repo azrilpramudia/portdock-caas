@@ -6,10 +6,10 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { activityService } from "@/services/activity.service";
 import { useState } from "react";
-import { format } from "date-fns";
 import { DateRange } from "react-day-picker";
 import { ActivityLogsFilter } from "@/components/activity-logs/ActivityLogsFilter";
 import { ActivityLogsTable } from "@/components/activity-logs/ActivityLogsTable";
+import { formatDateTime } from "@/utils/formatters";
 
 export default function ActivityLogsPage() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -63,10 +63,11 @@ export default function ActivityLogsPage() {
 
   const logs = (logsData?.data || []).map((log: any) => {
     const actionDetails = getActionDetails(log.action);
+    const formatted = formatDateTime(log.createdAt);
     return {
       id: log.id,
-      date: format(new Date(log.createdAt), "MMM dd, yyyy"),
-      time: format(new Date(log.createdAt), "HH:mm:ss"),
+      date: formatted.date,
+      time: formatted.time,
       user: log.user?.name || "User",
       role: "Administrator",
       actionIcon: actionDetails.icon,

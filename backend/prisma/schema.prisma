@@ -36,6 +36,11 @@ model User {
   sshPublicKey   String?
   sshPrivateKey  String?
 
+  failedLoginAttempts Int       @default(0) @map("failed_login_attempts")
+  lockoutUntil        DateTime? @map("lockout_until")
+  twoFactorSecret     String?   @map("two_factor_secret")
+  isTwoFactorEnabled  Boolean   @default(false) @map("is_two_factor_enabled")
+
   projects         Project[]
   activityLogs     ActivityLog[]
   terminalLogs     TerminalLog[]
@@ -215,4 +220,14 @@ model SystemMetric {
   createdAt  DateTime @default(now()) @map("created_at")
 
   @@map("system_metrics")
+}
+
+model SystemSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String   @db.Text
+  category  String   @default("general")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("system_settings")
 }

@@ -10,12 +10,12 @@ import {
 } from "lucide-react";
 
 export const navItems = [
-  { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-  { href: "/projects", icon: FolderOpen, label: "Projects" },
-  { href: "/databases", icon: Database, label: "Databases" },
-  { href: "/containers", icon: Container, label: "Containers" },
-  { href: "/monitoring", icon: BarChart3, label: "Monitoring" },
-  { href: "/terminal", icon: TerminalIcon, label: "Terminal" },
-  { href: "/activity-logs", icon: ScrollText, label: "Activity Logs" },
-  { href: "/settings", icon: Settings, label: "Settings" },
+  { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard", id: "dashboard" },
+  { href: "/projects", icon: FolderOpen, label: "Projects", id: "projects" },
+  { href: "/databases", icon: Database, label: "Databases", id: "databases" },
+  { href: "/containers", icon: Container, label: "Containers", id: "containers" },
+  { href: "/monitoring", icon: BarChart3, label: "Monitoring", id: "monitoring" },
+  { href: "/terminal", icon: TerminalIcon, label: "Terminal", id: "terminal" },
+  { href: "/activity-logs", icon: ScrollText, label: "Activity Logs", id: "activityLogs" },
+  { href: "/settings", icon: Settings, label: "Settings", id: "settings" },
 ];

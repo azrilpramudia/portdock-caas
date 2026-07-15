@@ -1,13 +1,39 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Sun, Moon, Monitor } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Sun, Moon, Monitor, Loader2 } from "lucide-react";
+import { useAdminSettings, useUpdateAdminSettings } from "@/hooks/useAdminSettings";
 
 export function AppearanceSettingsCard() {
+  const { data: settings } = useAdminSettings();
+  const updateSettings = useUpdateAdminSettings();
+
   const [theme, setTheme] = useState("light");
   const [primaryColor, setPrimaryColor] = useState("blue");
   const [sidebarStyle, setSidebarStyle] = useState("default");
+
+  useEffect(() => {
+    if (settings) {
+      if (settings.theme) setTheme(settings.theme);
+      if (settings.primaryColor) setPrimaryColor(settings.primaryColor);
+      if (settings.sidebarStyle) setSidebarStyle(settings.sidebarStyle);
+    }
+  }, [settings]);
+
+  const handleSave = () => {
+    updateSettings.mutate({
+      theme,
+      primaryColor,
+      sidebarStyle,
+    });
+  };
+
+  const SIDEBAR_LABELS: Record<string, string> = {
+    "default": "Default",
+    "compact": "Compact"
+  };
 
   const colors = [
     { name: "blue", hex: "bg-blue-600", ring: "ring-blue-600" },
@@ -78,12 +104,15 @@ export function AppearanceSettingsCard() {
           </div>
         </div>
 
-        <div className="space-y-1.5">
-          <label className="text-[13px] font-medium text-muted-foreground">Sidebar Style</label>
-          <div className="w-[55%]">
-            <Select value={sidebarStyle} onValueChange={setSidebarStyle}>
+        <div className="flex items-center justify-between py-5 border-b border-border/50">
+          <div className="space-y-0.5 pr-4">
+            <h4 className="text-sm font-semibold text-foreground">Sidebar Style</h4>
+            <p className="text-xs text-muted-foreground">Pilih gaya tampilan sidebar.</p>
+          </div>
+          <div className="w-[120px] shrink-0">
+            <Select value={sidebarStyle} onValueChange={(v) => setSidebarStyle(v || "")}>
               <SelectTrigger className="rounded-md border-border w-full">
-                <SelectValue placeholder="Select Style" />
+                <SelectValue placeholder="Select Style">{SIDEBAR_LABELS[sidebarStyle]}</SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="default">Default</SelectItem>
@@ -94,8 +123,13 @@ export function AppearanceSettingsCard() {
         </div>
 
         <div className="pt-1 mt-auto">
-          <button className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 shadow-sm">
-            Save Changes
+          <button 
+            onClick={handleSave} 
+            disabled={updateSettings.isPending}
+            className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 shadow-sm"
+          >
+            {updateSettings.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+            {updateSettings.isPending ? 'Saving...' : 'Save Changes'}
           </button>
         </div>
       </div>

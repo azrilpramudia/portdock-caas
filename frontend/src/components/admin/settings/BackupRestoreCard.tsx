@@ -1,12 +1,47 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CheckCircle2, Download, History } from "lucide-react";
+import { useAdminSettings, useUpdateAdminSettings } from "@/hooks/useAdminSettings";
 
 export function BackupRestoreCard() {
+  const { data: settings } = useAdminSettings();
+  const updateSettings = useUpdateAdminSettings();
+
   const [backupSchedule, setBackupSchedule] = useState("daily");
   const [backupRetention, setBackupRetention] = useState("30");
+
+  useEffect(() => {
+    if (settings) {
+      if (settings.backupSchedule) setBackupSchedule(settings.backupSchedule);
+      if (settings.backupRetention) setBackupRetention(settings.backupRetention);
+    }
+  }, [settings]);
+
+  const handleScheduleChange = (val: string | null) => {
+    const value = val || "";
+    setBackupSchedule(value);
+    updateSettings.mutate({ backupSchedule: value });
+  };
+
+  const handleRetentionChange = (val: string | null) => {
+    const value = val || "";
+    setBackupRetention(value);
+    updateSettings.mutate({ backupRetention: value });
+  };
+
+  const SCHEDULE_LABELS: Record<string, string> = {
+    daily: "Setiap hari pukul 02:00",
+    weekly: "Setiap minggu",
+    monthly: "Setiap bulan"
+  };
+
+  const RETENTION_LABELS: Record<string, string> = {
+    "7": "7 hari",
+    "14": "14 hari",
+    "30": "30 hari"
+  };
 
   return (
     <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden flex flex-col h-full w-full">
@@ -40,10 +75,10 @@ export function BackupRestoreCard() {
             <h4 className="text-sm font-semibold text-foreground">Backup Schedule</h4>
             <p className="text-xs text-muted-foreground">Atur jadwal backup otomatis.</p>
           </div>
-          <div className="w-[180px] shrink-0">
-            <Select value={backupSchedule} onValueChange={setBackupSchedule}>
+          <div className="w-[200px] shrink-0">
+            <Select value={backupSchedule} onValueChange={handleScheduleChange}>
               <SelectTrigger className="rounded-md border-border w-full">
-                <SelectValue placeholder="Select" />
+                <SelectValue placeholder="Select">{SCHEDULE_LABELS[backupSchedule]}</SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="daily">Setiap hari pukul 02:00</SelectItem>
@@ -62,10 +97,10 @@ export function BackupRestoreCard() {
             <h4 className="text-sm font-semibold text-foreground">Backup Retention</h4>
             <p className="text-xs text-muted-foreground">Simpan backup selama periode tertentu.</p>
           </div>
-          <div className="w-[180px] shrink-0">
-            <Select value={backupRetention} onValueChange={setBackupRetention}>
+          <div className="w-[200px] shrink-0">
+            <Select value={backupRetention} onValueChange={handleRetentionChange}>
               <SelectTrigger className="rounded-md border-border w-full">
-                <SelectValue placeholder="Select" />
+                <SelectValue placeholder="Select">{RETENTION_LABELS[backupRetention]}</SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="7">7 hari</SelectItem>

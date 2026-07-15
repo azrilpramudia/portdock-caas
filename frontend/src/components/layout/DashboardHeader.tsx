@@ -9,6 +9,7 @@ import { ThemeToggle } from "@/components/shared/ThemeToggle";
 import { NotificationBell } from "./NotificationBell";
 import { Breadcrumbs } from "@/components/shared/Breadcrumbs";
 import { navItems } from "@/constants/nav";
+import { useTranslation } from "@/hooks/useTranslation";
 import { LogOut, User as UserIcon, Settings, ShieldAlert } from "lucide-react";
 import {
   DropdownMenu,
@@ -28,6 +29,7 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { user } = useAuthStore();
+  const { t } = useTranslation();
 
   const initials = user?.name
     ? user.name
@@ -39,7 +41,14 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
     : "U";
 
   const currentNav = navItems.find((item) => pathname === item.href || pathname.startsWith(item.href + "/"));
-  const pageTitle = currentNav?.label || "Dashboard";
+  
+  const getPageTitle = () => {
+    if (!currentNav) return "Dashboard";
+    const key = currentNav.id as keyof typeof t.sidebar;
+    return t.sidebar[key] || currentNav.label;
+  };
+  
+  const pageTitle = getPageTitle();
   const pathSegments = pathname.split("/").filter(Boolean);
 
   return (
@@ -96,10 +105,11 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
                     {initials}
                   </AvatarFallback>
                 </Avatar>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-col items-start leading-tight">
+                  <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{user?.role === "ADMIN" ? t.header.admin : t.header.user}</span>
                   <span className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">{user?.name}</span>
-                  <ChevronDown className="w-4 h-4 text-muted-foreground" />
                 </div>
+                <ChevronDown className="w-4 h-4 text-muted-foreground ml-2" />
               </div>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
@@ -112,14 +122,14 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
                 onClick={() => router.push("/settings")}
               >
                 <UserIcon className="mr-2 h-4 w-4" />
-                <span>Profile</span>
+                <span>{t.header.profile}</span>
               </DropdownMenuItem>
               <DropdownMenuItem 
                 className="cursor-pointer text-muted-foreground hover:text-foreground focus:text-foreground"
                 onClick={() => router.push("/settings")}
               >
                 <Settings className="mr-2 h-4 w-4" />
-                <span>Settings</span>
+                <span>{t.header.settings}</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               {user?.role === "ADMIN" && (
@@ -142,7 +152,7 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
                 }}
               >
                 <LogOut className="mr-2 h-4 w-4" />
-                <span>Log out</span>
+                <span>{t.sidebar.logout}</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

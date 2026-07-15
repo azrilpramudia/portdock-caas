@@ -25,6 +25,17 @@ export class AdminController {
     return this.adminService.getDashboardStats();
   }
 
+  @Get('settings')
+  async getSettings() {
+    return this.adminService.getSettings();
+  }
+
+  @Patch('settings')
+  async updateSettings(@Body() data: Record<string, string>) {
+    await this.adminService.updateSettings(data);
+    return { success: true, message: 'Settings updated successfully' };
+  }
+
   @Get('monitoring')
   async getMonitoringStats(@Query('range') range?: string) {
     const [overview, serverInfo, services, topContainers] = await Promise.all([

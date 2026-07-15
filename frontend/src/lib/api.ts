@@ -16,11 +16,24 @@ export const fetchAndSetCsrfToken = async () => {
       withCredentials: true,
     });
     const token = response.data.csrfToken;
-    api.defaults.headers.common["x-csrf-token"] = token;
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem("csrf-token", token);
+    }
   } catch (error) {
     console.error("Failed to fetch CSRF token", error);
   }
 };
+
+// Request interceptor - attach CSRF token
+api.interceptors.request.use((config) => {
+  if (typeof window !== 'undefined') {
+    const token = sessionStorage.getItem("csrf-token");
+    if (token && !config.headers["x-csrf-token"]) {
+      config.headers["x-csrf-token"] = token;
+    }
+  }
+  return config;
+});
 
 // Response interceptor - handle 401
 api.interceptors.response.use(

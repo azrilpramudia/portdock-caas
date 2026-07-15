@@ -11,15 +11,37 @@ const poppins = Poppins({
   display: "swap",
 });
 
-import { APP_CONFIG } from "@/constants/config";
+import { APP_CONFIG, API_BASE_URL } from "@/constants/config";
 
-export const metadata: Metadata = {
-  title: `${APP_CONFIG.name}`,
-  description: APP_CONFIG.description,
-  keywords: ["docker", "deployment", "container", "hosting", "devops"],
-  authors: [{ name: APP_CONFIG.author }],
-};
+export async function generateMetadata(): Promise<Metadata> {
+  let siteName = APP_CONFIG.name;
+  let siteDescription = APP_CONFIG.description;
+  
+  try {
+    // Fetch directly from the backend API using absolute URL because this runs on Next.js server
+    const res = await fetch(`${API_BASE_URL}/settings/public`, {
+      next: { revalidate: 60 } // revalidate every minute
+    });
+    
+    if (res.ok) {
+      const data = await res.json();
+      if (data.siteName) siteName = data.siteName;
+      if (data.siteDescription) siteDescription = data.siteDescription;
+    }
+  } catch (error) {
+    console.error("Failed to fetch public settings for metadata", error);
+  }
 
+  return {
+    title: {
+      template: `%s | ${siteName}`,
+      default: siteName,
+    },
+    description: siteDescription,
+    keywords: ["docker", "deployment", "container", "hosting", "devops"],
+    authors: [{ name: APP_CONFIG.author }],
+  };
+}
 
 export default function RootLayout({
   children,

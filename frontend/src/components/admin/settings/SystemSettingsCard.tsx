@@ -1,14 +1,45 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
+import { useAdminSettings, useUpdateAdminSettings } from "@/hooks/useAdminSettings";
 
 export function SystemSettingsCard() {
+  const { data: settings } = useAdminSettings();
+  const updateSettings = useUpdateAdminSettings();
+
   const [dataRetention, setDataRetention] = useState("90");
   const [autoCleanup, setAutoCleanup] = useState(true);
   const [maintenanceMode, setMaintenanceMode] = useState(false);
   const [checkUpdates, setCheckUpdates] = useState(true);
+
+  useEffect(() => {
+    if (settings) {
+      if (settings.dataRetention) setDataRetention(settings.dataRetention);
+      if (settings.autoCleanup !== undefined) setAutoCleanup(settings.autoCleanup === "true");
+      if (settings.maintenanceMode !== undefined) setMaintenanceMode(settings.maintenanceMode === "true");
+      if (settings.checkUpdates !== undefined) setCheckUpdates(settings.checkUpdates === "true");
+    }
+  }, [settings]);
+
+  const handleSave = () => {
+    updateSettings.mutate({
+      dataRetention,
+      autoCleanup: autoCleanup ? "true" : "false",
+      maintenanceMode: maintenanceMode ? "true" : "false",
+      checkUpdates: checkUpdates ? "true" : "false",
+    });
+  };
+
+  const RETENTION_LABELS: Record<string, string> = {
+    "30": "30 hari",
+    "60": "60 hari",
+    "90": "90 hari",
+    "180": "180 hari"
+  };
 
   return (
     <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden flex flex-col h-full w-full">
@@ -24,10 +55,10 @@ export function SystemSettingsCard() {
             <h4 className="text-sm font-semibold text-foreground">Data Retention (Logs)</h4>
             <p className="text-xs text-muted-foreground">Simpan log aktivitas selama periode tertentu.</p>
           </div>
-          <div className="w-[110px] shrink-0">
-            <Select value={dataRetention} onValueChange={setDataRetention}>
+          <div className="w-[120px] shrink-0">
+            <Select value={dataRetention} onValueChange={(v) => setDataRetention(v || "")}>
               <SelectTrigger className="rounded-md border-border w-full">
-                <SelectValue placeholder="Select" />
+                <SelectValue placeholder="Select">{RETENTION_LABELS[dataRetention]}</SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="30">30 hari</SelectItem>
@@ -76,8 +107,13 @@ export function SystemSettingsCard() {
         </div>
 
         <div className="pt-1 mt-auto">
-          <button className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 shadow-sm">
-            Save Changes
+          <button 
+            onClick={handleSave} 
+            disabled={updateSettings.isPending}
+            className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 shadow-sm"
+          >
+            {updateSettings.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+            {updateSettings.isPending ? 'Saving...' : 'Save Changes'}
           </button>
         </div>
       </div>
