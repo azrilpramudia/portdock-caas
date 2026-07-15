@@ -30,7 +30,7 @@ export class AuthService {
     private projectsService: ProjectsService,
   ) {}
 
-  async register(dto: RegisterDto, ip: string) {
+  async register(dto: RegisterDto, ip: string, userAgent: string) {
     await this.verifyTurnstileToken(dto.turnstileToken);
 
     const existing = await this.prisma.user.findUnique({
@@ -66,11 +66,11 @@ export class AuthService {
       },
     });
 
-    const token = await this.generateToken(user);
+    const token = await this.generateToken(user, ip, userAgent);
     return { user, token };
   }
 
-  async login(dto: LoginDto, ip: string) {
+  async login(dto: LoginDto, ip: string, userAgent: string) {
     await this.verifyTurnstileToken(dto.turnstileToken);
 
     const user = await this.prisma.user.findUnique({
@@ -113,18 +113,10 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const twoFactorSetting = await this.prisma.systemSetting.findUnique({ where: { key: 'twoFactor' } });
-    const isGlobalTwoFactorEnabled = twoFactorSetting?.value === 'true';
-
-    // If 2FA is globally enabled and user is an admin
-    if (isGlobalTwoFactorEnabled && user.role === 'ADMIN') {
+    // If user has 2FA enabled, require 2FA verification
+    if (user.isTwoFactorEnabled) {
       const tempToken = this.jwtService.sign({ sub: user.id, requires2fa: true }, { expiresIn: '5m' });
-      
-      if (!user.isTwoFactorEnabled) {
-        return { requires2faSetup: true, tempToken };
-      } else {
-        return { requires2fa: true, tempToken };
-      }
+      return { requires2fa: true, tempToken };
     }
 
     await this.prisma.$transaction([
@@ -143,7 +135,7 @@ export class AuthService {
     ]);
 
     const { password: _, ...userWithoutPassword } = user;
-    const token = await this.generateToken(user);
+    const token = await this.generateToken(user, ip, userAgent);
     return { user: userWithoutPassword, token };
   }
 
@@ -319,17 +311,29 @@ export class AuthService {
     return { message: 'GitHub account disconnected' };
   }
 
-  private generateToken(user: {
-    id: string;
-    email: string;
-    name: string;
-    role?: string;
-  }) {
+  private async generateToken(
+    user: { id: string; email: string; name: string; role?: string },
+    ip: string,
+    userAgent: string
+  ) {
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7); // 7 days
+
+    const session = await this.prisma.session.create({
+      data: {
+        userId: user.id,
+        ipAddress: ip,
+        userAgent,
+        expiresAt,
+      },
+    });
+
     return this.jwtService.sign({
       sub: user.id,
       email: user.email,
       name: user.name,
       role: user.role || 'USER',
+      sessionId: session.id,
     });
   }
 
@@ -438,7 +442,7 @@ export class AuthService {
     return { qrCode: qrCodeDataUrl, secret };
   }
 
-  async verify2fa(userId: string, token: string, isSetup: boolean, ip: string) {
+  async verify2fa(userId: string, token: string, isSetup: boolean, ip: string, userAgent: string) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user || !user.twoFactorSecret) throw new UnauthorizedException('2FA not configured');
     
@@ -468,7 +472,7 @@ export class AuthService {
     ]);
     
     const { password: _, ...userWithoutPassword } = user;
-    const jwtToken = await this.generateToken(user);
+    const jwtToken = await this.generateToken(user, ip, userAgent);
     return { user: userWithoutPassword, token: jwtToken };
   }
 

@@ -5,7 +5,19 @@ export interface User {
   githubUsername?: string;
   sshPublicKey?: string;
   role: "USER" | "ADMIN";
+  isTwoFactorEnabled?: boolean;
   createdAt: string;
+}
+
+export interface Session {
+  id: string;
+  userId: string;
+  ipAddress?: string;
+  userAgent?: string;
+  lastActive: string;
+  expiresAt: string;
+  createdAt: string;
+  isCurrent?: boolean;
 }
 
 export interface Container {

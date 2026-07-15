@@ -3,10 +3,15 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { Request } from 'express';
+import { PrismaService } from '../../prisma/prisma.service';
+import { UnauthorizedException } from '@nestjs/common';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(configService: ConfigService) {
+  constructor(
+    configService: ConfigService,
+    private prisma: PrismaService
+  ) {
     super({
       jwtFromRequest: (req: Request) => {
         let token = null;
@@ -25,12 +30,29 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     email: string;
     name: string;
     role: string;
+    sessionId?: string;
   }) {
+    if (payload.sessionId) {
+      const session = await this.prisma.session.findUnique({
+        where: { id: payload.sessionId },
+      });
+      if (!session) {
+        throw new UnauthorizedException('Session expired or revoked');
+      }
+      
+      // Update last active
+      await this.prisma.session.update({
+        where: { id: payload.sessionId },
+        data: { lastActive: new Date() },
+      }).catch(() => {}); // Ignore errors if it fails to update (e.g., race condition)
+    }
+
     return {
       id: payload.sub,
       email: payload.email,
       name: payload.name,
       role: payload.role,
+      sessionId: payload.sessionId,
     };
   }
 }

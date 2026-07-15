@@ -12,13 +12,11 @@ export function SecuritySettingsCard() {
   const { data: settings } = useAdminSettings();
   const updateSettings = useUpdateAdminSettings();
 
-  const [twoFactor, setTwoFactor] = useState(true);
   const [sessionTimeout, setSessionTimeout] = useState("30");
   const [loginAttempts, setLoginAttempts] = useState("5");
 
   useEffect(() => {
     if (settings) {
-      if (settings.twoFactor !== undefined) setTwoFactor(settings.twoFactor === "true");
       if (settings.sessionTimeout) setSessionTimeout(settings.sessionTimeout);
       if (settings.loginAttempts) setLoginAttempts(settings.loginAttempts);
     }
@@ -26,7 +24,6 @@ export function SecuritySettingsCard() {
 
   const handleSave = () => {
     updateSettings.mutate({
-      twoFactor: twoFactor ? "true" : "false",
       sessionTimeout,
       loginAttempts,
     });
@@ -54,18 +51,6 @@ export function SecuritySettingsCard() {
       
       <div className="px-6 pb-6 flex-1 flex flex-col gap-0">
         
-        <div className="flex items-center justify-between py-5 border-b border-border/50">
-          <div className="space-y-0.5 pr-4">
-            <h4 className="text-sm font-semibold text-foreground">Two-Factor Authentication (2FA)</h4>
-            <p className="text-xs text-muted-foreground">Tambahkan lapisan keamanan ekstra untuk akun admin.</p>
-          </div>
-          <Switch 
-            checked={twoFactor}
-            onCheckedChange={setTwoFactor}
-            className="data-[state=checked]:bg-blue-600 shrink-0"
-          />
-        </div>
-
         <div className="flex items-center justify-between py-5 border-b border-border/50">
           <div className="space-y-0.5 pr-4">
             <h4 className="text-sm font-semibold text-foreground">Session Timeout</h4>

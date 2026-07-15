@@ -48,9 +48,11 @@ export class AuthController {
   async register(
     @Body() dto: RegisterDto,
     @Ip() ip: string,
+    @Req() req: ExpressRequest,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const data = await this.authService.register(dto, ip);
+    const userAgent = req.headers['user-agent'] || 'Unknown Device';
+    const data = await this.authService.register(dto, ip, userAgent);
     res.cookie('access_token', data.token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -66,9 +68,11 @@ export class AuthController {
   async login(
     @Body() dto: LoginDto,
     @Ip() ip: string,
+    @Req() req: ExpressRequest,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const data = await this.authService.login(dto, ip);
+    const userAgent = req.headers['user-agent'] || 'Unknown Device';
+    const data = await this.authService.login(dto, ip, userAgent);
     if (data.token) {
       res.cookie('access_token', data.token, {
         httpOnly: true,
@@ -223,7 +227,8 @@ export class AuthController {
       throw new UnauthorizedException('Invalid or expired 2FA session');
     }
     
-    const data = await this.authService.verify2fa(payload.sub, body.token, body.isSetup, req.ip || req.connection.remoteAddress);
+    const userAgent = req.headers['user-agent'] || 'Unknown Device';
+    const data = await this.authService.verify2fa(payload.sub, body.token, body.isSetup, req.ip || req.connection.remoteAddress, userAgent);
     
     if (data.token) {
       res.cookie('access_token', data.token, {

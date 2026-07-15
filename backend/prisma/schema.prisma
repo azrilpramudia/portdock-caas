@@ -45,6 +45,7 @@ model User {
   activityLogs     ActivityLog[]
   terminalLogs     TerminalLog[]
   managedDatabases ManagedDatabase[]
+  sessions         Session[]
 
   @@map("users")
 }
@@ -143,6 +144,20 @@ model Deployment {
   project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   
   @@map("deployments")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  ipAddress String?  @map("ip_address")
+  userAgent String?  @map("user_agent")
+  lastActive DateTime @default(now()) @map("last_active")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
 }
 
 enum DatabaseType {

@@ -4,8 +4,10 @@ import { ProfileSettings } from "@/components/settings/ProfileSettings";
 import { PasswordSettings } from "@/components/settings/PasswordSettings";
 import { GithubSettings } from "@/components/settings/GithubSettings";
 import { SshKeySettings } from "@/components/settings/SshKeySettings";
+import { TwoFactorSettings } from "@/components/settings/TwoFactorSettings";
 import { NotificationSettings } from "@/components/settings/NotificationSettings";
 import { DeleteAccountSettings } from "@/components/settings/DeleteAccountSettings";
+import { ActiveSessions } from "@/components/settings/ActiveSessions";
 
 export default function SettingsPage() {
   return (
@@ -16,6 +18,8 @@ export default function SettingsPage() {
         <PasswordSettings />
         <GithubSettings />
         <SshKeySettings />
+        <TwoFactorSettings />
+        <ActiveSessions />
       </div>
 
       {/* Full Width Bottom Section */}
