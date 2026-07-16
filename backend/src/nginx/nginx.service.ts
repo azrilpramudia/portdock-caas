@@ -9,20 +9,45 @@ export class NginxService {
   private readonly logger = new Logger(NginxService.name);
   private readonly confDir: string;
 
+  private readonly pathsDir: string;
+
   constructor(
     private dockerService: DockerService,
     private configService: ConfigService,
   ) {
     this.confDir = path.resolve(process.cwd(), 'nginx-conf.d');
+    this.pathsDir = path.resolve(this.confDir, 'paths');
     if (!fs.existsSync(this.confDir)) {
       fs.mkdirSync(this.confDir, { recursive: true });
+    }
+    if (!fs.existsSync(this.pathsDir)) {
+      fs.mkdirSync(this.pathsDir, { recursive: true });
+    }
+    
+    // Create base domain config
+    const baseDomain = this.configService.get<string>('BASE_DOMAIN');
+    if (baseDomain) {
+      const baseConfPath = path.join(this.confDir, '00-base-domain.conf');
+      const baseConfContent = `
+server {
+    listen 80;
+    server_name ${baseDomain};
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    include /etc/nginx/conf.d/paths/*.conf;
+}
+`;
+      fs.writeFileSync(baseConfPath, baseConfContent);
     }
   }
 
   /**
    * Menghasilkan HTTP file Nginx (port 80) yang mendukung Let's Encrypt webroot
    */
-  async generateHttpConfig(domain: string, hostPort: number): Promise<void> {
+  async generateHttpConfig(domain: string, hostPort: number, projectName?: string): Promise<void> {
     const confContent = `
 server {
     listen 80;
@@ -48,6 +73,25 @@ server {
     this.logger.log(
       `HTTP Nginx config created for ${domain} -> Port ${hostPort}`,
     );
+
+    // Create path-based routing config
+    const baseDomain = this.configService.get<string>('BASE_DOMAIN');
+    if (baseDomain && projectName) {
+      const pathConfContent = `
+location /${projectName}/ {
+    proxy_pass http://172.17.0.1:${hostPort}/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+}
+`;
+      const pathConfPath = path.join(this.pathsDir, `${projectName}.conf`);
+      fs.writeFileSync(pathConfPath, pathConfContent);
+      this.logger.log(`Path-based config created for /${projectName}/ -> Port ${hostPort}`);
+    }
 
     await this.reloadNginx();
   }
@@ -160,7 +204,7 @@ server {
   /**
    * Menghasilkan HTTPS file Nginx (port 443 + redirect) setelah SSL berhasil
    */
-  async generateHttpsConfig(domain: string, hostPort: number): Promise<void> {
+  async generateHttpsConfig(domain: string, hostPort: number, projectName?: string): Promise<void> {
     const baseDomain = this.configService.get<string>('BASE_DOMAIN');
     let certPath = `/etc/letsencrypt/live/${domain}/fullchain.pem`;
     let keyPath = `/etc/letsencrypt/live/${domain}/privkey.pem`;
@@ -217,6 +261,41 @@ server {
       `HTTPS Nginx config created for ${domain} -> Port ${hostPort}`,
     );
 
+    // Also update base domain to support HTTPS if it has a wildcard or base cert
+    if (baseDomain) {
+      const certbotConfDir = path.resolve(process.cwd(), 'certbot-conf');
+      const baseCertPath = path.join(certbotConfDir, 'live', baseDomain, 'fullchain.pem');
+      
+      if (fs.existsSync(baseCertPath)) {
+        const baseConfPath = path.join(this.confDir, '00-base-domain.conf');
+        const baseConfContent = `
+server {
+    listen 80;
+    server_name ${baseDomain};
+    
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+    
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+server {
+    listen 443 ssl;
+    server_name ${baseDomain};
+
+    ssl_certificate /etc/letsencrypt/live/${baseDomain}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${baseDomain}/privkey.pem;
+
+    include /etc/nginx/conf.d/paths/*.conf;
+}
+`;
+        fs.writeFileSync(baseConfPath, baseConfContent);
+      }
+    }
+
     await this.reloadNginx();
   }
 
@@ -231,13 +310,22 @@ server {
   /**
    * Menghapus file .conf jika project dihapus
    */
-  async removeConfig(domain: string): Promise<void> {
+  async removeConfig(domain: string, projectName?: string): Promise<void> {
     const confPath = path.join(this.confDir, `${domain}.conf`);
     if (fs.existsSync(confPath)) {
       fs.unlinkSync(confPath);
-      this.logger.log(`Nginx config removed for ${domain}`);
-      await this.reloadNginx();
+      this.logger.log(`Removed Nginx config for ${domain}`);
     }
+    
+    if (projectName) {
+      const pathConfPath = path.join(this.pathsDir, `${projectName}.conf`);
+      if (fs.existsSync(pathConfPath)) {
+        fs.unlinkSync(pathConfPath);
+        this.logger.log(`Removed path config for /${projectName}/`);
+      }
+    }
+
+    await this.reloadNginx();
   }
 
   /**

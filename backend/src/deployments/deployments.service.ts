@@ -203,7 +203,8 @@ export class DeploymentsService {
       // Generate Nginx config if domain exists
       if (project.domain) {
         const domain = project.domain;
-        await this.nginx.generateHttpConfig(domain, hostPort);
+        const projectNameSafe = project.name.toLowerCase().replace(/[^a-z0-9]/g, '-');
+        await this.nginx.generateHttpConfig(domain, hostPort, projectNameSafe);
 
         // Attempt Let's Encrypt SSL in the background!
         // Do not block the HTTP response waiting for certbot to finish.
@@ -212,7 +213,7 @@ export class DeploymentsService {
           .requestSsl(domain, userEmail)
           .then(async (sslSuccess) => {
             if (sslSuccess) {
-              await this.nginx.generateHttpsConfig(domain, hostPort);
+              await this.nginx.generateHttpsConfig(domain, hostPort, projectNameSafe);
             }
           })
           .catch((err) => this.logger.error('Background SSL Error', err));
@@ -235,6 +236,7 @@ export class DeploymentsService {
         projectId,
         action: 'DEPLOYMENT_FAILED',
         description: `Deployment failed: ${err.message}`,
+        status: 'Failed',
         ipAddress: ip,
       });
 
@@ -434,7 +436,8 @@ export class DeploymentsService {
       // Generate Nginx config if domain exists
       if (project.domain) {
         const domain = project.domain;
-        await this.nginx.generateHttpConfig(domain, hostPort);
+        const projectNameSafe = project.name.toLowerCase().replace(/[^a-z0-9]/g, '-');
+        await this.nginx.generateHttpConfig(domain, hostPort, projectNameSafe);
 
         // Attempt Let's Encrypt SSL in the background!
         const userEmail = project.user?.email || 'admin@portdock.my.id';
@@ -442,7 +445,7 @@ export class DeploymentsService {
           .requestSsl(domain, userEmail)
           .then(async (sslSuccess) => {
             if (sslSuccess) {
-              await this.nginx.generateHttpsConfig(domain, hostPort);
+              await this.nginx.generateHttpsConfig(domain, hostPort, projectNameSafe);
             }
           })
           .catch((err) => this.logger.error('Background SSL Error', err));
@@ -464,6 +467,7 @@ export class DeploymentsService {
         projectId,
         action: 'DEPLOYMENT_FAILED',
         description: `GitHub deployment failed: ${err.message}`,
+        status: 'Failed',
         ipAddress: ip,
       });
 
@@ -625,14 +629,15 @@ export class DeploymentsService {
 
       if (project.domain) {
         const domain = project.domain;
-        await this.nginx.generateHttpConfig(domain, hostPort);
+        const projectNameSafe = project.name.toLowerCase().replace(/[^a-z0-9]/g, '-');
+        await this.nginx.generateHttpConfig(domain, hostPort, projectNameSafe);
 
         const userEmail = project.user?.email || 'admin@portdock.my.id';
         this.nginx
           .requestSsl(domain, userEmail)
           .then(async (sslSuccess) => {
             if (sslSuccess) {
-              await this.nginx.generateHttpsConfig(domain, hostPort);
+              await this.nginx.generateHttpsConfig(domain, hostPort, projectNameSafe);
             }
           })
           .catch((err) => this.logger.error('Background SSL Error', err));
@@ -657,6 +662,7 @@ export class DeploymentsService {
         projectId,
         action: 'DEPLOYMENT_FAILED',
         description: `Custom Dockerfile deployment failed: ${err.message}`,
+        status: 'Failed',
         ipAddress: ip,
       });
 

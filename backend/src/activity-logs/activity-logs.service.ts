@@ -7,6 +7,7 @@ interface CreateLogDto {
   projectId?: string;
   action: string;
   description?: string;
+  status?: string;
   ipAddress?: string;
 }
 
@@ -53,6 +54,7 @@ export class ActivityLogsService {
         projectId: dto.projectId,
         action: dto.action,
         description: dto.description,
+        status: dto.status,
         ipAddress: dto.ipAddress,
       },
     });

@@ -49,21 +49,25 @@ export function DeploymentLogsTerminal({
   // Simulate deployment logs based on state
   const hasInitializedRef = useRef(false);
 
+  const timeoutRefs = useRef<NodeJS.Timeout[]>([]);
+
   useEffect(() => {
     if (isDeploying && !hasInitializedRef.current) {
       hasInitializedRef.current = true;
       addLog(`Initializing deployment environment for "${projectName || 'project'}"...`, 'info');
       
-      setTimeout(() => {
+      const t1 = setTimeout(() => {
         if (deploymentType === 'ZIP') {
           addLog('Preparing to upload ZIP package...', 'process');
         } else if (deploymentType === 'GITHUB') {
           addLog('Connecting to GitHub repository...', 'process');
-          setTimeout(() => addLog('Cloning source code...', 'process'), 1500);
+          const t2 = setTimeout(() => addLog('Cloning source code...', 'process'), 1500);
+          timeoutRefs.current.push(t2);
         } else {
           addLog('Parsing custom Dockerfile...', 'process');
         }
       }, 1000);
+      timeoutRefs.current.push(t1);
     }
   }, [isDeploying, deploymentType, projectName]);
 
@@ -83,8 +87,9 @@ export function DeploymentLogsTerminal({
       } else if (uploadProgress === 100 && prevProgressRef.current !== 100) {
         prevProgressRef.current = 100;
         addLog('Upload completed 100%', 'success');
-        setTimeout(() => addLog('Extracting ZIP package...', 'process'), 500);
-        setTimeout(() => addLog('Building Docker container... (this may take a few minutes)', 'process'), 1500);
+        const t1 = setTimeout(() => addLog('Extracting ZIP package...', 'process'), 500);
+        const t2 = setTimeout(() => addLog('Building Docker container... (this may take a few minutes)', 'process'), 1500);
+        timeoutRefs.current.push(t1, t2);
       }
     }
   }, [uploadProgress, deploymentType, isDeploying]);
@@ -96,13 +101,15 @@ export function DeploymentLogsTerminal({
     if (isSuccess && !hasFinishedRef.current) {
       hasFinishedRef.current = true;
       addLog('Provisioning SSL certificates and routing...', 'process');
-      setTimeout(() => {
+      const t1 = setTimeout(() => {
         addLog('Deployment completed successfully!', 'success');
       }, 1000);
+      timeoutRefs.current.push(t1);
     }
     
     if (isError && !hasFinishedRef.current) {
       hasFinishedRef.current = true;
+      timeoutRefs.current.forEach(clearTimeout);
       addLog(`Deployment failed: ${errorMessage || 'Unknown error occurred'}`, 'error');
     }
   }, [isSuccess, isError, errorMessage]);

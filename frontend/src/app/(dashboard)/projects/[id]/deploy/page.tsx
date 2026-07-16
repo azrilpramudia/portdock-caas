@@ -37,6 +37,7 @@ export default function DeployPage() {
   const [githubUrl, setGithubUrl] = useState("");
   const [branch, setBranch] = useState("main");
   const [dragOver, setDragOver] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>("");
 
   const {
     deployStatus,
@@ -85,6 +86,12 @@ export default function DeployPage() {
 
   const defaultTab = project?.deploymentType?.toLowerCase() || "zip";
 
+  useEffect(() => {
+    if (!activeTab && defaultTab) {
+      setActiveTab(defaultTab);
+    }
+  }, [defaultTab, activeTab]);
+
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       {/* Header */}
@@ -108,14 +115,14 @@ export default function DeployPage() {
           isSuccess={deployStatus === "success"}
           isError={deployStatus === "error"}
           uploadProgress={progress}
-          deploymentType={project?.deploymentType || "ZIP"}
+          deploymentType={activeTab.toUpperCase() as any}
           projectName={project?.name}
           projectId={projectId}
           errorMessage={deployMessage}
         />
       ) : (
         <Card className="bg-card border border-border shadow-sm">
-          <Tabs defaultValue={defaultTab} onValueChange={() => setFile(null)}>
+          <Tabs defaultValue={defaultTab} onValueChange={(val) => { setFile(null); setActiveTab(val); }}>
             <CardHeader className="pb-0">
               <TabsList className="grid grid-cols-3 w-full">
                 <TabsTrigger value="zip" className="text-xs sm:text-sm">
