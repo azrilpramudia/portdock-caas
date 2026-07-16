@@ -20,7 +20,7 @@ export class DatabasesService {
     private docker: DockerService,
   ) {}
 
-  async create(userId: string, dto: CreateDatabaseDto) {
+  async create(userId: string, dto: CreateDatabaseDto, ip?: string) {
     const dbPassword = randomBytes(8).toString('hex'); // 16 char password
     const dbUser = dto.type === DatabaseType.POSTGRESQL || dto.type === DatabaseType.MYSQL ? 'portdock' : null;
     const dbName = dto.type === DatabaseType.POSTGRESQL || dto.type === DatabaseType.MYSQL ? dto.name.toLowerCase().replace(/[^a-z0-9]/g, '_') : null;
@@ -118,7 +118,7 @@ export class DatabasesService {
 
       this.logger.log(`Database container ${containerName} started successfully on port ${hostPort}`);
 
-      return await this.prisma.managedDatabase.update({
+      const updatedDb = await this.prisma.managedDatabase.update({
         where: { id: database.id },
         data: {
           dockerContainerId: inspect.Id,
@@ -127,6 +127,18 @@ export class DatabasesService {
           status: ContainerStatus.RUNNING,
         },
       });
+
+      await this.prisma.activityLog.create({
+        data: {
+          userId,
+          action: 'Create Database',
+          description: `Provisioned managed database: ${database.name}`,
+          status: 'Success',
+          ipAddress: ip,
+        },
+      });
+
+      return updatedDb;
     } catch (error) {
       this.logger.error(
         `Failed to provision database: ${error.message}`,
@@ -151,7 +163,73 @@ export class DatabasesService {
     return db;
   }
 
-  async remove(userId: string, id: string) {
+  async start(userId: string, id: string, ip?: string) {
+    const db = await this.findOne(userId, id);
+    if (!db.dockerContainerId) throw new InternalServerErrorException('Database container ID not found');
+    
+    await this.docker.startContainer(db.dockerContainerId);
+    
+    await this.prisma.activityLog.create({
+      data: {
+        userId,
+        action: 'Start Database',
+        description: `Started managed database: ${db.name}`,
+        status: 'Success',
+        ipAddress: ip,
+      },
+    });
+
+    return this.prisma.managedDatabase.update({
+      where: { id },
+      data: { status: ContainerStatus.RUNNING },
+    });
+  }
+
+  async stop(userId: string, id: string, ip?: string) {
+    const db = await this.findOne(userId, id);
+    if (!db.dockerContainerId) throw new InternalServerErrorException('Database container ID not found');
+    
+    await this.docker.stopContainer(db.dockerContainerId);
+    
+    await this.prisma.activityLog.create({
+      data: {
+        userId,
+        action: 'Stop Database',
+        description: `Stopped managed database: ${db.name}`,
+        status: 'Success',
+        ipAddress: ip,
+      },
+    });
+
+    return this.prisma.managedDatabase.update({
+      where: { id },
+      data: { status: ContainerStatus.STOPPED },
+    });
+  }
+
+  async restart(userId: string, id: string, ip?: string) {
+    const db = await this.findOne(userId, id);
+    if (!db.dockerContainerId) throw new InternalServerErrorException('Database container ID not found');
+    
+    await this.docker.restartContainer(db.dockerContainerId);
+    
+    await this.prisma.activityLog.create({
+      data: {
+        userId,
+        action: 'Restart Database',
+        description: `Restarted managed database: ${db.name}`,
+        status: 'Success',
+        ipAddress: ip,
+      },
+    });
+
+    return this.prisma.managedDatabase.update({
+      where: { id },
+      data: { status: ContainerStatus.RUNNING },
+    });
+  }
+
+  async remove(userId: string, id: string, ip?: string) {
     const db = await this.findOne(userId, id);
 
     if (db.dockerContainerId) {
@@ -170,6 +248,17 @@ export class DatabasesService {
     }
 
     await this.prisma.managedDatabase.delete({ where: { id } });
+    
+    await this.prisma.activityLog.create({
+      data: {
+        userId,
+        action: 'Delete Database',
+        description: `Deleted managed database: ${db.name}`,
+        status: 'Success',
+        ipAddress: ip,
+      },
+    });
+
     return { message: 'Database deleted successfully' };
   }
 

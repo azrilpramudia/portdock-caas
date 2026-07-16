@@ -46,9 +46,10 @@ export function NotificationBell() {
     (!lastViewed || new Date(logs[0].createdAt).getTime() > new Date(lastViewed).getTime());
 
   const getIconForAction = (action: string) => {
-    if (action.includes("ERROR") || action.includes("FAIL")) return <XCircle className="w-4 h-4 text-red-500" />;
-    if (action.includes("SUCCESS") || action.includes("CONNECT")) return <CheckCircle2 className="w-4 h-4 text-emerald-500" />;
-    if (action.includes("START") || action.includes("STOP") || action.includes("RESTART")) return <RefreshCw className="w-4 h-4 text-blue-500" />;
+    const act = action.toUpperCase();
+    if (act.includes("ERROR") || act.includes("FAIL")) return <XCircle className="w-4 h-4 text-red-500" />;
+    if (act.includes("SUCCESS") || act.includes("CONNECT")) return <CheckCircle2 className="w-4 h-4 text-emerald-500" />;
+    if (act.includes("START") || act.includes("STOP") || act.includes("RESTART")) return <RefreshCw className="w-4 h-4 text-blue-500" />;
     return <AlertCircle className="w-4 h-4 text-muted-foreground" />;
   };
 

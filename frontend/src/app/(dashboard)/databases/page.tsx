@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Database, Trash2, Server, Key, Copy, CheckCircle2, Search, RefreshCw, Filter, Eye, EyeOff } from "lucide-react";
+import { Plus, Database, Trash2, Server, Key, Copy, CheckCircle2, Search, RefreshCw, Filter, Eye, EyeOff, MoreVertical, Play, Square, RotateCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -21,6 +21,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import api from "@/lib/api";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
@@ -54,6 +61,33 @@ export default function DatabasesPage() {
       toast.error(err.response?.data?.message || "Failed to delete database");
       setDeleteId(null);
     },
+  });
+
+  const startMutation = useMutation({
+    mutationFn: async (id: string) => await api.post(`/databases/${id}/start`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["databases"] });
+      toast.success("Database started successfully");
+    },
+    onError: () => toast.error("Failed to start database"),
+  });
+
+  const stopMutation = useMutation({
+    mutationFn: async (id: string) => await api.post(`/databases/${id}/stop`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["databases"] });
+      toast.success("Database stopped successfully");
+    },
+    onError: () => toast.error("Failed to stop database"),
+  });
+
+  const restartMutation = useMutation({
+    mutationFn: async (id: string) => await api.post(`/databases/${id}/restart`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["databases"] });
+      toast.success("Database restarted successfully");
+    },
+    onError: () => toast.error("Failed to restart database"),
   });
 
   const filteredDatabases = databases.filter((db: any) => {
@@ -148,10 +182,11 @@ export default function DatabasesPage() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-border bg-muted/30">
-                <th className="px-6 py-4 text-xs font-semibold text-muted-foreground w-[25%]">Name</th>
+                <th className="px-6 py-4 text-xs font-semibold text-muted-foreground w-[20%]">Name</th>
                 <th className="px-6 py-4 text-xs font-semibold text-muted-foreground w-[15%]">Type</th>
                 <th className="px-6 py-4 text-xs font-semibold text-muted-foreground w-[10%]">Port</th>
-                <th className="px-6 py-4 text-xs font-semibold text-muted-foreground w-[35%]">Connection URL</th>
+                <th className="px-6 py-4 text-xs font-semibold text-muted-foreground w-[10%]">Status</th>
+                <th className="px-6 py-4 text-xs font-semibold text-muted-foreground w-[30%]">Connection URL</th>
                 <th className="px-6 py-4 text-xs font-semibold text-muted-foreground w-[15%] text-right">Actions</th>
               </tr>
             </thead>
@@ -162,13 +197,14 @@ export default function DatabasesPage() {
                     <td className="px-6 py-5"><div className="h-5 bg-muted rounded w-3/4"></div></td>
                     <td className="px-6 py-5"><div className="h-4 bg-muted rounded w-1/2"></div></td>
                     <td className="px-6 py-5"><div className="h-4 bg-muted rounded w-full"></div></td>
+                    <td className="px-6 py-5"><div className="h-4 bg-muted rounded w-3/4"></div></td>
                     <td className="px-6 py-5"><div className="h-4 bg-muted rounded w-full"></div></td>
                     <td className="px-6 py-5"><div className="h-8 bg-muted rounded w-8 ml-auto"></div></td>
                   </tr>
                 ))
               ) : filteredDatabases.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-16 text-center">
+                  <td colSpan={6} className="px-6 py-16 text-center">
                     <div className="flex flex-col items-center justify-center">
                       <div className="w-16 h-16 bg-muted/50 rounded-2xl flex items-center justify-center mb-4">
                         <Database className="w-8 h-8 text-muted-foreground/50" />
@@ -221,6 +257,20 @@ export default function DatabasesPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4">
+                      <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[11px] font-semibold ${
+                        db.status === 'RUNNING' ? 'text-emerald-700 bg-emerald-50 dark:text-emerald-400 dark:bg-emerald-500/10' :
+                        db.status === 'STOPPED' ? 'text-gray-700 bg-gray-50 dark:text-gray-400 dark:bg-gray-500/10' :
+                        'text-red-700 bg-red-50 dark:text-red-400 dark:bg-red-500/10'
+                      }`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${
+                          db.status === 'RUNNING' ? 'bg-emerald-500' :
+                          db.status === 'STOPPED' ? 'bg-gray-500' :
+                          'bg-red-500'
+                        }`} />
+                        {db.status || 'UNKNOWN'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
                       <div className="flex items-center gap-1">
                         <Input 
                           readOnly 
@@ -247,14 +297,42 @@ export default function DatabasesPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setDeleteId(db.id)}
-                        className="h-8 w-8 text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger className="h-8 w-8 inline-flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
+                          <MoreVertical className="w-4 h-4" />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-40 rounded-xl shadow-lg border-border">
+                          {db.status !== 'RUNNING' && (
+                            <DropdownMenuItem 
+                              className="gap-2 cursor-pointer font-medium" 
+                              onClick={() => startMutation.mutate(db.id)}
+                            >
+                              <Play className="w-4 h-4 text-emerald-500" /> Start
+                            </DropdownMenuItem>
+                          )}
+                          {db.status === 'RUNNING' && (
+                            <DropdownMenuItem 
+                              className="gap-2 cursor-pointer font-medium" 
+                              onClick={() => stopMutation.mutate(db.id)}
+                            >
+                              <Square className="w-4 h-4 text-amber-500" /> Stop
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuItem 
+                            className="gap-2 cursor-pointer font-medium" 
+                            onClick={() => restartMutation.mutate(db.id)}
+                          >
+                            <RotateCw className="w-4 h-4 text-blue-500" /> Restart
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator className="bg-border/50" />
+                          <DropdownMenuItem 
+                            className="gap-2 cursor-pointer text-red-600 font-medium focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-500/10"
+                            onClick={() => setDeleteId(db.id)}
+                          >
+                            <Trash2 className="w-4 h-4" /> Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </td>
                   </tr>
                 ))

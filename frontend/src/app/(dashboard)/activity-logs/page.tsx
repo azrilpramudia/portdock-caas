@@ -1,7 +1,7 @@
 "use client";
 
 import { 
-  Rocket, Box, Terminal, Play, Square, Layers, Trash2
+  Rocket, Box, Terminal, Play, Square, Layers, Trash2, Database
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { activityService } from "@/services/activity.service";
@@ -74,10 +74,10 @@ export default function ActivityLogsPage() {
       actionBg: actionDetails.bg,
       actionTitle: actionDetails.title,
       actionSub: actionDetails.sub,
-      targetIcon: log.project ? <Layers className="w-4 h-4" /> : <Box className="w-4 h-4" />,
-      targetBg: log.project ? "bg-indigo-500/10 text-indigo-500" : "bg-blue-500/10 text-blue-500",
+      targetIcon: log.project ? <Layers className="w-4 h-4" /> : (log.action.toLowerCase().includes('database') ? <Database className="w-4 h-4" /> : <Box className="w-4 h-4" />),
+      targetBg: log.project ? "bg-indigo-500/10 text-indigo-500" : (log.action.toLowerCase().includes('database') ? "bg-amber-500/10 text-amber-600" : "bg-blue-500/10 text-blue-500"),
       targetTitle: log.project ? log.project.name : (log.description || "System"),
-      targetSub: log.project ? "Project" : "Container / System",
+      targetSub: log.project ? "Project" : (log.action.toLowerCase().includes('database') ? "Managed Database" : "Container / System"),
       status: log.status || "Success",
       ip: log.ipAddress || "-",
     };

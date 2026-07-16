@@ -7,6 +7,7 @@ import {
   Body,
   UseGuards,
   Request,
+  Ip,
 } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { ApiTags, ApiOperation, ApiCookieAuth } from '@nestjs/swagger';
@@ -24,8 +25,8 @@ export class DatabasesController {
   @Post()
   @Throttle({ default: { limit: 5, ttl: 3600000 } }) // 5 requests per 1 hour
   @ApiOperation({ summary: 'Create a new managed database' })
-  create(@Request() req: any, @Body() dto: CreateDatabaseDto) {
-    return this.databasesService.create(req.user.id, dto);
+  create(@Request() req: any, @Body() dto: CreateDatabaseDto, @Ip() ip: string) {
+    return this.databasesService.create(req.user.id, dto, ip);
   }
 
   @Get()
@@ -40,9 +41,27 @@ export class DatabasesController {
     return this.databasesService.findOne(req.user.id, id);
   }
 
+  @Post(':id/start')
+  @ApiOperation({ summary: 'Start a managed database' })
+  start(@Request() req: any, @Param('id') id: string, @Ip() ip: string) {
+    return this.databasesService.start(req.user.id, id, ip);
+  }
+
+  @Post(':id/stop')
+  @ApiOperation({ summary: 'Stop a managed database' })
+  stop(@Request() req: any, @Param('id') id: string, @Ip() ip: string) {
+    return this.databasesService.stop(req.user.id, id, ip);
+  }
+
+  @Post(':id/restart')
+  @ApiOperation({ summary: 'Restart a managed database' })
+  restart(@Request() req: any, @Param('id') id: string, @Ip() ip: string) {
+    return this.databasesService.restart(req.user.id, id, ip);
+  }
+
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a managed database' })
-  remove(@Request() req: any, @Param('id') id: string) {
-    return this.databasesService.remove(req.user.id, id);
+  remove(@Request() req: any, @Param('id') id: string, @Ip() ip: string) {
+    return this.databasesService.remove(req.user.id, id, ip);
   }
 }

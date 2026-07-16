@@ -35,15 +35,19 @@ export function RecentActivityFeed({ activities }: { activities?: any[] }) {
               let title = log.action.replace(/_/g, " ");
               let isSuccess = !log.action.includes("FAILED") && !log.action.includes("ERROR");
 
-              if (log.action.includes("PROJECT")) {
+              const act = log.action.toUpperCase();
+              if (act.includes("PROJECT")) {
                 icon = <Activity className="w-5 h-5 text-blue-600 dark:text-blue-400" />;
                 bg = "bg-blue-500/10";
-              } else if (log.action.includes("DEPLOYMENT")) {
+              } else if (act.includes("DEPLOYMENT")) {
                 icon = <Activity className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />;
                 bg = "bg-indigo-500/10";
-              } else if (log.action.includes("CONTAINER")) {
+              } else if (act.includes("CONTAINER")) {
                 icon = <Activity className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />;
                 bg = "bg-emerald-500/10";
+              } else if (act.includes("DATABASE")) {
+                icon = <Activity className="w-5 h-5 text-amber-600 dark:text-amber-400" />;
+                bg = "bg-amber-500/10";
               }
 
               return (
