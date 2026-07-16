@@ -23,7 +23,7 @@ export class DatabasesService {
   async create(userId: string, dto: CreateDatabaseDto) {
     const dbPassword = randomBytes(8).toString('hex'); // 16 char password
     const dbUser = dto.type === DatabaseType.POSTGRESQL || dto.type === DatabaseType.MYSQL ? 'portdock' : null;
-    const dbName = dto.type === DatabaseType.POSTGRESQL || dto.type === DatabaseType.MYSQL ? 'defaultdb' : null;
+    const dbName = dto.type === DatabaseType.POSTGRESQL || dto.type === DatabaseType.MYSQL ? dto.name.toLowerCase().replace(/[^a-z0-9]/g, '_') : null;
 
     // Create DB record first to get ID for volume naming
     const database = await this.prisma.managedDatabase.create({

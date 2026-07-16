@@ -1,7 +1,9 @@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { ShieldAlert, Plus, Eye, EyeOff, Trash2 } from "lucide-react";
+import { ShieldAlert, Plus, Eye, EyeOff, Trash2, Upload } from "lucide-react";
+import { useRef } from "react";
+import { toast } from "sonner";
 
 interface EnvVar {
   key: string;
@@ -16,6 +18,48 @@ interface SettingsEnvVarsProps {
 }
 
 export function SettingsEnvVars({ envs, setEnvs, setIsDirty }: SettingsEnvVarsProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target?.result as string;
+      if (text) {
+        const lines = text.split('\n');
+        const newEnvs: EnvVar[] = [];
+        
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed || trimmed.startsWith('#')) continue;
+          
+          const equalIdx = trimmed.indexOf('=');
+          if (equalIdx > 0) {
+            const key = trimmed.slice(0, equalIdx).trim();
+            let value = trimmed.slice(equalIdx + 1).trim();
+            if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+              value = value.slice(1, -1);
+            }
+            newEnvs.push({ key, value });
+          }
+        }
+        
+        if (newEnvs.length > 0) {
+          const filtered = envs.filter(e => e.key.trim() !== "");
+          setEnvs([...filtered, ...newEnvs]);
+          setIsDirty(true);
+          toast.success(`${newEnvs.length} variables imported successfully`);
+        } else {
+          toast.error("No valid variables found in the file");
+        }
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
   const addEnv = () => { 
     setEnvs([...envs, { key: "", value: "" }]); 
     setIsDirty(true); 
@@ -43,9 +87,21 @@ export function SettingsEnvVars({ envs, setEnvs, setIsDirty }: SettingsEnvVarsPr
             </CardTitle>
             <CardDescription className="mt-1">Securely inject runtime configurations.</CardDescription>
           </div>
-          <Button onClick={addEnv} variant="outline" size="sm" className="h-8 text-xs font-semibold text-blue-600 border-blue-500/20 bg-blue-500/10 hover:bg-blue-500/20">
-            <Plus className="w-3.5 h-3.5 mr-1" /> Add Var
-          </Button>
+          <div className="flex items-center gap-2">
+            <input 
+              type="file" 
+              accept=".env,text/plain" 
+              className="hidden" 
+              ref={fileInputRef} 
+              onChange={handleFileUpload} 
+            />
+            <Button onClick={() => fileInputRef.current?.click()} variant="outline" size="sm" className="h-8 text-xs font-semibold text-emerald-600 border-emerald-500/20 bg-emerald-500/10 hover:bg-emerald-500/20">
+              <Upload className="w-3.5 h-3.5 mr-1" /> Import .env
+            </Button>
+            <Button onClick={addEnv} variant="outline" size="sm" className="h-8 text-xs font-semibold text-blue-600 border-blue-500/20 bg-blue-500/10 hover:bg-blue-500/20">
+              <Plus className="w-3.5 h-3.5 mr-1" /> Add Var
+            </Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="p-6 space-y-4">

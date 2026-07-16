@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Database, Trash2, Server, Key, Copy, CheckCircle2, Search, RefreshCw, Filter } from "lucide-react";
+import { Plus, Database, Trash2, Server, Key, Copy, CheckCircle2, Search, RefreshCw, Filter, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -30,6 +30,7 @@ export default function DatabasesPage() {
   const [typeFilter, setTypeFilter] = useState("all");
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [visibleUrls, setVisibleUrls] = useState<Record<string, boolean>>({});
   const queryClient = useQueryClient();
 
   const { data: databases = [], isLoading, refetch } = useQuery({
@@ -67,8 +68,8 @@ export default function DatabasesPage() {
     
     if (db.type === "POSTGRESQL") {
       return `postgres://${db.dbUser}:${db.dbPassword}@${host}:${db.hostPort}/${db.dbName}`;
-    } else if (db.type === "REDIS") {
-      return `redis://default:${db.dbPassword}@${host}:${db.hostPort}`;
+    } else if (db.type === "MYSQL") {
+      return `mysql://${db.dbUser}:${db.dbPassword}@${host}:${db.hostPort}/${db.dbName}`;
     }
     return "Unsupported DB Type";
   };
@@ -92,7 +93,10 @@ export default function DatabasesPage() {
             <div className="flex items-center gap-3">
               <Button 
                 variant="outline" 
-                onClick={() => refetch()}
+                onClick={() => {
+                  refetch();
+                  toast.success("Database list updated");
+                }}
                 disabled={isLoading}
                 className="h-9 rounded-lg text-[13px] font-semibold border-border bg-card hover:bg-muted"
               >
@@ -204,10 +208,10 @@ export default function DatabasesPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-semibold tracking-wide uppercase ${
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-semibold tracking-wide whitespace-nowrap ${
                         db.type === 'POSTGRESQL' ? 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400' : 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400'
                       }`}>
-                        {db.type} {db.version}
+                        {db.type === 'POSTGRESQL' ? 'PostgreSQL' : 'MySQL'} {db.version}
                       </span>
                     </td>
                     <td className="px-6 py-4">
@@ -217,13 +221,21 @@ export default function DatabasesPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1">
                         <Input 
                           readOnly 
                           value={getConnectionString(db)} 
-                          type="password"
-                          className="h-8 text-xs bg-muted/50 border-transparent focus-visible:ring-0 font-mono"
+                          type={visibleUrls[db.id] ? "text" : "password"}
+                          className={`h-8 text-xs bg-muted/50 border-transparent focus-visible:ring-0 font-mono transition-all ${visibleUrls[db.id] ? 'w-[280px]' : 'w-[200px]'}`}
                         />
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 shrink-0 hover:bg-muted text-muted-foreground"
+                          onClick={() => setVisibleUrls(prev => ({ ...prev, [db.id]: !prev[db.id] }))}
+                        >
+                          {visibleUrls[db.id] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </Button>
                         <Button 
                           variant="ghost" 
                           size="icon" 
