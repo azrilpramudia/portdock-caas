@@ -17,7 +17,7 @@ import { toast } from "sonner";
 
 const formSchema = z.object({
   name: z.string().min(3).max(50),
-  type: z.enum(["POSTGRESQL", "REDIS"]),
+  type: z.enum(["POSTGRESQL", "MYSQL"]),
   version: z.string().min(1),
 });
 
@@ -60,9 +60,13 @@ export default function NewDatabasePage() {
     createMutation.mutate(values);
   };
 
-  const handleTypeSelect = (type: "POSTGRESQL" | "REDIS") => {
+  const handleTypeSelect = (type: "POSTGRESQL" | "MYSQL") => {
     form.setValue("type", type);
-    form.setValue("version", type === "POSTGRESQL" ? "15-alpine" : "7-alpine");
+    if (type === "POSTGRESQL") {
+      form.setValue("version", "15-alpine");
+    } else {
+      form.setValue("version", "8.0");
+    }
   };
 
   return (
@@ -120,27 +124,27 @@ export default function NewDatabasePage() {
 
               <div 
                 className={`relative cursor-pointer rounded-2xl border-2 p-5 transition-all ${
-                  selectedType === "REDIS" 
-                    ? "border-red-600 bg-red-50/50 dark:bg-red-500/10" 
-                    : "border-border hover:border-red-300 dark:hover:border-red-700/50"
+                  selectedType === "MYSQL" 
+                    ? "border-amber-600 bg-amber-50/50 dark:bg-amber-500/10" 
+                    : "border-border hover:border-amber-300 dark:hover:border-amber-700/50"
                 }`}
-                onClick={() => handleTypeSelect("REDIS")}
+                onClick={() => handleTypeSelect("MYSQL")}
               >
-                {selectedType === "REDIS" && (
-                  <div className="absolute top-4 right-4 text-red-600">
+                {selectedType === "MYSQL" && (
+                  <div className="absolute top-4 right-4 text-amber-600">
                     <CheckCircle2 className="w-5 h-5" />
                   </div>
                 )}
                 <div className="flex items-center gap-4 mb-3">
-                  <div className="w-12 h-12 bg-red-100 dark:bg-red-900/40 text-red-600 rounded-xl flex items-center justify-center">
-                    <HardDrive className="w-6 h-6" />
+                  <div className="w-12 h-12 bg-amber-100 dark:bg-amber-900/40 text-amber-600 rounded-xl flex items-center justify-center">
+                    <Database className="w-6 h-6" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-lg leading-none">Redis</h3>
+                    <h3 className="font-semibold text-lg leading-none">MySQL</h3>
                   </div>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  In-memory data structure store, used as a database, cache, and message broker.
+                  The world's most popular open source relational database.
                 </p>
               </div>
             </div>

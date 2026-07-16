@@ -254,13 +254,13 @@ export default function ProjectDetailPage() {
                   <div>
                     <p className="text-[10px] text-muted-foreground mb-1">Path-Based Route (Otomatis)</p>
                     <a
-                      href={`http://${project.domain.split('.').length > 1 ? project.domain.split('.').slice(1).join('.') : (typeof window !== 'undefined' ? window.location.hostname : 'localhost')}/${project.name.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '')}/`}
+                      href={`http://${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}/${project.domain.startsWith(project.name.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') + '.') ? project.name.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') : project.domain}/`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
                     >
                       <ExternalLink className="w-3 h-3 shrink-0" />
-                      <span className="truncate">{project.domain.split('.').length > 1 ? project.domain.split('.').slice(1).join('.') : (typeof window !== 'undefined' ? window.location.hostname : 'localhost')}/{project.name.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '')}/</span>
+                      <span className="truncate">{typeof window !== 'undefined' ? window.location.hostname : 'localhost'}/{project.domain.startsWith(project.name.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') + '.') ? project.name.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') : project.domain}/</span>
                     </a>
                   </div>
                 </div>

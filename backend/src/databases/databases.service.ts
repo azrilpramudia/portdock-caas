@@ -22,8 +22,8 @@ export class DatabasesService {
 
   async create(userId: string, dto: CreateDatabaseDto) {
     const dbPassword = randomBytes(8).toString('hex'); // 16 char password
-    const dbUser = dto.type === DatabaseType.POSTGRESQL ? 'portdock' : null;
-    const dbName = dto.type === DatabaseType.POSTGRESQL ? 'defaultdb' : null;
+    const dbUser = dto.type === DatabaseType.POSTGRESQL || dto.type === DatabaseType.MYSQL ? 'portdock' : null;
+    const dbName = dto.type === DatabaseType.POSTGRESQL || dto.type === DatabaseType.MYSQL ? 'defaultdb' : null;
 
     // Create DB record first to get ID for volume naming
     const database = await this.prisma.managedDatabase.create({
@@ -35,7 +35,7 @@ export class DatabasesService {
         dbUser,
         dbPassword,
         dbName,
-        internalPort: dto.type === DatabaseType.POSTGRESQL ? 5432 : 6379,
+        internalPort: dto.type === DatabaseType.POSTGRESQL ? 5432 : dto.type === DatabaseType.MYSQL ? 3306 : 6379,
         hostPort: 0, // placeholder, will update later
         volumeName: '',
       },
@@ -60,15 +60,28 @@ export class DatabasesService {
           `POSTGRES_DB=${dbName}`,
         ];
         mountPath = '/var/lib/postgresql/data';
-      } else if (dto.type === DatabaseType.REDIS) {
-        imageName = `redis:${dto.version === 'latest' ? '7-alpine' : dto.version}`;
-        cmd = ['redis-server', '--requirepass', dbPassword];
-        mountPath = '/data';
+      } else if (dto.type === DatabaseType.MYSQL) {
+        imageName = `mysql:${dto.version === 'latest' ? '8' : dto.version}`;
+        envVars = [
+          `MYSQL_USER=${dbUser}`,
+          `MYSQL_PASSWORD=${dbPassword}`,
+          `MYSQL_DATABASE=${dbName}`,
+          `MYSQL_ROOT_PASSWORD=${randomBytes(12).toString('hex')}`,
+        ];
+        mountPath = '/var/lib/mysql';
       } else {
         throw new Error(`Database type ${dto.type} is not yet supported`);
       }
 
-      await this.docker.pullImage(imageName);
+      const hasImage = await this.docker.imageExists(imageName);
+      if (!hasImage) {
+        this.logger.log(`Pulling Docker image: ${imageName}. This may take a few minutes depending on your internet connection...`);
+        await this.docker.pullImage(imageName);
+        this.logger.log(`Successfully pulled image ${imageName}.`);
+      } else {
+        this.logger.log(`Image ${imageName} already exists locally. Skipping pull.`);
+      }
+      this.logger.log(`Provisioning container...`);
 
       const containerName = `portdock-db-${database.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${Date.now()}`;
 
@@ -102,6 +115,8 @@ export class DatabasesService {
       const dockerContainer = await this.docker.createContainer(createOptions);
       const inspect = await dockerContainer.inspect();
       await dockerContainer.start();
+
+      this.logger.log(`Database container ${containerName} started successfully on port ${hostPort}`);
 
       return await this.prisma.managedDatabase.update({
         where: { id: database.id },

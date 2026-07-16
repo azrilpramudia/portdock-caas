@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Database, Trash2, Server, Key, Copy, CheckCircle2, Search } from "lucide-react";
+import { Plus, Database, Trash2, Server, Key, Copy, CheckCircle2, Search, RefreshCw, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -14,12 +14,20 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import api from "@/lib/api";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 
 export default function DatabasesPage() {
   const [search, setSearch] = useState("");
+  const [typeFilter, setTypeFilter] = useState("all");
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const queryClient = useQueryClient();
@@ -47,9 +55,11 @@ export default function DatabasesPage() {
     },
   });
 
-  const filteredDatabases = databases.filter((db: any) =>
-    db.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredDatabases = databases.filter((db: any) => {
+    const matchesSearch = db.name.toLowerCase().includes(search.toLowerCase());
+    const matchesType = typeFilter === "all" || db.type === typeFilter;
+    return matchesSearch && matchesType;
+  });
 
   const getConnectionString = (db: any) => {
     // Determine public IP. In a real app, you'd fetch this from backend or env
@@ -72,37 +82,59 @@ export default function DatabasesPage() {
 
   return (
     <div className="space-y-8">
-      {/* Header */}
-      <div className="bg-card rounded-2xl border border-border shadow-sm p-6 flex flex-col sm:flex-row justify-between items-center gap-4">
-        <div>
-          <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
-            <Database className="w-5 h-5 text-blue-500" /> Managed Databases
-          </h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            Provision and manage your production databases instantly.
-          </p>
-        </div>
-        <Link href="/databases/new">
-          <Button className="w-full sm:w-auto gap-2 bg-blue-600 hover:bg-blue-700 text-white shadow-md">
-            <Plus className="w-4 h-4" /> New Database
-          </Button>
-        </Link>
-      </div>
-
       {/* Main Table Section */}
       <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
         
         {/* Table Toolbar */}
         <div className="p-6 border-b border-border space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="relative max-w-md w-full">
+            <h2 className="text-[17px] font-bold text-foreground">All Databases</h2>
+            <div className="flex items-center gap-3">
+              <Button 
+                variant="outline" 
+                onClick={() => refetch()}
+                disabled={isLoading}
+                className="h-9 rounded-lg text-[13px] font-semibold border-border bg-card hover:bg-muted"
+              >
+                <RefreshCw className={`w-4 h-4 mr-1.5 ${isLoading ? 'animate-spin' : ''}`} />
+                Refresh
+              </Button>
+              <Link href="/databases/new">
+                <Button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold h-9 rounded-lg shadow-[0_4px_14px_0_rgba(37,99,235,0.39)] text-[13px]">
+                  <Plus className="w-4 h-4 mr-1.5" /> Create New Database
+                </Button>
+              </Link>
+            </div>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row items-center gap-3">
+            <div className="relative w-full sm:flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 placeholder="Search databases..."
-                className="pl-9 bg-background/50 border-border focus-visible:ring-primary/20 h-10 rounded-xl"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
+                className="pl-9 h-10 bg-muted/50 border-border text-[13px] rounded-xl focus-visible:ring-blue-500/20 w-full"
               />
+            </div>
+            <div className="relative w-full sm:w-40 shrink-0">
+              <Select value={typeFilter} onValueChange={(val) => setTypeFilter(val || "all")}>
+                <SelectTrigger className="w-full bg-card border-border text-foreground text-[13px] rounded-xl h-10 px-4 font-bold focus:ring-blue-500/20">
+                  <div className="flex items-center gap-2">
+                    <Filter className="w-3.5 h-3.5 text-muted-foreground" />
+                    <span className="truncate">
+                      {typeFilter === 'all' ? 'All Types' : 
+                       typeFilter === 'POSTGRESQL' ? 'PostgreSQL' : 
+                       typeFilter === 'MYSQL' ? 'MySQL' : 'All Types'}
+                    </span>
+                  </div>
+                </SelectTrigger>
+                <SelectContent className="rounded-xl border-border bg-card">
+                  <SelectItem value="all">All Types</SelectItem>
+                  <SelectItem value="POSTGRESQL">PostgreSQL</SelectItem>
+                  <SelectItem value="MYSQL">MySQL</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>
@@ -112,11 +144,11 @@ export default function DatabasesPage() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-border bg-muted/30">
-                <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider w-[25%]">Name</th>
-                <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider w-[15%]">Type</th>
-                <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider w-[10%]">Port</th>
-                <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider w-[35%]">Connection URL</th>
-                <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider w-[15%] text-right">Actions</th>
+                <th className="px-6 py-4 text-xs font-semibold text-muted-foreground w-[25%]">Name</th>
+                <th className="px-6 py-4 text-xs font-semibold text-muted-foreground w-[15%]">Type</th>
+                <th className="px-6 py-4 text-xs font-semibold text-muted-foreground w-[10%]">Port</th>
+                <th className="px-6 py-4 text-xs font-semibold text-muted-foreground w-[35%]">Connection URL</th>
+                <th className="px-6 py-4 text-xs font-semibold text-muted-foreground w-[15%] text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -155,7 +187,7 @@ export default function DatabasesPage() {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
-                          db.type === 'POSTGRESQL' ? 'bg-blue-500/10 text-blue-600' : 'bg-red-500/10 text-red-600'
+                          db.type === 'POSTGRESQL' ? 'bg-blue-500/10 text-blue-600' : 'bg-amber-500/10 text-amber-600'
                         }`}>
                           <Database className="w-4 h-4" />
                         </div>
@@ -173,7 +205,7 @@ export default function DatabasesPage() {
                     </td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-semibold tracking-wide uppercase ${
-                        db.type === 'POSTGRESQL' ? 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400' : 'bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400'
+                        db.type === 'POSTGRESQL' ? 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400' : 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400'
                       }`}>
                         {db.type} {db.version}
                       </span>
