@@ -148,9 +148,9 @@ export class AdminService {
 
   async updateSettings(data: Record<string, string>): Promise<void> {
     let previousMaintenanceState = 'false';
-    if (data.notifyMaintenance !== undefined) {
+    if (data.maintenanceMode !== undefined) {
       const prevSetting = await this.prisma.systemSetting.findUnique({
-        where: { key: 'notifyMaintenance' }
+        where: { key: 'maintenanceMode' }
       });
       previousMaintenanceState = prevSetting?.value || 'false';
     }
@@ -172,8 +172,8 @@ export class AdminService {
 
     await this.prisma.$transaction(operations);
 
-    if (data.notifyMaintenance !== undefined && data.notifyMaintenance !== previousMaintenanceState) {
-      this.eventEmitter.emit('system.maintenance.toggled', { enabled: data.notifyMaintenance === 'true' });
+    if (data.maintenanceMode !== undefined && data.maintenanceMode !== previousMaintenanceState) {
+      this.eventEmitter.emit('system.maintenance.toggled', { enabled: data.maintenanceMode === 'true' });
     }
   }
 

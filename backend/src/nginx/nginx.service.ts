@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { DockerService } from '../docker/docker.service';
 import { ConfigService } from '@nestjs/config';
+import { OnEvent } from '@nestjs/event-emitter';
 
 @Injectable()
 export class NginxService {
@@ -22,6 +23,14 @@ export class NginxService {
     }
     if (!fs.existsSync(this.pathsDir)) {
       fs.mkdirSync(this.pathsDir, { recursive: true });
+    }
+    const maintenanceDir = path.resolve(this.confDir, 'maintenance');
+    if (!fs.existsSync(maintenanceDir)) {
+      fs.mkdirSync(maintenanceDir, { recursive: true });
+    }
+    const maintenanceFile = path.join(maintenanceDir, 'status.conf');
+    if (!fs.existsSync(maintenanceFile)) {
+      fs.writeFileSync(maintenanceFile, '');
     }
     
     // Create base domain config
@@ -48,7 +57,17 @@ server {
    * Menghasilkan HTTP file Nginx (port 80) yang mendukung Let's Encrypt webroot
    */
   async generateHttpConfig(domain: string, hostPort: number, projectName?: string): Promise<void> {
-    const confContent = `
+    const templatePath = path.join(this.confDir, 'template-http.conf');
+    let confContent = '';
+
+    if (fs.existsSync(templatePath)) {
+      const template = fs.readFileSync(templatePath, 'utf8');
+      confContent = template
+        .replace(/{{domain}}/g, domain)
+        .replace(/{{hostPort}}/g, hostPort.toString())
+        .replace(/{{projectName}}/g, projectName || '');
+    } else {
+      confContent = `
 server {
     listen 80;
     server_name ${domain};
@@ -58,6 +77,7 @@ server {
     }
 
     location / {
+        include /etc/nginx/conf.d/maintenance/status.conf;
         proxy_pass http://172.17.0.1:${hostPort};
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
@@ -68,6 +88,7 @@ server {
     }
 }
 `;
+    }
     const confPath = path.join(this.confDir, `${domain}.conf`);
     fs.writeFileSync(confPath, confContent);
     this.logger.log(
@@ -79,6 +100,7 @@ server {
     if (baseDomain && projectName) {
       const pathConfContent = `
 location /${projectName}/ {
+    include /etc/nginx/conf.d/maintenance/status.conf;
     proxy_pass http://172.17.0.1:${hostPort}/;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
@@ -150,20 +172,29 @@ location /${projectName}/ {
         await this.dockerService.pullImage('certbot/certbot:latest');
       }
 
+      const acmeEmail = process.env.ACME_EMAIL || email;
+      const acmeServer = process.env.ACME_SERVER;
+
+      const certbotCmd = [
+        'certonly',
+        '--webroot',
+        '-w',
+        '/var/www/certbot',
+        '-d',
+        domain,
+        '--email',
+        acmeEmail,
+        '--agree-tos',
+        '--non-interactive',
+      ];
+
+      if (acmeServer) {
+        certbotCmd.push('--server', acmeServer);
+      }
+
       const container = await this.dockerService.getDocker().createContainer({
         Image: 'certbot/certbot:latest',
-        Cmd: [
-          'certonly',
-          '--webroot',
-          '-w',
-          '/var/www/certbot',
-          '-d',
-          domain,
-          '--email',
-          email,
-          '--agree-tos',
-          '--non-interactive',
-        ],
+        Cmd: certbotCmd,
         HostConfig: {
           Binds: [
             `${certbotConfDir}:/etc/letsencrypt`,
@@ -223,7 +254,31 @@ location /${projectName}/ {
       }
     }
 
-    const confContent = `
+    const templatePath = path.join(this.confDir, 'template-https.conf');
+    let confContent = '';
+
+    if (fs.existsSync(templatePath)) {
+      const template = fs.readFileSync(templatePath, 'utf8');
+      confContent = template
+        .replace(/{{domain}}/g, domain)
+        .replace(/{{hostPort}}/g, hostPort.toString())
+        .replace(/{{projectName}}/g, projectName || '')
+        .replace(/{{certPath}}/g, certPath)
+        .replace(/{{keyPath}}/g, keyPath);
+    } else {
+      const forceHttps = process.env.FORCE_HTTPS !== 'false';
+      const httpRedirectOrProxy = forceHttps 
+        ? `        return 301 https://$host$request_uri;` 
+        : `        include /etc/nginx/conf.d/maintenance/status.conf;
+        proxy_pass http://172.17.0.1:${hostPort};
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";`;
+
+      confContent = `
 server {
     listen 80;
     server_name ${domain};
@@ -233,7 +288,7 @@ server {
     }
 
     location / {
-        return 301 https://$host$request_uri;
+${httpRedirectOrProxy}
     }
 }
 
@@ -245,6 +300,7 @@ server {
     ssl_certificate_key ${keyPath};
 
     location / {
+        include /etc/nginx/conf.d/maintenance/status.conf;
         proxy_pass http://172.17.0.1:${hostPort};
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
@@ -255,6 +311,7 @@ server {
     }
 }
 `;
+    }
     const confPath = path.join(this.confDir, `${domain}.conf`);
     fs.writeFileSync(confPath, confContent);
     this.logger.log(
@@ -349,5 +406,37 @@ server {
     } catch (err) {
       this.logger.error('Failed to reload Nginx', err);
     }
+  }
+
+  @OnEvent('system.maintenance.toggled')
+  async handleMaintenanceToggle(payload: { enabled: boolean }) {
+    const maintenanceFile = path.join(this.confDir, 'maintenance', 'status.conf');
+    if (payload.enabled) {
+      const content = `
+        default_type text/html;
+        return 503 "<!DOCTYPE html><html><head><title>Maintenance</title><style>body{font-family:sans-serif;text-align:center;padding:50px;background:#f5f5f5;color:#333}h1{font-size:2em;margin-bottom:10px}p{font-size:1.2em;color:#666}</style></head><body><h1>🛠️ System Maintenance</h1><p>Our platform is currently undergoing scheduled maintenance.<br>We will be back shortly. Thank you for your patience!</p></body></html>";
+      `;
+      fs.writeFileSync(maintenanceFile, content);
+    } else {
+      fs.writeFileSync(maintenanceFile, '');
+    }
+    
+    // Attempt to inject include into any existing configs that miss it
+    try {
+      const files = fs.readdirSync(this.confDir).filter(f => f.endsWith('.conf') && f !== '00-base-domain.conf');
+      for (const file of files) {
+        const p = path.join(this.confDir, file);
+        let content = fs.readFileSync(p, 'utf8');
+        if (!content.includes('include /etc/nginx/conf.d/maintenance/status.conf;')) {
+          content = content.replace(/location \/ \{/g, 'location / {\n        include /etc/nginx/conf.d/maintenance/status.conf;');
+          fs.writeFileSync(p, content);
+        }
+      }
+    } catch (e) {
+      this.logger.error('Failed to update existing configs for maintenance', e);
+    }
+
+    this.logger.log(`Maintenance mode ${payload.enabled ? 'enabled' : 'disabled'}`);
+    await this.reloadNginx();
   }
 }

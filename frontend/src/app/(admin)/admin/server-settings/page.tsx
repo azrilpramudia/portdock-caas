@@ -8,6 +8,14 @@ import { useAdminMonitoring } from "@/hooks/useAdminMonitoring";
 
 import { ServerSettingsStats } from "@/components/admin/server-settings/ServerSettingsStats";
 import { ServerSettingsInfo } from "@/components/admin/server-settings/ServerSettingsInfo";
+import { ServerSettingsDocker } from "@/components/admin/server-settings/ServerSettingsDocker";
+import { ServerSettingsNginx } from "@/components/admin/server-settings/ServerSettingsNginx";
+import { ServerSettingsDatabase } from "@/components/admin/server-settings/ServerSettingsDatabase";
+import { ServerSettingsSSL } from "@/components/admin/server-settings/ServerSettingsSSL";
+import { ServerSettingsBackup } from "@/components/admin/server-settings/ServerSettingsBackup";
+import { ServerSettingsSecurity } from "@/components/admin/server-settings/ServerSettingsSecurity";
+import { ServerSettingsNotifications } from "@/components/admin/server-settings/ServerSettingsNotifications";
+import { ServerSettingsAdvanced } from "@/components/admin/server-settings/ServerSettingsAdvanced";
 import { ServerSettingsResource } from "@/components/admin/server-settings/ServerSettingsResource";
 import { ServerSettingsServices } from "@/components/admin/server-settings/ServerSettingsServices";
 import { ServerSettingsQuickActions } from "@/components/admin/server-settings/ServerSettingsQuickActions";
@@ -21,7 +29,7 @@ export default function ServerSettingsPage() {
   const rangeLabel = range === '24h' ? 'Last 24 Hours' : range === '7d' ? 'Last 7 Days' : 'Last 30 Days';
 
   const tabs = [
-    "Overview", "General", "Docker", "Nginx", "Database", "SSL", "Backup", "Security", "Notifications", "Advanced"
+    "Overview", "Docker", "Nginx", "Database", "SSL", "Backup", "Security", "Notifications", "Advanced"
   ];
 
   if (isLoading) {
@@ -122,6 +130,22 @@ export default function ServerSettingsPage() {
             </div>
           </div>
         </>
+      ) : activeTab === "Docker" ? (
+        <ServerSettingsDocker />
+      ) : activeTab === "Nginx" ? (
+        <ServerSettingsNginx />
+      ) : activeTab === "Database" ? (
+        <ServerSettingsDatabase />
+      ) : activeTab === "Backup" ? (
+        <ServerSettingsBackup />
+      ) : activeTab === "SSL" ? (
+        <ServerSettingsSSL />
+      ) : activeTab === "Security" ? (
+        <ServerSettingsSecurity />
+      ) : activeTab === "Notifications" ? (
+        <ServerSettingsNotifications />
+      ) : activeTab === "Advanced" ? (
+        <ServerSettingsAdvanced />
       ) : (
         <div className="flex flex-col items-center justify-center py-32 mt-6 text-center bg-card border border-border rounded-xl shadow-sm">
           <Box className="w-16 h-16 text-muted-foreground/20 mb-4" />

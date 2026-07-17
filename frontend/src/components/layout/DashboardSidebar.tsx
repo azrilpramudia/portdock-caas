@@ -41,14 +41,14 @@ export function DashboardSidebar({ mobile = false, onClose }: { mobile?: boolean
           />
           {!isCompact && (
             <span className="font-bold text-[1.35rem] leading-none tracking-tight select-none mt-1">
-              <span className="text-foreground transition-colors duration-300">{siteName}</span>
+              <span className="text-foreground transition-colors duration-300">Port</span><span className="text-primary">Dock</span>
             </span>
           )}
         </Link>
       </div>
 
       <nav className="flex-1 px-3 py-1 space-y-1">
-        <TooltipProvider delayDuration={0}>
+        <TooltipProvider>
           {navItems.map((item) => {
             const isActive =
               pathname === item.href || pathname.startsWith(item.href + "/");

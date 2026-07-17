@@ -79,17 +79,7 @@ export function GeneralSettingsCard() {
       </div>
       
       <div className="px-6 pb-6 flex-1 flex flex-col gap-5">
-        <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-foreground">Site Name</label>
-          <div className="relative">
-            <input 
-              type="text" 
-              value={siteName}
-              onChange={(e) => setSiteName(e.target.value)}
-              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-            />
-          </div>
-        </div>
+
 
         <div className="space-y-1.5">
           <label className="text-xs font-semibold text-foreground">Site Description</label>

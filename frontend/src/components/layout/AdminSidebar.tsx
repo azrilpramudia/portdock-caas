@@ -31,7 +31,7 @@ interface AdminSidebarProps {
 export function AdminSidebar({ mobile, onClose }: AdminSidebarProps) {
   const pathname = usePathname();
   const { user, logout } = useAuthStore();
-  const { sidebarStyle } = useSettingsStore(state => state.settings);
+  const { sidebarStyle, siteName } = useSettingsStore(state => state.settings);
   const isCompact = sidebarStyle === "compact" && !mobile;
 
   const navItems = [
@@ -53,8 +53,8 @@ export function AdminSidebar({ mobile, onClose }: AdminSidebarProps) {
       mobile ? "w-full" : isCompact ? "w-[80px]" : "w-[260px]"
     )}>
       {/* Logo Area */}
-      <div className="flex h-16 items-center px-6 mt-2 shrink-0 justify-center">
-        <Link href="/admin" className={cn("flex items-center gap-2 group", isCompact && "justify-center")} onClick={onClose}>
+      <div className="flex h-16 items-center px-6 mt-2 shrink-0">
+        <Link href="/admin" className={cn("flex items-center gap-2 group", isCompact && "justify-center w-full")} onClick={onClose}>
           <Image
             src={portdockLogo}
             alt="Portdock icon"
@@ -82,7 +82,7 @@ export function AdminSidebar({ mobile, onClose }: AdminSidebarProps) {
 
       {/* Navigation */}
       <nav className="flex-1 space-y-1 px-4 py-2 overflow-y-auto custom-scrollbar">
-        <TooltipProvider delayDuration={0}>
+        <TooltipProvider>
           {navItems.map((item) => {
           // Exact match for dashboard, startswith for others
           const isActive = item.href === "/admin" 

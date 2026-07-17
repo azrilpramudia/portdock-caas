@@ -7,9 +7,21 @@ import helmet from 'helmet';
 import * as fs from 'fs';
 import cookieParser from 'cookie-parser';
 import { doubleCsrfProtection } from './csrf/csrf.config';
+import { PrismaService } from './prisma/prisma.service';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  // Set Timezone from settings
+  try {
+    const prisma = app.get(PrismaService);
+    const tzSetting = await prisma.systemSetting.findUnique({ where: { key: 'timezone' } });
+    if (tzSetting?.value) {
+      process.env.TZ = tzSetting.value;
+    }
+  } catch (e) {
+    console.error('Failed to load timezone setting:', e);
+  }
 
   // Trust proxy is required to get the real IP address of users when deployed behind Nginx or Cloudflare
   app.set('trust proxy', 1);

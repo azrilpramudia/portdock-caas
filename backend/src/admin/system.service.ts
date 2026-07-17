@@ -7,6 +7,7 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import { DbBackupService } from './db-backup.service';
 
 const execAsync = promisify(exec);
 
@@ -16,7 +17,8 @@ export class SystemService implements OnModuleInit {
 
   constructor(
     private prisma: PrismaService,
-    private eventEmitter: EventEmitter2
+    private eventEmitter: EventEmitter2,
+    private dbBackup: DbBackupService
   ) {
     this.docker = new Dockerode({ socketPath: '/var/run/docker.sock' });
   }
@@ -135,6 +137,11 @@ export class SystemService implements OnModuleInit {
         // Ignore
       }
 
+      const tzSetting = await this.prisma.systemSetting.findUnique({
+        where: { key: 'timezone' }
+      });
+      const timezoneSetting = tzSetting?.value;
+
       return {
         name: osInfo.hostname,
         ip,
@@ -145,7 +152,7 @@ export class SystemService implements OnModuleInit {
         dockerVersion: dockerInfo.Version,
         dockerCompose,
         uptime: uptimeStr,
-        timezone: time.timezone || 'Unknown',
+        timezone: timezoneSetting || time.timezone || 'Unknown',
         lastReboot,
         currentLoad: `${cpuLoad.avgLoad?.toFixed(2) || '0.00'} (1m)`,
       };
@@ -338,6 +345,10 @@ export class SystemService implements OnModuleInit {
           }
           return { success: true, message: 'Nginx berhasil di-restart.' };
         
+        case 'prune-docker':
+          await execAsync('sudo docker system prune -a --volumes -f');
+          return { success: true, message: 'Docker system prune berhasil dijalankan (volumes, images, & containers dibersihkan).' };
+          
         case 'clear-cache':
           await execAsync('docker system prune -f');
           return { success: true, message: 'Sistem cache (Docker build cache & unused data) berhasil dibersihkan.' };
@@ -355,6 +366,37 @@ export class SystemService implements OnModuleInit {
     }
   }
 
+  async getDockerDaemonConfig(): Promise<any> {
+    try {
+      const fs = require('fs');
+      if (fs.existsSync('/etc/docker/daemon.json')) {
+        const data = fs.readFileSync('/etc/docker/daemon.json', 'utf8');
+        return JSON.parse(data);
+      }
+      return {};
+    } catch (e) {
+      console.error('Failed to read daemon.json:', e);
+      return {};
+    }
+  }
+
+  async updateDockerDaemonConfig(config: any): Promise<void> {
+    try {
+      const configStr = JSON.stringify(config, null, 2);
+      await execAsync(`echo '${configStr}' | sudo tee /etc/docker/daemon.json`);
+      
+      // Delay restart by 2 seconds so the API can return a success response first.
+      setTimeout(() => {
+        execAsync('sudo systemctl restart docker').catch(e => {
+          console.error('Delayed Docker restart failed:', e);
+        });
+      }, 2000);
+    } catch (e) {
+      console.error('Failed to update daemon.json:', e);
+      throw new Error('Gagal memperbarui konfigurasi Docker. Pastikan sistem memiliki akses sudo.');
+    }
+  }
+
   async getSystemLogs(): Promise<string> {
     try {
       try {
@@ -366,6 +408,295 @@ export class SystemService implements OnModuleInit {
       }
     } catch (e) {
       return 'Gagal mengambil system logs. Pastikan Anda memiliki izin akses yang cukup (root/sudo) atau file log tersedia.';
+    }
+  }
+
+  async getNginxConfig(): Promise<any> {
+    const fs = require('fs');
+    const path = require('path');
+    const confDir = path.resolve(process.cwd(), 'nginx-conf.d');
+    
+    let clientMaxBodySize = '';
+    let proxyReadTimeout = '';
+    let templateHttp = '';
+
+    const globalConfPath = path.join(confDir, '00-global.conf');
+    if (fs.existsSync(globalConfPath)) {
+      const globalContent = fs.readFileSync(globalConfPath, 'utf8');
+      const bodyMatch = globalContent.match(/client_max_body_size\s+([^;]+);/);
+      if (bodyMatch) clientMaxBodySize = bodyMatch[1];
+      
+      const timeoutMatch = globalContent.match(/proxy_read_timeout\s+([^;]+);/);
+      if (timeoutMatch) proxyReadTimeout = timeoutMatch[1];
+    }
+
+    const templatePath = path.join(confDir, 'template-http.conf');
+    if (fs.existsSync(templatePath)) {
+      templateHttp = fs.readFileSync(templatePath, 'utf8');
+    }
+
+    let templateHttps = '';
+    const templateHttpsPath = path.join(confDir, 'template-https.conf');
+    if (fs.existsSync(templateHttpsPath)) {
+      templateHttps = fs.readFileSync(templateHttpsPath, 'utf8');
+    }
+
+    return { clientMaxBodySize, proxyReadTimeout, templateHttp, templateHttps };
+  }
+
+  async updateNginxConfig(config: any): Promise<void> {
+    const fs = require('fs');
+    const path = require('path');
+    const confDir = path.resolve(process.cwd(), 'nginx-conf.d');
+
+    if (!fs.existsSync(confDir)) {
+      fs.mkdirSync(confDir, { recursive: true });
+    }
+
+    const { clientMaxBodySize, proxyReadTimeout, templateHttp, templateHttps } = config;
+
+    let globalContent = '';
+    if (clientMaxBodySize) {
+      globalContent += `client_max_body_size ${clientMaxBodySize};\n`;
+    }
+    if (proxyReadTimeout) {
+      globalContent += `proxy_read_timeout ${proxyReadTimeout};\n`;
+      globalContent += `proxy_connect_timeout ${proxyReadTimeout};\n`;
+      globalContent += `proxy_send_timeout ${proxyReadTimeout};\n`;
+    }
+
+    const globalConfPath = path.join(confDir, '00-global.conf');
+    if (globalContent) {
+      fs.writeFileSync(globalConfPath, globalContent);
+    } else if (fs.existsSync(globalConfPath)) {
+      fs.unlinkSync(globalConfPath);
+    }
+
+    const templatePath = path.join(confDir, 'template-http.conf');
+    if (templateHttp) {
+      fs.writeFileSync(templatePath, templateHttp);
+    } else if (fs.existsSync(templatePath)) {
+      fs.unlinkSync(templatePath);
+    }
+
+    const templateHttpsPath = path.join(confDir, 'template-https.conf');
+    if (templateHttps) {
+      fs.writeFileSync(templateHttpsPath, templateHttps);
+    } else if (fs.existsSync(templateHttpsPath)) {
+      fs.unlinkSync(templateHttpsPath);
+    }
+
+    // Delay restart by 2 seconds so API returns success first
+    setTimeout(() => {
+      execAsync('docker restart portdock-nginx').catch(e => {
+        console.error('Delayed Nginx restart failed:', e);
+      });
+    }, 2000);
+  }
+
+  getDbConfig() {
+    return {
+      maxConnections: process.env.DB_MAX_CONNECTIONS || '100',
+      memLimit: process.env.DB_MEM_LIMIT || '512M',
+      backupSchedule: process.env.DB_BACKUP_SCHEDULE || '0 0 * * *'
+    };
+  }
+
+  async updateDbConfig(config: any): Promise<void> {
+    const { maxConnections, memLimit, backupSchedule } = config;
+    const envPath = require('path').resolve(process.cwd(), '.env');
+    
+    if (require('fs').existsSync(envPath)) {
+      let envContent = require('fs').readFileSync(envPath, 'utf8');
+      
+      const updateEnv = (key: string, value: string) => {
+        if (envContent.includes(`${key}=`)) {
+          envContent = envContent.replace(new RegExp(`^${key}=.*`, 'm'), `${key}="${value}"`);
+        } else {
+          envContent += `\n${key}="${value}"`;
+        }
+        process.env[key] = value;
+      };
+
+      if (maxConnections) updateEnv('DB_MAX_CONNECTIONS', maxConnections);
+      if (memLimit) updateEnv('DB_MEM_LIMIT', memLimit);
+      if (backupSchedule) {
+        updateEnv('DB_BACKUP_SCHEDULE', backupSchedule);
+        this.dbBackup.reloadSchedule();
+      }
+
+      require('fs').writeFileSync(envPath, envContent);
+
+      // restart DB container in background if maxConnections or memLimit changed
+      if (maxConnections || memLimit) {
+        setTimeout(() => {
+          execAsync('docker compose up -d db').catch(e => console.error('Delayed DB restart failed:', e));
+        }, 2000);
+      }
+    }
+  }
+
+  async runDbBackup() {
+    return this.dbBackup.runBackup();
+  }
+
+  getSslConfig() {
+    return {
+      acmeEmail: process.env.ACME_EMAIL || '',
+      acmeServer: process.env.ACME_SERVER || '',
+      forceHttps: process.env.FORCE_HTTPS || 'true'
+    };
+  }
+
+  async updateSslConfig(config: any): Promise<void> {
+    const { acmeEmail, acmeServer, forceHttps } = config;
+    const envPath = require('path').resolve(process.cwd(), '.env');
+    
+    if (require('fs').existsSync(envPath)) {
+      let envContent = require('fs').readFileSync(envPath, 'utf8');
+      
+      const updateEnv = (key: string, value: string) => {
+        if (envContent.includes(`${key}=`)) {
+          envContent = envContent.replace(new RegExp(`^${key}=.*`, 'm'), `${key}="${value}"`);
+        } else {
+          envContent += `\n${key}="${value}"`;
+        }
+        process.env[key] = value;
+      };
+
+      if (acmeEmail !== undefined) updateEnv('ACME_EMAIL', acmeEmail);
+      if (acmeServer !== undefined) updateEnv('ACME_SERVER', acmeServer);
+      if (forceHttps !== undefined) updateEnv('FORCE_HTTPS', forceHttps);
+
+      require('fs').writeFileSync(envPath, envContent);
+    }
+  }
+
+  getBackupConfig() {
+    return {
+      backupProvider: process.env.BACKUP_PROVIDER || 'local',
+      backupSchedule: process.env.DB_BACKUP_SCHEDULE || '0 0 * * *',
+      backupRetention: process.env.BACKUP_RETENTION || '7',
+      s3Endpoint: process.env.BACKUP_S3_ENDPOINT || '',
+      s3Region: process.env.BACKUP_S3_REGION || '',
+      s3Bucket: process.env.BACKUP_S3_BUCKET || '',
+      s3AccessKey: process.env.BACKUP_S3_ACCESS_KEY || '',
+      s3SecretKey: process.env.BACKUP_S3_SECRET_KEY || '',
+      sftpHost: process.env.BACKUP_SFTP_HOST || '',
+      sftpPort: process.env.BACKUP_SFTP_PORT || '22',
+      sftpUser: process.env.BACKUP_SFTP_USER || '',
+      sftpPass: process.env.BACKUP_SFTP_PASS || ''
+    };
+  }
+
+  async updateBackupConfig(config: any): Promise<void> {
+    const envPath = require('path').resolve(process.cwd(), '.env');
+    
+    if (require('fs').existsSync(envPath)) {
+      let envContent = require('fs').readFileSync(envPath, 'utf8');
+      
+      const updateEnv = (key: string, value: string) => {
+        if (value === undefined) return;
+        if (envContent.includes(`${key}=`)) {
+          envContent = envContent.replace(new RegExp(`^${key}=.*`, 'm'), `${key}="${value}"`);
+        } else {
+          envContent += `\n${key}="${value}"`;
+        }
+        process.env[key] = value;
+      };
+
+      updateEnv('BACKUP_PROVIDER', config.backupProvider);
+      updateEnv('DB_BACKUP_SCHEDULE', config.backupSchedule);
+      updateEnv('BACKUP_RETENTION', config.backupRetention);
+      updateEnv('BACKUP_S3_ENDPOINT', config.s3Endpoint);
+      updateEnv('BACKUP_S3_REGION', config.s3Region);
+      updateEnv('BACKUP_S3_BUCKET', config.s3Bucket);
+      updateEnv('BACKUP_S3_ACCESS_KEY', config.s3AccessKey);
+      updateEnv('BACKUP_S3_SECRET_KEY', config.s3SecretKey);
+      updateEnv('BACKUP_SFTP_HOST', config.sftpHost);
+      updateEnv('BACKUP_SFTP_PORT', config.sftpPort);
+      updateEnv('BACKUP_SFTP_USER', config.sftpUser);
+      updateEnv('BACKUP_SFTP_PASS', config.sftpPass);
+
+      require('fs').writeFileSync(envPath, envContent);
+
+      if (config.backupSchedule) {
+        this.dbBackup.reloadSchedule();
+      }
+    }
+  }
+
+  // ==============================
+  // Advanced Features
+  // ==============================
+  async getGlobalEnvVars() {
+    const setting = await this.prisma.systemSetting.findUnique({
+      where: { key: 'globalEnvVars' },
+    });
+    
+    if (!setting) return [];
+    
+    try {
+      const parsed = JSON.parse(setting.value);
+      return Object.entries(parsed).map(([key, value]) => ({ key, value }));
+    } catch {
+      return [];
+    }
+  }
+
+  async updateGlobalEnvVars(vars: Array<{ key: string; value: string }>) {
+    const envObj: Record<string, string> = {};
+    for (const v of vars) {
+      if (v.key) {
+        envObj[v.key] = v.value || '';
+      }
+    }
+    
+    await this.prisma.systemSetting.upsert({
+      where: { key: 'globalEnvVars' },
+      update: { value: JSON.stringify(envObj) },
+      create: { key: 'globalEnvVars', value: JSON.stringify(envObj), category: 'advanced' },
+    });
+  }
+
+  async factoryReset() {
+    try {
+      // 1. Ambil semua data container & db dari Prisma
+      const appContainers = await this.prisma.container.findMany();
+      const managedDbs = await this.prisma.managedDatabase.findMany();
+      
+      const dockerIds = [
+        ...appContainers.map(c => c.dockerContainerId),
+        ...managedDbs.map(d => d.dockerContainerId)
+      ].filter(Boolean) as string[];
+
+      // 2. Hapus dari Docker daemon
+      for (const id of dockerIds) {
+        try {
+          const container = this.docker.getContainer(id);
+          await container.stop().catch(() => {});
+          await container.remove({ force: true }).catch(() => {});
+        } catch (e) {
+          // ignore
+        }
+      }
+
+      // 3. Hapus data user dan log dari Database (Hapus Projects juga otomatis menghapus Containers via Cascade)
+      // Jangan hapus User dgn Role ADMIN
+      await this.prisma.project.deleteMany({});
+      await this.prisma.managedDatabase.deleteMany({});
+      await this.prisma.activityLog.deleteMany({});
+      await this.prisma.terminalLog.deleteMany({});
+      await this.prisma.deployment.deleteMany({});
+      
+      // Hapus non-admin users
+      await this.prisma.user.deleteMany({
+        where: { role: { not: 'ADMIN' } }
+      });
+      
+      return { success: true };
+    } catch (error: any) {
+      throw new Error(`Factory reset failed: ${error.message}`);
     }
   }
 }

@@ -34,6 +34,19 @@ export class DeploymentsService {
     private eventEmitter: EventEmitter2,
   ) {}
 
+  private async getGlobalEnvVarsArray(): Promise<string[]> {
+    const setting = await this.prisma.systemSetting.findUnique({
+      where: { key: 'globalEnvVars' },
+    });
+    if (!setting) return [];
+    try {
+      const parsed = JSON.parse(setting.value);
+      return Object.entries(parsed).map(([k, v]) => `${k}=${v}`);
+    } catch {
+      return [];
+    }
+  }
+
   async deployZip(
     userId: string,
     projectId: string,
@@ -121,7 +134,8 @@ export class DeploymentsService {
       const internalPort = customInternalPort || detectedPort;
 
       // Parse environment variables
-      let dockerEnv = [`PORT=${internalPort}`];
+      const globalEnvVars = await this.getGlobalEnvVarsArray();
+      let dockerEnv = [`PORT=${internalPort}`, ...globalEnvVars];
       if (project.envVars && typeof project.envVars === 'object') {
         const envRecord = project.envVars as Record<string, string>;
         const envArray = Object.entries(envRecord).map(([k, v]) => `${k}=${v}`);
@@ -358,7 +372,8 @@ export class DeploymentsService {
       const internalPort = customInternalPort || detectedPort;
 
       // Parse environment variables
-      let dockerEnv = [`PORT=${internalPort}`];
+      const globalEnvVars = await this.getGlobalEnvVarsArray();
+      let dockerEnv = [`PORT=${internalPort}`, ...globalEnvVars];
       if (project.envVars && typeof project.envVars === 'object') {
         const envRecord = project.envVars as Record<string, string>;
         const envArray = Object.entries(envRecord).map(([k, v]) => `${k}=${v}`);
@@ -561,7 +576,8 @@ export class DeploymentsService {
       const internalPort = customInternalPort || detectedPort;
 
       // Parse environment variables
-      let dockerEnv = [`PORT=${internalPort}`];
+      const globalEnvVars = await this.getGlobalEnvVarsArray();
+      let dockerEnv = [`PORT=${internalPort}`, ...globalEnvVars];
       if (project.envVars && typeof project.envVars === 'object') {
         const envRecord = project.envVars as Record<string, string>;
         const envArray = Object.entries(envRecord).map(([k, v]) => `${k}=${v}`);

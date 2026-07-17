@@ -10,6 +10,8 @@ import { ContainersService } from '../containers/containers.service';
 import { UpdateResourcesDto } from '../containers/dto/update-resources.dto';
 import { SystemService } from './system.service';
 import { TelegramService } from '../notifications/telegram.service';
+import { SecurityService } from './security.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Controller('admin')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -19,7 +21,9 @@ export class AdminController {
     private readonly adminService: AdminService,
     private readonly containersService: ContainersService,
     private readonly systemService: SystemService,
-    private readonly telegramService: TelegramService
+    private readonly telegramService: TelegramService,
+    private readonly securityService: SecurityService,
+    private readonly notificationsService: NotificationsService
   ) {}
 
   @Post('settings/test-telegram')
@@ -197,5 +201,145 @@ export class AdminController {
   async getServerLogs() {
     const logs = await this.systemService.getSystemLogs();
     return { logs };
+  }
+
+  @Get('docker/config')
+  async getDockerConfig() {
+    return this.systemService.getDockerDaemonConfig();
+  }
+
+  @Patch('docker/config')
+  async updateDockerConfig(@Body() config: any) {
+    await this.systemService.updateDockerDaemonConfig(config);
+    return { success: true, message: 'Docker configuration updated successfully' };
+  }
+
+  @Get('nginx/config')
+  async getNginxConfig() {
+    return this.systemService.getNginxConfig();
+  }
+
+  @Patch('nginx/config')
+  async updateNginxConfig(@Body() config: any) {
+    await this.systemService.updateNginxConfig(config);
+    return { success: true };
+  }
+
+  @Get('db/config')
+  async getDbConfig() {
+    return this.systemService.getDbConfig();
+  }
+
+  @Patch('db/config')
+  async updateDbConfig(@Body() config: any) {
+    await this.systemService.updateDbConfig(config);
+    return { success: true };
+  }
+
+  @Post('db/backup/run')
+  async runDbBackup() {
+    const res = await this.systemService.runDbBackup();
+    return { success: true, message: `Backup berhasil disimpan dengan nama: ${res.filePath}` };
+  }
+
+  @Get('ssl/config')
+  async getSslConfig() {
+    return this.systemService.getSslConfig();
+  }
+
+  @Patch('ssl/config')
+  async updateSslConfig(@Body() config: any) {
+    await this.systemService.updateSslConfig(config);
+    return { success: true };
+  }
+
+  @Get('backup/config')
+  async getBackupConfig() {
+    return this.systemService.getBackupConfig();
+  }
+
+  @Patch('backup/config')
+  async updateBackupConfig(@Body() config: any) {
+    await this.systemService.updateBackupConfig(config);
+    return { success: true };
+  }
+
+  // ==========================
+  // Security Endpoints
+  // ==========================
+  @Get('security/status')
+  async getSecurityStatus() {
+    const ufw = await this.securityService.getUfwStatus();
+    const fail2ban = await this.securityService.getFail2BanStatus();
+    const ssh = await this.securityService.getSshConfig();
+    return { ufw, fail2ban, ssh };
+  }
+
+  @Post('security/ufw/toggle')
+  async toggleUfw(@Body() body: { enable: boolean }) {
+    return this.securityService.toggleUfw(body.enable);
+  }
+
+  @Post('security/ufw/rule')
+  async addUfwRule(@Body() body: { port: string; protocol?: string }) {
+    return this.securityService.addUfwRule(body.port, body.protocol);
+  }
+
+  @Delete('security/ufw/rule')
+  async deleteUfwRule(@Body() body: { port: string; protocol?: string }) {
+    return this.securityService.deleteUfwRule(body.port, body.protocol);
+  }
+
+  @Post('security/fail2ban')
+  async configureFail2Ban(@Body() body: { enable: boolean; maxretry: number; bantime: number }) {
+    return this.securityService.configureFail2Ban(body.enable, body.maxretry, body.bantime);
+  }
+
+  @Post('security/ssh')
+  async updateSshConfig(@Body() body: { port: number; permitRootLogin: boolean }) {
+    return this.securityService.updateSshConfig(body.port, body.permitRootLogin);
+  }
+
+  // ==========================
+  // Notifications Endpoints
+  // ==========================
+  @Get('notifications/config')
+  async getNotificationsConfig() {
+    return this.notificationsService.getSettings();
+  }
+
+  @Patch('notifications/config')
+  async updateNotificationsConfig(@Body() body: Record<string, any>) {
+    await this.notificationsService.updateSettings(body);
+    return { success: true };
+  }
+
+  @Post('notifications/test/webhook')
+  async testWebhook(@Body() body: { url: string }) {
+    return this.notificationsService.testWebhook(body.url);
+  }
+
+  @Post('notifications/test/email')
+  async testEmail(@Body() body: { emailConfig: any; toEmail: string }) {
+    return this.notificationsService.testEmail(body.emailConfig, body.toEmail);
+  }
+
+  // ==========================
+  // Advanced Endpoints
+  // ==========================
+  @Get('advanced/env')
+  async getGlobalEnv() {
+    return this.systemService.getGlobalEnvVars();
+  }
+
+  @Patch('advanced/env')
+  async updateGlobalEnv(@Body() body: { vars: Array<{ key: string; value: string }> }) {
+    await this.systemService.updateGlobalEnvVars(body.vars);
+    return { success: true };
+  }
+
+  @Post('advanced/factory-reset')
+  async factoryReset() {
+    return this.systemService.factoryReset();
   }
 }
