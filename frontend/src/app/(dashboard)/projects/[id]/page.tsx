@@ -249,33 +249,6 @@ export default function ProjectDetailPage() {
                       <span className="truncate">{project.domain}</span>
                     </a>
                   </div>
-
-                  {/* Path-Based URL */}
-                  {(() => {
-                    const projectNameForUrl = project.name.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
-                    const isDefaultSubdomain = project.domain.startsWith(projectNameForUrl + '.');
-                    // Jika default subdomain, ambil base domainnya. Jika bukan, gunakan environment variabel atau fallback.
-                    const baseHost = isDefaultSubdomain 
-                      ? project.domain.substring(projectNameForUrl.length + 1) 
-                      : (process.env.NEXT_PUBLIC_BASE_DOMAIN || 'portdock.my.id');
-                    const protocol = typeof window !== 'undefined' && window.location.protocol === 'https:' ? 'https://' : 'http://';
-                    const pathUrl = `${protocol}${baseHost}/${projectNameForUrl}/`;
-                    
-                    return (
-                      <div>
-                        <p className="text-[10px] text-muted-foreground mb-1">Path-Based Route (Otomatis)</p>
-                        <a
-                          href={pathUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
-                        >
-                          <ExternalLink className="w-3 h-3 shrink-0" />
-                          <span className="truncate">{baseHost}/{projectNameForUrl}/</span>
-                        </a>
-                      </div>
-                    );
-                  })()}
                 </div>
               )}
               <Separator />

@@ -123,7 +123,7 @@ export class ProjectsService {
   }
 
   async update(id: string, userId: string, dto: UpdateProjectDto, ip?: string) {
-    await this.findOne(id, userId);
+    const oldProject = await this.findOne(id, userId);
 
     const project = await this.prisma.project.update({
       where: { id },
@@ -137,6 +137,13 @@ export class ProjectsService {
       description: `Project "${project.name}" updated`,
       ipAddress: ip,
     });
+
+    if (dto.domain && dto.domain !== oldProject.domain) {
+      const activeContainer = oldProject.containers.find((c: any) => c.status === 'RUNNING' && c.hostPort);
+      if (activeContainer && activeContainer.hostPort) {
+        await this.nginx.generateHttpConfig(dto.domain, activeContainer.hostPort);
+      }
+    }
 
     return project;
   }

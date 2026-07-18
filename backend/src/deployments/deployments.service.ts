@@ -217,9 +217,7 @@ export class DeploymentsService {
       // Generate Nginx config if domain exists
       if (project.domain) {
         const domain = project.domain;
-        const projectNameSafe = project.name.toLowerCase().replace(/[^a-z0-9]/g, '-');
-        const pathRoute = projectNameSafe;
-        await this.nginx.generateHttpConfig(domain, hostPort, pathRoute);
+        await this.nginx.generateHttpConfig(domain, hostPort);
 
         // Attempt Let's Encrypt SSL in the background!
         // Do not block the HTTP response waiting for certbot to finish.
@@ -228,7 +226,7 @@ export class DeploymentsService {
           .requestSsl(domain, userEmail)
           .then(async (sslSuccess) => {
             if (sslSuccess) {
-              await this.nginx.generateHttpsConfig(domain, hostPort, pathRoute);
+              await this.nginx.generateHttpsConfig(domain, hostPort);
             }
           })
           .catch((err) => this.logger.error('Background SSL Error', err));
@@ -465,9 +463,7 @@ export class DeploymentsService {
       // Generate Nginx config if domain exists
       if (project.domain) {
         const domain = project.domain;
-        const projectNameSafe = project.name.toLowerCase().replace(/[^a-z0-9]/g, '-');
-        const pathRoute = projectNameSafe;
-        await this.nginx.generateHttpConfig(domain, hostPort, pathRoute);
+        await this.nginx.generateHttpConfig(domain, hostPort);
 
         // Attempt Let's Encrypt SSL in the background!
         const userEmail = project.user?.email || 'admin@portdock.my.id';
@@ -475,7 +471,7 @@ export class DeploymentsService {
           .requestSsl(domain, userEmail)
           .then(async (sslSuccess) => {
             if (sslSuccess) {
-              await this.nginx.generateHttpsConfig(domain, hostPort, pathRoute);
+              await this.nginx.generateHttpsConfig(domain, hostPort);
             }
           })
           .catch((err) => this.logger.error('Background SSL Error', err));

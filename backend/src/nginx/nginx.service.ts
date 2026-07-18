@@ -4,6 +4,7 @@ import * as path from 'path';
 import { DockerService } from '../docker/docker.service';
 import { ConfigService } from '@nestjs/config';
 import { OnEvent } from '@nestjs/event-emitter';
+import { exec } from 'child_process';
 
 @Injectable()
 export class NginxService {
@@ -78,6 +79,32 @@ server {
     }
   }
 
+  private async addToHostsFile(domain: string): Promise<void> {
+    if (domain === 'localhost' || domain === '127.0.0.1') return;
+    
+    return new Promise((resolve) => {
+      try {
+        const hostsContent = fs.readFileSync('/etc/hosts', 'utf8');
+        if (hostsContent.includes(domain)) {
+          this.logger.log(`Domain ${domain} already exists in /etc/hosts`);
+          return resolve();
+        }
+      } catch (e) {}
+
+      const scriptPath = path.resolve(process.cwd(), 'scripts', 'add-host.sh');
+      const command = `sudo ${scriptPath} ${domain}`;
+      
+      exec(command, (error, stdout, stderr) => {
+        if (error) {
+          this.logger.error(`Failed to add ${domain} to /etc/hosts`, error);
+        } else {
+          this.logger.log(`Added ${domain} to /etc/hosts successfully`);
+        }
+        resolve();
+      });
+    });
+  }
+
   /**
    * Menghasilkan HTTP file Nginx (port 80) yang mendukung Let's Encrypt webroot
    */
@@ -138,6 +165,9 @@ location /${projectName}/ {
       const pathConfPath = path.join(this.pathsDir, `${projectName}.conf`);
       fs.writeFileSync(pathConfPath, pathConfContent);
       this.logger.log(`Path-based config created for /${projectName}/ -> Port ${hostPort}`);
+    } else {
+      // Only add to hosts file if it's a custom domain, not path based
+      await this.addToHostsFile(domain);
     }
 
     await this.reloadNginx();
@@ -179,8 +209,24 @@ location /${projectName}/ {
       }
 
       if (process.env.NODE_ENV === 'development') {
-        this.logger.log(`Skipping SSL request for ${domain} in development mode.`);
-        return false; // Skip actual certbot request if local certs don't exist
+        this.logger.log(`Generating mkcert SSL for ${domain} in development mode...`);
+        const domainCertDir = path.join(certbotConfDir, 'live', domain);
+        if (!fs.existsSync(domainCertDir)) {
+          fs.mkdirSync(domainCertDir, { recursive: true });
+        }
+        
+        return new Promise((resolve) => {
+          const mkcertCmd = `mkcert -cert-file "${path.join(domainCertDir, 'fullchain.pem')}" -key-file "${path.join(domainCertDir, 'privkey.pem')}" "${domain}"`;
+          exec(mkcertCmd, (error) => {
+            if (error) {
+              this.logger.error(`Failed to generate mkcert for ${domain}`, error);
+              resolve(false);
+            } else {
+              this.logger.log(`Successfully generated mkcert for ${domain}`);
+              resolve(true);
+            }
+          });
+        });
       }
 
       // Pastikan image certbot ada
