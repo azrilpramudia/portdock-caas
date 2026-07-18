@@ -139,6 +139,10 @@ export class ProjectsService {
     });
 
     if (dto.domain && dto.domain !== oldProject.domain) {
+      if (oldProject.domain) {
+        await this.nginx.removeConfig(oldProject.domain).catch(() => {});
+      }
+
       const activeContainer = oldProject.containers.find((c: any) => c.status === 'RUNNING' && c.hostPort);
       if (activeContainer && activeContainer.hostPort) {
         await this.nginx.generateHttpConfig(dto.domain, activeContainer.hostPort);

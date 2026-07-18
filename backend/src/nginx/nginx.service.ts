@@ -448,6 +448,20 @@ server {
       }
     }
 
+    // Menghapus domain dari /etc/hosts secara otomatis tanpa password (Passwordless Sudo)
+    if (domain) {
+      const scriptPath = path.resolve(process.cwd(), 'scripts', 'remove-host.sh');
+      const command = `sudo ${scriptPath} ${domain}`;
+      
+      exec(command, (error, stdout, stderr) => {
+        if (error) {
+          this.logger.error(`Failed to remove ${domain} from /etc/hosts: ${error.message}`);
+        } else {
+          this.logger.log(`Successfully removed ${domain} from /etc/hosts`);
+        }
+      });
+    }
+
     await this.reloadNginx();
   }
 

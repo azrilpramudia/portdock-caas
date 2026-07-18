@@ -186,16 +186,31 @@ model ManagedDatabase {
   status            ContainerStatus @default(STOPPED)
 
   // Resource allocations
-  memoryLimit Int?    @default(512) @map("memory_limit")
-  cpuLimit    Float?  @default(0.5) @map("cpu_limit")
-  volumeName  String? @map("volume_name")
+  memoryLimit    Int?    @default(512) @map("memory_limit")
+  cpuLimit       Float?  @default(0.5) @map("cpu_limit")
+  maxConnections Int?    @default(100) @map("max_connections")
+  volumeName     String? @map("volume_name")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  backups DatabaseBackup[]
 
   @@map("managed_databases")
+}
+
+model DatabaseBackup {
+  id                String   @id @default(cuid())
+  managedDatabaseId String   @map("managed_database_id")
+  filename          String
+  sizeBytes         Int?     @map("size_bytes")
+  status            String   @default("PENDING") // PENDING, SUCCESS, FAILED
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  managedDatabase ManagedDatabase @relation(fields: [managedDatabaseId], references: [id], onDelete: Cascade)
+
+  @@map("database_backups")
 }
 
 enum AppTemplate {

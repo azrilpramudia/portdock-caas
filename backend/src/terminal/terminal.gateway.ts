@@ -117,16 +117,23 @@ export class TerminalGateway
   @SubscribeMessage('connect_app_logs')
   async handleConnectAppLogs(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: { containerId: string },
+    @MessageBody() data: { containerId: string; isDatabase?: boolean },
   ) {
     this.logger.log(
-      `App Logs connection request for container ${data.containerId} from client ${client.id}`,
+      `App Logs connection request for container ${data.containerId} from client ${client.id} (isDatabase: ${data.isDatabase})`,
     );
 
     try {
-      const container = await this.prisma.container.findUnique({
-        where: { id: data.containerId },
-      });
+      let container: any;
+      if (data.isDatabase) {
+        container = await this.prisma.managedDatabase.findUnique({
+          where: { id: data.containerId },
+        });
+      } else {
+        container = await this.prisma.container.findUnique({
+          where: { id: data.containerId },
+        });
+      }
 
       if (!container || !container.dockerContainerId) {
         client.emit(

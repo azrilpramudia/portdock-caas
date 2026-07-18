@@ -5,9 +5,12 @@ import {
   Delete,
   Param,
   Body,
+  Put,
   UseGuards,
   Request,
   Ip,
+  Res,
+  StreamableFile,
 } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { ApiTags, ApiOperation, ApiCookieAuth } from '@nestjs/swagger';
@@ -63,5 +66,57 @@ export class DatabasesController {
   @ApiOperation({ summary: 'Delete a managed database' })
   remove(@Request() req: any, @Param('id') id: string, @Ip() ip: string) {
     return this.databasesService.remove(req.user.id, id, ip);
+  }
+
+  // Monitoring and Config Endpoints
+
+  @Get(':id/stats')
+  @ApiOperation({ summary: 'Get real-time database stats' })
+  getStats(@Request() req: any, @Param('id') id: string) {
+    return this.databasesService.getStats(req.user.id, id);
+  }
+
+  @Put(':id/config')
+  @ApiOperation({ summary: 'Update database configuration' })
+  updateConfig(@Request() req: any, @Param('id') id: string, @Body() dto: { cpuLimit?: number; memoryLimit?: number; maxConnections?: number }, @Ip() ip: string) {
+    return this.databasesService.updateConfig(req.user.id, id, dto, ip);
+  }
+
+  // Backup Endpoints
+
+  @Get(':id/backups')
+  @ApiOperation({ summary: 'List backups for a database' })
+  listBackups(@Request() req: any, @Param('id') id: string) {
+    return this.databasesService.listBackups(req.user.id, id);
+  }
+
+  @Post(':id/backups')
+  @ApiOperation({ summary: 'Create a backup for a database' })
+  createBackup(@Request() req: any, @Param('id') id: string, @Ip() ip: string) {
+    return this.databasesService.createBackup(req.user.id, id, ip);
+  }
+
+  @Delete(':id/backups/:backupId')
+  @ApiOperation({ summary: 'Delete a database backup' })
+  deleteBackup(@Request() req: any, @Param('id') id: string, @Param('backupId') backupId: string) {
+    return this.databasesService.deleteBackup(req.user.id, id, backupId);
+  }
+
+  @Post(':id/backups/:backupId/restore')
+  @ApiOperation({ summary: 'Restore a database backup' })
+  restoreBackup(@Request() req: any, @Param('id') id: string, @Param('backupId') backupId: string, @Ip() ip: string) {
+    return this.databasesService.restoreBackup(req.user.id, id, backupId, ip);
+  }
+
+  @Get(':id/backups/:backupId/download')
+  @ApiOperation({ summary: 'Download a database backup' })
+  async downloadBackup(@Request() req: any, @Param('id') id: string, @Param('backupId') backupId: string, @Res({ passthrough: true }) res: any) {
+    const fileStream = await this.databasesService.getBackupStream(req.user.id, id, backupId);
+    const backup = await this.databasesService.getBackupRecord(backupId);
+    res.set({
+      'Content-Type': 'application/sql',
+      'Content-Disposition': `attachment; filename="${backup.filename}"`,
+    });
+    return new StreamableFile(fileStream);
   }
 }

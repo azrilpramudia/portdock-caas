@@ -10,6 +10,7 @@ import { DockerService } from '../docker/docker.service';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { CreateContainerDto } from './dto/create-container.dto';
 import { UpdateResourcesDto } from './dto/update-resources.dto';
+import { NginxService } from '../nginx/nginx.service';
 
 @Injectable()
 export class ContainersService {
@@ -19,6 +20,7 @@ export class ContainersService {
     private prisma: PrismaService,
     private docker: DockerService,
     private activityLogs: ActivityLogsService,
+    private nginx: NginxService,
   ) {}
 
   async create(
@@ -299,6 +301,15 @@ export class ContainersService {
             where: { id: container.id },
             data: { dockerContainerId },
           });
+
+          // Update Nginx config if the container's host port changed and it is attached to a domain
+          if (container.hostPort) {
+            const project = await this.prisma.project.findUnique({ where: { id: container.projectId } });
+            if (project?.domain) {
+              await this.nginx.generateHttpConfig(project.domain, container.hostPort);
+              await this.nginx.generateHttpsConfig(project.domain, container.hostPort).catch(() => {});
+            }
+          }
         }
       } catch (err) {
         this.logger.error(
@@ -314,6 +325,15 @@ export class ContainersService {
         where: { id },
         data: { status: 'RUNNING' },
       });
+      
+      // Always sync Nginx config on restart to prevent out-of-sync errors
+      if (updated.hostPort) {
+        const project = await this.prisma.project.findUnique({ where: { id: updated.projectId } });
+        if (project?.domain) {
+          await this.nginx.generateHttpConfig(project.domain, updated.hostPort);
+          await this.nginx.generateHttpsConfig(project.domain, updated.hostPort).catch(() => {});
+        }
+      }
 
       await this.activityLogs.create({
         userId,
@@ -528,6 +548,14 @@ export class ContainersService {
       where: { id },
       data: { hostPort: port },
     });
+
+    if (container.hostPort !== port) {
+      const project = await this.prisma.project.findUnique({ where: { id: container.projectId } });
+      if (project?.domain) {
+        await this.nginx.generateHttpConfig(project.domain, port);
+        await this.nginx.generateHttpsConfig(project.domain, port).catch(() => {});
+      }
+    }
 
     await this.activityLogs.create({
       userId,
