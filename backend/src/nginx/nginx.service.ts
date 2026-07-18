@@ -37,7 +37,10 @@ export class NginxService {
     const baseDomain = this.configService.get<string>('BASE_DOMAIN');
     if (baseDomain) {
       const baseConfPath = path.join(this.confDir, '00-base-domain.conf');
-      const baseConfContent = `
+      const certbotConfDir = path.resolve(process.cwd(), 'certbot-conf');
+      const baseCertPath = path.join(certbotConfDir, 'live', baseDomain, 'fullchain.pem');
+      
+      let baseConfContent = `
 server {
     listen 80;
     server_name ${baseDomain};
@@ -45,10 +48,32 @@ server {
     location /.well-known/acme-challenge/ {
         root /var/www/certbot;
     }
+`;
+
+      if (fs.existsSync(baseCertPath)) {
+        baseConfContent += `
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+server {
+    listen 443 ssl;
+    server_name ${baseDomain};
+
+    ssl_certificate /etc/letsencrypt/live/${baseDomain}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${baseDomain}/privkey.pem;
 
     include /etc/nginx/conf.d/paths/*.conf;
 }
 `;
+      } else {
+        baseConfContent += `
+    include /etc/nginx/conf.d/paths/*.conf;
+}
+`;
+      }
+      
       fs.writeFileSync(baseConfPath, baseConfContent);
     }
   }
@@ -78,7 +103,7 @@ server {
 
     location / {
         include /etc/nginx/conf.d/maintenance/status.conf;
-        proxy_pass http://172.17.0.1:${hostPort};
+        proxy_pass http://127.0.0.1:${hostPort};
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -101,7 +126,7 @@ server {
       const pathConfContent = `
 location /${projectName}/ {
     include /etc/nginx/conf.d/maintenance/status.conf;
-    proxy_pass http://172.17.0.1:${hostPort}/;
+    proxy_pass http://127.0.0.1:${hostPort}/;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -118,17 +143,7 @@ location /${projectName}/ {
     await this.reloadNginx();
   }
 
-  /**
-   * Meminta sertifikat SSL dari Let's Encrypt
-   */
   async requestSsl(domain: string, email: string): Promise<boolean> {
-    if (process.env.NODE_ENV === 'development') {
-      this.logger.log(
-        `Skipping SSL request for ${domain} in development mode.`,
-      );
-      return false; // Skip SSL generation locally
-    }
-
     this.logger.log(`Requesting SSL for ${domain} with email ${email}...`);
     try {
       const certbotConfDir = path.resolve(process.cwd(), 'certbot-conf');
@@ -161,6 +176,11 @@ location /${projectName}/ {
       if (fs.existsSync(certPath)) {
         this.logger.log(`Certificate for ${domain} already exists.`);
         return true;
+      }
+
+      if (process.env.NODE_ENV === 'development') {
+        this.logger.log(`Skipping SSL request for ${domain} in development mode.`);
+        return false; // Skip actual certbot request if local certs don't exist
       }
 
       // Pastikan image certbot ada
@@ -270,7 +290,7 @@ location /${projectName}/ {
       const httpRedirectOrProxy = forceHttps 
         ? `        return 301 https://$host$request_uri;` 
         : `        include /etc/nginx/conf.d/maintenance/status.conf;
-        proxy_pass http://172.17.0.1:${hostPort};
+        proxy_pass http://127.0.0.1:${hostPort};
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -301,7 +321,7 @@ server {
 
     location / {
         include /etc/nginx/conf.d/maintenance/status.conf;
-        proxy_pass http://172.17.0.1:${hostPort};
+        proxy_pass http://127.0.0.1:${hostPort};
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;

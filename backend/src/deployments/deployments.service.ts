@@ -218,9 +218,7 @@ export class DeploymentsService {
       if (project.domain) {
         const domain = project.domain;
         const projectNameSafe = project.name.toLowerCase().replace(/[^a-z0-9]/g, '-');
-        const baseDomain = process.env.BASE_DOMAIN || 'portdock.my.id';
-        const isSystemSubdomain = domain.endsWith(`.${baseDomain}`);
-        const pathRoute = isSystemSubdomain ? projectNameSafe : domain;
+        const pathRoute = projectNameSafe;
         await this.nginx.generateHttpConfig(domain, hostPort, pathRoute);
 
         // Attempt Let's Encrypt SSL in the background!
@@ -358,11 +356,28 @@ export class DeploymentsService {
         this.logger.log(`Generated PHP_APACHE Dockerfile for ${project.name}`);
       }
 
+      // Parse environment variables
+      const globalEnvVars = await this.getGlobalEnvVarsArray();
+      
+      const parsedEnvRecord: Record<string, string> = {};
+      globalEnvVars.forEach(e => {
+        const [k, v] = e.split('=');
+        if (k && v) parsedEnvRecord[k] = v;
+      });
+      if (project.envVars && typeof project.envVars === 'object') {
+        Object.assign(parsedEnvRecord, project.envVars as Record<string, string>);
+      }
+
+      // Add default NIXPACKS_NODE_VERSION to 20 if not present
+      if (!parsedEnvRecord['NIXPACKS_NODE_VERSION']) {
+        parsedEnvRecord['NIXPACKS_NODE_VERSION'] = '20';
+      }
+
       if (fs.existsSync(dockerfilePath)) {
         const tarStream = tar.pack(cloneDir);
         await this.docker.buildImage(tarStream, imageName, imageTag);
       } else {
-        await this.docker.buildWithNixpacks(cloneDir, imageName, imageTag);
+        await this.docker.buildWithNixpacks(cloneDir, imageName, imageTag, parsedEnvRecord);
       }
 
       const hostPort = await this.getAvailablePort();
@@ -371,14 +386,10 @@ export class DeploymentsService {
       );
       const internalPort = customInternalPort || detectedPort;
 
-      // Parse environment variables
-      const globalEnvVars = await this.getGlobalEnvVarsArray();
-      let dockerEnv = [`PORT=${internalPort}`, ...globalEnvVars];
-      if (project.envVars && typeof project.envVars === 'object') {
-        const envRecord = project.envVars as Record<string, string>;
-        const envArray = Object.entries(envRecord).map(([k, v]) => `${k}=${v}`);
-        dockerEnv = [...dockerEnv, ...envArray];
-      }
+      let dockerEnv = [`PORT=${internalPort}`];
+      Object.entries(parsedEnvRecord).forEach(([k, v]) => {
+        dockerEnv.push(`${k}=${v}`);
+      });
 
       const containerName = `${project.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${Date.now()}`;
       const dockerContainer = await this.docker.createContainer({
@@ -455,9 +466,7 @@ export class DeploymentsService {
       if (project.domain) {
         const domain = project.domain;
         const projectNameSafe = project.name.toLowerCase().replace(/[^a-z0-9]/g, '-');
-        const baseDomain = process.env.BASE_DOMAIN || 'portdock.my.id';
-        const isSystemSubdomain = domain.endsWith(`.${baseDomain}`);
-        const pathRoute = isSystemSubdomain ? projectNameSafe : domain;
+        const pathRoute = projectNameSafe;
         await this.nginx.generateHttpConfig(domain, hostPort, pathRoute);
 
         // Attempt Let's Encrypt SSL in the background!
@@ -652,9 +661,7 @@ export class DeploymentsService {
       if (project.domain) {
         const domain = project.domain;
         const projectNameSafe = project.name.toLowerCase().replace(/[^a-z0-9]/g, '-');
-        const baseDomain = process.env.BASE_DOMAIN || 'portdock.my.id';
-        const isSystemSubdomain = domain.endsWith(`.${baseDomain}`);
-        const pathRoute = isSystemSubdomain ? projectNameSafe : domain;
+        const pathRoute = projectNameSafe;
         await this.nginx.generateHttpConfig(domain, hostPort, pathRoute);
 
         const userEmail = project.user?.email || 'admin@portdock.my.id';

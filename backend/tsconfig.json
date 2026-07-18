@@ -25,5 +25,16 @@
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false
-  }
+  },
+  "include": [
+    "src/**/*",
+    "prisma/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "uploads",
+    "certbot-conf",
+    "certbot-www"
+  ]
 }

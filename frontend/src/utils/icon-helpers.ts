@@ -46,3 +46,18 @@ export function getDeployTypeDetails(type: string) {
   if (type === "DOCKERFILE") return { icon: Container, label: "Dockerfile" };
   return { icon: FileCode2, label: type };
 }
+
+export function getTemplateDetails(templateId: string) {
+  switch (templateId) {
+    case "STATIC_NGINX":
+      return { label: "Nginx", color: "bg-green-500/10 text-green-600" };
+    case "STATIC_APACHE":
+      return { label: "Apache", color: "bg-red-500/10 text-red-600" };
+    case "PHP_APACHE":
+      return { label: "PHP Apache", color: "bg-indigo-500/10 text-indigo-600" };
+    case "NIXPACKS":
+      return { label: "Nixpacks", color: "bg-blue-500/10 text-blue-600" };
+    default:
+      return { label: templateId || "Unknown", color: "bg-slate-500/10 text-slate-600" };
+  }
+}

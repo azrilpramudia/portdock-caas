@@ -4,7 +4,7 @@ import { formatDistanceToNow } from "date-fns";
 import { id } from "date-fns/locale";
 import { Eye, Pencil, Rocket, Trash2, MoreHorizontal, Loader2, ExternalLink, FolderOpen, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getProjectIcon, getDeployTypeDetails } from "@/utils/icon-helpers";
+import { getProjectIcon, getDeployTypeDetails, getTemplateDetails } from "@/utils/icon-helpers";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -146,9 +146,18 @@ export function ProjectTable({ isLoading, projects, setDeleteId }: ProjectTableP
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="flex items-center gap-2">
-                    <typeDetails.icon className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-[13px] font-semibold text-foreground">{typeDetails.label}</span>
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex items-center gap-2">
+                      <typeDetails.icon className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-[13px] font-semibold text-foreground">{typeDetails.label}</span>
+                    </div>
+                    {project.templateId && (
+                      <div className="flex">
+                        <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${getTemplateDetails(project.templateId).color}`}>
+                          {getTemplateDetails(project.templateId).label}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">

@@ -239,11 +239,20 @@ export class DockerService implements OnModuleInit {
     dir: string,
     imageName: string,
     imageTag = 'latest',
+    envVars?: Record<string, string>,
   ): Promise<void> {
     return new Promise((resolve, reject) => {
       const tag = `${imageName}:${imageTag}`;
       this.logger.log(`Starting Nixpacks build for ${tag}`);
-      const child = spawn('nixpacks', ['build', dir, '--name', tag]);
+      
+      const args = ['build', dir, '--name', tag];
+      if (envVars) {
+        Object.entries(envVars).forEach(([k, v]) => {
+          args.push('--env', `${k}=${v}`);
+        });
+      }
+
+      const child = spawn('nixpacks', args);
 
       child.stdout.on('data', (data) => {
         process.stdout.write(data);
