@@ -142,6 +142,16 @@ export class ProjectsService {
       const activeContainer = oldProject.containers.find((c: any) => c.status === 'RUNNING' && c.hostPort);
       if (activeContainer && activeContainer.hostPort) {
         await this.nginx.generateHttpConfig(dto.domain, activeContainer.hostPort);
+        
+        const userEmail = 'admin@portdock.my.id'; // Default email since user object isn't fetched here
+        this.nginx
+          .requestSsl(dto.domain, userEmail)
+          .then(async (sslSuccess) => {
+            if (sslSuccess) {
+              await this.nginx.generateHttpsConfig(dto.domain as string, activeContainer.hostPort as number);
+            }
+          })
+          .catch((err) => console.error('Background SSL Error', err));
       }
     }
 
