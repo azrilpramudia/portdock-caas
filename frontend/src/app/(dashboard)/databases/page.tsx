@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Database, Trash2, Server, Key, Copy, CheckCircle2, Search, RefreshCw, Filter, Eye, EyeOff, MoreVertical, Play, Square, RotateCw } from "lucide-react";
+import { Plus, Database, Trash2, Server, Key, Copy, CheckCircle2, Search, RefreshCw, Filter, Eye, EyeOff, MoreVertical, Play, Square, RotateCw, Archive, Download, Undo2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -36,9 +36,60 @@ export default function DatabasesPage() {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [backupDb, setBackupDb] = useState<any | null>(null);
+  const [restoreBackupId, setRestoreBackupId] = useState<string | null>(null);
+  const [deleteBackupId, setDeleteBackupId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [visibleUrls, setVisibleUrls] = useState<Record<string, boolean>>({});
   const queryClient = useQueryClient();
+
+  const { data: backups = [], isLoading: isBackupsLoading } = useQuery({
+    queryKey: ["backups", backupDb?.id],
+    queryFn: async () => {
+      if (!backupDb?.id) return [];
+      const res = await api.get(`/databases/${backupDb.id}/backups`);
+      return res.data;
+    },
+    enabled: !!backupDb?.id,
+  });
+
+  const createBackupMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await api.post(`/databases/${id}/backups`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["backups", backupDb?.id] });
+      toast.success("Backup created successfully");
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || "Failed to create backup");
+    },
+  });
+
+  const deleteBackupMutation = useMutation({
+    mutationFn: async ({ dbId, backupId }: { dbId: string, backupId: string }) => {
+      await api.delete(`/databases/${dbId}/backups/${backupId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["backups", backupDb?.id] });
+      toast.success("Backup deleted successfully");
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || "Failed to delete backup");
+    },
+  });
+
+  const restoreBackupMutation = useMutation({
+    mutationFn: async ({ dbId, backupId }: { dbId: string, backupId: string }) => {
+      await api.post(`/databases/${dbId}/backups/${backupId}/restore`);
+    },
+    onSuccess: () => {
+      toast.success("Backup restored successfully");
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || "Failed to restore backup");
+    },
+  });
 
   const { data: databases = [], isLoading, refetch } = useQuery({
     queryKey: ["databases"],
@@ -232,9 +283,11 @@ export default function DatabasesPage() {
                           <Database className="w-4 h-4" />
                         </div>
                         <div>
-                          <p className="text-[14px] font-semibold text-foreground group-hover:text-blue-500 transition-colors">
-                            {db.name}
-                          </p>
+                          <Link href={`/databases/${db.id}`}>
+                            <p className="text-[14px] font-semibold text-foreground group-hover:text-blue-500 transition-colors cursor-pointer">
+                              {db.name}
+                            </p>
+                          </Link>
                           <div className="flex items-center gap-2 mt-1">
                             <span className="text-[11px] font-medium text-muted-foreground">
                               {formatDistanceToNow(new Date(db.createdAt), { addSuffix: true })}
@@ -324,6 +377,12 @@ export default function DatabasesPage() {
                           >
                             <RotateCw className="w-4 h-4 text-blue-500" /> Restart
                           </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            className="gap-2 cursor-pointer font-medium" 
+                            onClick={() => setBackupDb(db)}
+                          >
+                            <Archive className="w-4 h-4 text-purple-500" /> Manage Backups
+                          </DropdownMenuItem>
                           <DropdownMenuSeparator className="bg-border/50" />
                           <DropdownMenuItem 
                             className="gap-2 cursor-pointer text-red-600 font-medium focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-500/10"
@@ -362,6 +421,178 @@ export default function DatabasesPage() {
               disabled={deleteMutation.isPending}
             >
               {deleteMutation.isPending ? "Deleting..." : "Delete Database"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!backupDb} onOpenChange={(open) => !open && setBackupDb(null)}>
+        <DialogContent className="sm:max-w-[700px] max-h-[80vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Archive className="w-5 h-5 text-purple-500" /> Manage Backups for {backupDb?.name}
+            </DialogTitle>
+            <DialogDescription>
+              Create, restore, or download backups for this database.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="flex-1 overflow-y-auto pr-2 mt-4 space-y-4">
+            <div className="flex justify-end">
+              <Button 
+                onClick={() => backupDb && createBackupMutation.mutate(backupDb.id)}
+                disabled={createBackupMutation.isPending || backupDb?.status !== 'RUNNING'}
+                className="bg-purple-600 hover:bg-purple-700 text-white shadow-md text-xs h-8"
+              >
+                <Plus className="w-3.5 h-3.5 mr-1" /> 
+                {createBackupMutation.isPending ? "Creating..." : "Create Backup"}
+              </Button>
+            </div>
+            
+            {backupDb?.status !== 'RUNNING' && (
+              <div className="p-3 bg-amber-50 dark:bg-amber-500/10 text-amber-600 rounded-lg text-xs font-medium">
+                Database must be running to create or restore backups.
+              </div>
+            )}
+
+            <div className="border border-border rounded-xl overflow-hidden">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-muted/50 border-b border-border">
+                  <tr>
+                    <th className="px-4 py-3 font-medium text-muted-foreground text-xs">Date</th>
+                    <th className="px-4 py-3 font-medium text-muted-foreground text-xs">File</th>
+                    <th className="px-4 py-3 font-medium text-muted-foreground text-xs">Size</th>
+                    <th className="px-4 py-3 font-medium text-muted-foreground text-xs">Status</th>
+                    <th className="px-4 py-3 font-medium text-muted-foreground text-xs text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {isBackupsLoading ? (
+                    <tr>
+                      <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground text-xs">Loading backups...</td>
+                    </tr>
+                  ) : backups.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground text-xs">No backups found.</td>
+                    </tr>
+                  ) : (
+                    backups.map((backup: any) => (
+                      <tr key={backup.id} className="hover:bg-muted/30">
+                        <td className="px-4 py-3 text-xs">
+                          {new Date(backup.createdAt).toLocaleString()}
+                        </td>
+                        <td className="px-4 py-3 text-xs font-mono truncate max-w-[150px]" title={backup.filename}>
+                          {backup.filename}
+                        </td>
+                        <td className="px-4 py-3 text-xs">
+                          {backup.sizeBytes ? `${(backup.sizeBytes / 1024 / 1024).toFixed(2)} MB` : '-'}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
+                            backup.status === 'SUCCESS' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' :
+                            backup.status === 'PENDING' ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400' :
+                            'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400'
+                          }`}>
+                            {backup.status}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <div className="flex justify-end gap-1">
+                            <a 
+                              href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/databases/${backupDb.id}/backups/${backup.id}/download`}
+                              target="_blank"
+                              download
+                              className={backup.status !== 'SUCCESS' ? 'pointer-events-none opacity-50' : ''}
+                            >
+                              <Button variant="ghost" size="icon" className="h-7 w-7" disabled={backup.status !== 'SUCCESS'}>
+                                <Download className="w-3.5 h-3.5 text-blue-500" />
+                              </Button>
+                            </a>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-7 w-7"
+                              disabled={backup.status !== 'SUCCESS' || restoreBackupMutation.isPending || backupDb.status !== 'RUNNING'}
+                              onClick={() => setRestoreBackupId(backup.id)}
+                            >
+                              <Undo2 className="w-3.5 h-3.5 text-amber-500" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-7 w-7"
+                              disabled={deleteBackupMutation.isPending}
+                              onClick={() => setDeleteBackupId(backup.id)}
+                            >
+                              <Trash2 className="w-3.5 h-3.5 text-red-500" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!restoreBackupId} onOpenChange={() => setRestoreBackupId(null)}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="text-amber-600 flex items-center gap-2">
+              <Undo2 className="w-5 h-5" /> Restore Backup
+            </DialogTitle>
+            <DialogDescription className="pt-3 text-base">
+              Are you sure you want to restore this backup? This will <strong>overwrite</strong> your current database data and cannot be undone!
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="mt-6 gap-3 sm:gap-0">
+            <Button variant="outline" onClick={() => setRestoreBackupId(null)} disabled={restoreBackupMutation.isPending}>
+              Cancel
+            </Button>
+            <Button 
+              className="bg-amber-600 hover:bg-amber-700 text-white"
+              onClick={() => {
+                if (backupDb && restoreBackupId) {
+                  restoreBackupMutation.mutate({ dbId: backupDb.id, backupId: restoreBackupId });
+                  setRestoreBackupId(null);
+                }
+              }}
+              disabled={restoreBackupMutation.isPending}
+            >
+              {restoreBackupMutation.isPending ? "Restoring..." : "Restore Database"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!deleteBackupId} onOpenChange={() => setDeleteBackupId(null)}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="text-red-600 flex items-center gap-2">
+              <Trash2 className="w-5 h-5" /> Delete Backup File
+            </DialogTitle>
+            <DialogDescription className="pt-3 text-base">
+              Are you sure you want to delete this backup file? This action <strong>cannot</strong> be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="mt-6 gap-3 sm:gap-0">
+            <Button variant="outline" onClick={() => setDeleteBackupId(null)} disabled={deleteBackupMutation.isPending}>
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={() => {
+                if (backupDb && deleteBackupId) {
+                  deleteBackupMutation.mutate({ dbId: backupDb.id, backupId: deleteBackupId });
+                  setDeleteBackupId(null);
+                }
+              }}
+              disabled={deleteBackupMutation.isPending}
+            >
+              {deleteBackupMutation.isPending ? "Deleting..." : "Delete Backup"}
             </Button>
           </DialogFooter>
         </DialogContent>

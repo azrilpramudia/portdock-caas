@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import type { Terminal } from "xterm";
 import type { FitAddon } from "xterm-addon-fit";
 
-export function useAppLogsSession(selectedContainerId: string) {
+export function useAppLogsSession(selectedContainerId: string, isDatabase: boolean = false) {
   const [isAppLogsConnected, setIsAppLogsConnected] = useState(false);
   
   const appLogsTerminalRef = useRef<HTMLDivElement>(null);
@@ -17,69 +17,69 @@ export function useAppLogsSession(selectedContainerId: string) {
   const initTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Initialize Terminal on client-side
-  useEffect(() => {
+  const initTerminal = async () => {
     if (typeof window === "undefined") return;
+    if (appLogsTerminalRef.current && !appLogsXtermRef.current && !isInitializing.current) {
+      isInitializing.current = true;
+      try {
+        const xtermModule = await import("xterm");
+        const fitAddonModule = await import("xterm-addon-fit");
 
-    const initTerminal = async () => {
-      if (appLogsTerminalRef.current && !appLogsXtermRef.current && !isInitializing.current) {
-        isInitializing.current = true;
-        try {
-          const xtermModule = await import("xterm");
-          const fitAddonModule = await import("xterm-addon-fit");
+        if (appLogsXtermRef.current) return;
 
-          if (appLogsXtermRef.current) return;
+        const term = new xtermModule.Terminal({
+          cursorBlink: false,
+          disableStdin: true,
+          fontFamily: '"Fira Code", "JetBrains Mono", "Courier New", Courier, monospace',
+          fontSize: 13,
+          theme: {
+            background: "#111827",
+            foreground: "#e2e8f0",
+            cursor: "transparent",
+          },
+        });
 
-          const term = new xtermModule.Terminal({
-            cursorBlink: false,
-            disableStdin: true,
-            fontFamily: '"Fira Code", "JetBrains Mono", "Courier New", Courier, monospace',
-            fontSize: 13,
-            theme: {
-              background: "#111827",
-              foreground: "#e2e8f0",
-              cursor: "transparent",
-            },
-          });
+        const fitAddon = new fitAddonModule.FitAddon();
+        term.loadAddon(fitAddon);
 
-          const fitAddon = new fitAddonModule.FitAddon();
-          term.loadAddon(fitAddon);
-
-          if (appLogsTerminalRef.current) {
-            appLogsTerminalRef.current.innerHTML = '';
-            term.open(appLogsTerminalRef.current);
-          }
-
-          initTimeoutRef.current = setTimeout(() => {
-            if (!appLogsTerminalRef.current) return;
-            try {
-              fitAddon.fit();
-              term.writeln("\x1b[36m--- Application Logs Viewer ---\x1b[0m");
-              term.writeln("\x1b[90mSelect a running container from the dropdown to start streaming logs.\x1b[0m\r\n");
-            } catch (e) {
-              console.error("Fit addon error during init:", e);
-            }
-          }, 50);
-
-          appLogsXtermRef.current = term;
-          appLogsFitAddonRef.current = fitAddon;
-
-          const handleResize = () => {
-            if (appLogsFitAddonRef.current && appLogsTerminalRef.current) {
-              try {
-                appLogsFitAddonRef.current.fit();
-              } catch (e) {
-                console.error("Resize error:", e);
-              }
-            }
-          };
-          window.addEventListener("resize", handleResize);
-          (appLogsXtermRef as any).handleResize = handleResize;
-        } finally {
-          isInitializing.current = false;
+        if (appLogsTerminalRef.current) {
+          appLogsTerminalRef.current.innerHTML = '';
+          term.open(appLogsTerminalRef.current);
         }
-      }
-    };
 
+        initTimeoutRef.current = setTimeout(() => {
+          if (!appLogsTerminalRef.current) return;
+          try {
+            fitAddon.fit();
+            term.writeln("\x1b[36m--- Application Logs Viewer ---\x1b[0m");
+            term.writeln("\x1b[90mClick 'Connect' to start streaming logs.\x1b[0m\r\n");
+          } catch (e) {
+            console.error("Fit addon error during init:", e);
+          }
+        }, 50);
+
+        appLogsXtermRef.current = term;
+        appLogsFitAddonRef.current = fitAddon;
+
+        const handleResize = () => {
+          if (appLogsFitAddonRef.current && appLogsTerminalRef.current) {
+            try {
+              appLogsFitAddonRef.current.fit();
+            } catch (e) {
+              console.error("Resize error:", e);
+            }
+          }
+        };
+        window.addEventListener("resize", handleResize);
+        (appLogsXtermRef as any).handleResize = handleResize;
+      } finally {
+        isInitializing.current = false;
+      }
+    }
+  };
+
+  // Try to initialize on mount
+  useEffect(() => {
     initTerminal();
 
     return () => {
@@ -95,11 +95,14 @@ export function useAppLogsSession(selectedContainerId: string) {
     };
   }, []);
 
-  const handleConnectAppLogs = () => {
+  const handleConnectAppLogs = async () => {
     if (!selectedContainerId) {
       toast.error("Please select a container first");
       return;
     }
+
+    // Ensure terminal is initialized (may not be if the ref wasn't ready on mount)
+    await initTerminal();
 
     if (appLogsSocketRef.current) {
       appLogsSocketRef.current.disconnect();
@@ -120,7 +123,7 @@ export function useAppLogsSession(selectedContainerId: string) {
 
     socket.on("connect", () => {
       appLogsXtermRef.current?.writeln(`\x1b[32mSocket connected. Requesting logs...\x1b[0m\r\n`);
-      socket.emit("connect_app_logs", { containerId: selectedContainerId });
+      socket.emit("connect_app_logs", { containerId: selectedContainerId, isDatabase });
     });
 
     socket.on("connect_error", (err) => {
@@ -202,11 +205,13 @@ export function useAppLogsSession(selectedContainerId: string) {
   };
 
   const fitAppLogsTerminal = () => {
-    setTimeout(() => {
-      if (appLogsFitAddonRef.current && appLogsXtermRef.current) {
-        appLogsFitAddonRef.current.fit();
-      }
-    }, 100);
+    initTerminal().then(() => {
+      setTimeout(() => {
+        if (appLogsFitAddonRef.current && appLogsXtermRef.current) {
+          appLogsFitAddonRef.current.fit();
+        }
+      }, 100);
+    });
   };
 
   return {
