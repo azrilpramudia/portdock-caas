@@ -11,6 +11,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useAppLogsSession } from "@/hooks/useAppLogsSession";
+import { useSettingsStore } from "@/store/settings";
+import "xterm/css/xterm.css";
 
 import {
   AreaChart,
@@ -27,6 +29,8 @@ export default function DatabaseDetailsPage() {
   const router = useRouter();
   const id = params.id as string;
   const queryClient = useQueryClient();
+  const { settings } = useSettingsStore();
+  const dbPortalUrl = settings?.dbPortalUrl;
 
   const [activeTab, setActiveTab] = useState("overview");
 
@@ -133,13 +137,17 @@ export default function DatabaseDetailsPage() {
               <div>
                 <h1 className="text-2xl font-bold text-foreground tracking-tight">{db.name}</h1>
                 <div className="flex items-center gap-3 mt-1.5">
-                  <span className={`px-2.5 py-1 rounded-md text-xs font-semibold tracking-wide flex items-center gap-1.5 ${
+                  <span className={`px-2.5 py-1 rounded-md text-xs font-semibold tracking-wide flex items-center gap-1.5 capitalize ${
                     db.status === 'RUNNING' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' :
                     db.status === 'STOPPED' ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400' :
                     'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400'
                   }`}>
-                    {db.status === 'RUNNING' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />}
-                    {db.status}
+                    <span className={`w-1.5 h-1.5 rounded-full ${
+                      db.status === 'RUNNING' ? 'bg-emerald-500' :
+                      db.status === 'STOPPED' ? 'bg-amber-500' :
+                      'bg-red-500'
+                    }`} />
+                    {(db.status || 'UNKNOWN').toLowerCase()}
                   </span>
                   <span className="text-sm font-medium text-muted-foreground">
                     {db.type === 'POSTGRESQL' ? 'PostgreSQL' : 'MySQL'} {db.version}
@@ -149,6 +157,24 @@ export default function DatabaseDetailsPage() {
             </div>
             
             <div className="flex gap-2">
+              {dbPortalUrl && (
+                <Button 
+                  size="sm" 
+                  variant="secondary" 
+                  className="h-8 text-xs bg-indigo-500/10 text-indigo-500 hover:bg-indigo-500/20 hover:text-indigo-600 border-0"
+                  onClick={() => {
+                    const isPg = db.type === 'POSTGRESQL';
+                    const portal = new URL(dbPortalUrl);
+                    portal.searchParams.set(isPg ? 'pgsql' : 'mysql', '');
+                    portal.searchParams.set('server', `host.docker.internal:${db.hostPort}`);
+                    portal.searchParams.set('username', db.dbUser || '');
+                    window.open(portal.toString(), '_blank');
+                  }}
+                >
+                  <Database className="w-3.5 h-3.5 mr-1.5" />
+                  Manage Database
+                </Button>
+              )}
               <Button 
                 variant={activeTab === "overview" ? "default" : "outline"}
                 className={activeTab === "overview" ? "bg-blue-600 hover:bg-blue-700 text-white shadow-md" : ""}
@@ -162,13 +188,6 @@ export default function DatabaseDetailsPage() {
                 onClick={() => setActiveTab("logs")}
               >
                 <TerminalIcon className="w-4 h-4 mr-2" /> Logs
-              </Button>
-              <Button 
-                variant={activeTab === "settings" ? "default" : "outline"}
-                className={activeTab === "settings" ? "bg-blue-600 hover:bg-blue-700 text-white shadow-md" : ""}
-                onClick={() => setActiveTab("settings")}
-              >
-                <Settings className="w-4 h-4 mr-2" /> Settings
               </Button>
             </div>
           </div>
@@ -266,80 +285,6 @@ export default function DatabaseDetailsPage() {
               )}
             </div>
           </div>
-
-        {/* Settings Tab */}
-        {activeTab === "settings" && (
-          <div className="bg-card border border-border rounded-2xl shadow-sm p-6 sm:p-8 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-3xl">
-            <h2 className="text-lg font-bold text-foreground mb-6 flex items-center gap-2">
-              <Settings className="w-5 h-5 text-blue-500" />
-              Advanced Configuration
-            </h2>
-            
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="cpuLimit" className="font-semibold text-foreground">CPU Cores Limit</Label>
-                  <Input 
-                    id="cpuLimit" 
-                    type="number" 
-                    step="0.1"
-                    min="0.1"
-                    value={configForm.cpuLimit}
-                    onChange={(e) => setConfigForm({ ...configForm, cpuLimit: parseFloat(e.target.value) })}
-                    className="bg-muted/50 border-border focus-visible:ring-blue-500/20"
-                  />
-                  <p className="text-[11px] text-muted-foreground">Example: 0.5 for half a core, 1 for 1 core.</p>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="memoryLimit" className="font-semibold text-foreground">Memory Limit (MB)</Label>
-                  <Input 
-                    id="memoryLimit" 
-                    type="number" 
-                    step="128"
-                    min="256"
-                    value={configForm.memoryLimit}
-                    onChange={(e) => setConfigForm({ ...configForm, memoryLimit: parseInt(e.target.value) })}
-                    className="bg-muted/50 border-border focus-visible:ring-blue-500/20"
-                  />
-                  <p className="text-[11px] text-muted-foreground">Minimum recommended is 256MB.</p>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="maxConnections" className="font-semibold text-foreground">Max Connections</Label>
-                <Input 
-                  id="maxConnections" 
-                  type="number" 
-                  step="10"
-                  min="10"
-                  value={configForm.maxConnections}
-                  onChange={(e) => setConfigForm({ ...configForm, maxConnections: parseInt(e.target.value) })}
-                  className="bg-muted/50 border-border focus-visible:ring-blue-500/20"
-                />
-                <p className="text-[11px] text-muted-foreground">Maximum concurrent connections allowed to the database (max_connections flag).</p>
-              </div>
-
-              <div className="pt-4 border-t border-border flex items-center justify-between">
-                <p className="text-sm text-amber-600 bg-amber-50 dark:bg-amber-500/10 px-4 py-2 rounded-lg font-medium flex items-center gap-2">
-                  <RefreshCw className="w-4 h-4" />
-                  Updating config will recreate and restart the container.
-                </p>
-                <Button 
-                  onClick={() => updateConfigMutation.mutate(configForm)}
-                  disabled={updateConfigMutation.isPending}
-                  className="bg-blue-600 hover:bg-blue-700 text-white shadow-md font-semibold min-w-[140px]"
-                >
-                  {updateConfigMutation.isPending ? "Saving..." : (
-                    <>
-                      <Save className="w-4 h-4 mr-2" /> Save & Apply
-                    </>
-                  )}
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

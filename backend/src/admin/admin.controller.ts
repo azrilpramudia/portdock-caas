@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Delete, Param, Body, UseGuards, Query, Request, Res, StreamableFile, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Param, Body, UseGuards, Query, Request, Res, StreamableFile, BadRequestException, Ip } from '@nestjs/common';
 import type { Response } from 'express';
 import { ApiOperation } from '@nestjs/swagger';
 import { AdminService } from './admin.service';
@@ -12,6 +12,7 @@ import { SystemService } from './system.service';
 import { TelegramService } from '../notifications/telegram.service';
 import { SecurityService } from './security.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { DatabasesService } from '../databases/databases.service';
 
 @Controller('admin')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -23,7 +24,8 @@ export class AdminController {
     private readonly systemService: SystemService,
     private readonly telegramService: TelegramService,
     private readonly securityService: SecurityService,
-    private readonly notificationsService: NotificationsService
+    private readonly notificationsService: NotificationsService,
+    private readonly databasesService: DatabasesService
   ) {}
 
   @Post('settings/test-telegram')
@@ -93,6 +95,24 @@ export class AdminController {
   @Get('deployments')
   async getAllDeployments(@Query() filters: any) {
     return this.adminService.getAllDeployments(filters);
+  }
+
+  @Get('databases')
+  @ApiOperation({ summary: 'Get all managed databases for admin' })
+  async getAllDatabases(@Query() filters: any) {
+    return this.adminService.getAllDatabases(filters);
+  }
+
+  @Get('databases/:id')
+  @ApiOperation({ summary: 'Get a managed database by ID for admin' })
+  async getDatabase(@Param('id') id: string) {
+    return this.adminService.getDatabase(id);
+  }
+
+  @Patch('databases/:id/config')
+  @ApiOperation({ summary: 'Update database configuration as admin' })
+  async updateDatabaseConfig(@Param('id') id: string, @Body() dto: { cpuLimit?: number; memoryLimit?: number; maxConnections?: number }, @Request() req: any, @Ip() ip: string) {
+    return this.databasesService.updateConfig(null, id, dto, ip, true);
   }
 
   @Get('containers')

@@ -19,5 +19,16 @@ services:
         limits:
           memory: ${DB_MEM_LIMIT:-512M}
 
+  adminer:
+    image: adminer:latest
+    container_name: portdock_adminer
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - ADMINER_DESIGN=pepa-linha
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
 volumes:
   portdock_db_data:

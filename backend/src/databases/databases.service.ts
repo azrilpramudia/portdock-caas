@@ -165,10 +165,10 @@ export class DatabasesService {
     });
   }
 
-  async findOne(userId: string, id: string) {
+  async findOne(userId: string | null, id: string, isAdmin: boolean = false) {
     const db = await this.prisma.managedDatabase.findUnique({ where: { id } });
     if (!db) throw new NotFoundException('Database not found');
-    if (db.userId !== userId) throw new ForbiddenException();
+    if (!isAdmin && db.userId !== userId) throw new ForbiddenException();
     return db;
   }
 
@@ -427,8 +427,8 @@ export class DatabasesService {
     }
   }
 
-  async updateConfig(userId: string, id: string, dto: { cpuLimit?: number; memoryLimit?: number; maxConnections?: number }, ip?: string) {
-    const db = await this.findOne(userId, id);
+  async updateConfig(userId: string | null, id: string, dto: { cpuLimit?: number; memoryLimit?: number; maxConnections?: number }, ip?: string, isAdmin: boolean = false) {
+    const db = await this.findOne(userId, id, isAdmin);
     
     // Update database record
     const updatedDb = await this.prisma.managedDatabase.update({

@@ -20,6 +20,7 @@ export function GeneralSettingsCard() {
   const [language, setLanguage] = useState("");
   const [dateFormat, setDateFormat] = useState("");
   const [timeFormat, setTimeFormat] = useState("");
+  const [dbPortalUrl, setDbPortalUrl] = useState("");
 
   useEffect(() => {
     if (settings) {
@@ -34,6 +35,7 @@ export function GeneralSettingsCard() {
       if (settings.language) setLanguage(settings.language);
       if (settings.dateFormat) setDateFormat(settings.dateFormat);
       if (settings.timeFormat) setTimeFormat(settings.timeFormat);
+      if (settings.dbPortalUrl) setDbPortalUrl(settings.dbPortalUrl);
     }
   }, [settings]);
 
@@ -46,6 +48,7 @@ export function GeneralSettingsCard() {
       language,
       dateFormat,
       timeFormat,
+      dbPortalUrl,
     });
   };
 
@@ -158,8 +161,19 @@ export function GeneralSettingsCard() {
             </SelectContent>
           </Select>
         </div>
+        
+        <div className="space-y-1.5 md:col-span-2">
+          <label className="text-[13px] font-medium text-muted-foreground">Database Portal URL</label>
+          <Input 
+            value={dbPortalUrl} 
+            onChange={(e) => setDbPortalUrl(e.target.value)} 
+            placeholder="http://db-portal.your-domain.com"
+            className="rounded-md border-border w-full"
+          />
+          <p className="text-[11px] text-muted-foreground mt-1">Leave empty to disable the Manage Database button for users.</p>
+        </div>
 
-        <div className="pt-1 mt-auto">
+        <div className="pt-1 mt-auto md:col-span-2">
           <button 
             onClick={handleSave} 
             disabled={updateSettings.isPending}

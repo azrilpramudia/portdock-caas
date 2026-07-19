@@ -227,6 +227,60 @@ export class TerminalGateway
     }
   }
 
+  @SubscribeMessage('connect_nginx_logs')
+  async handleConnectNginxLogs(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: { logType?: string },
+  ) {
+    const logType = data?.logType || 'error';
+    const logFile =
+      logType === 'access'
+        ? '/var/log/nginx/access.log'
+        : '/var/log/nginx/error.log';
+
+    this.logger.log(
+      `Nginx Logs connection request (${logType}) from client ${client.id}`,
+    );
+
+    try {
+      // Cleanup any existing session for this client
+      this.cleanupSession(client.id);
+
+      const { spawn } = require('child_process');
+      const tail = spawn('tail', ['-n', '200', '-f', logFile]);
+
+      tail.stdout.on('data', (chunk: Buffer) => {
+        client.emit('nginx_logs_output', chunk.toString('utf8'));
+      });
+
+      tail.stderr.on('data', (chunk: Buffer) => {
+        client.emit('nginx_logs_error', chunk.toString('utf8'));
+      });
+
+      tail.on('error', (err: Error) => {
+        client.emit('nginx_logs_error', `Failed to tail log: ${err.message}`);
+      });
+
+      tail.on('close', () => {
+        client.emit('nginx_logs_output', '\r\n[Log stream ended]\r\n');
+      });
+
+      this.sessions.set(client.id, {
+        kill: () => {
+          try {
+            tail.kill();
+          } catch (e) {
+            // Ignore
+          }
+        },
+      });
+
+      client.emit('nginx_logs_ready', { logType, logFile });
+    } catch (err) {
+      client.emit('nginx_logs_error', err.message);
+    }
+  }
+
   private cleanupSession(clientId: string) {
     const session = this.sessions.get(clientId);
     if (session) {

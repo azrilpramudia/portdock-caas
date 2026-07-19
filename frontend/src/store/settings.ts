@@ -11,6 +11,7 @@ export interface SystemSettings {
   isMaintenanceMode: boolean;
   primaryColor?: string;
   sidebarStyle?: string;
+  dbPortalUrl?: string;
 }
 
 interface SettingsState {

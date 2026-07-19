@@ -9,7 +9,7 @@ export class SettingsService {
     const settings = await this.prisma.systemSetting.findMany({
       where: {
         key: {
-          in: ['siteName', 'siteDescription', 'language', 'timezone', 'dateFormat', 'timeFormat', 'notifyMaintenance', 'primaryColor', 'sidebarStyle'],
+          in: ['siteName', 'siteDescription', 'language', 'timezone', 'dateFormat', 'timeFormat', 'notifyMaintenance', 'primaryColor', 'sidebarStyle', 'dbPortalUrl'],
         },
       },
     });
@@ -21,6 +21,7 @@ export class SettingsService {
       timezone: 'Asia/Jakarta',
       dateFormat: 'DD/MM/YYYY',
       timeFormat: '24-hour',
+      dbPortalUrl: '', // Default to empty
     };
 
     settings.forEach((setting) => {

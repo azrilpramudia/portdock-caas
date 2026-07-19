@@ -878,4 +878,56 @@ export class AdminService {
 
     return [header.join(','), ...rows.map(row => row.join(','))].join('\n');
   }
+
+  async getAllDatabases(filters?: any) {
+    let databases = await this.prisma.managedDatabase.findMany({
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (filters?.search) {
+      databases = databases.filter(db => 
+        db.name.toLowerCase().includes(filters.search.toLowerCase()) ||
+        db.user.email.toLowerCase().includes(filters.search.toLowerCase())
+      );
+    }
+
+    if (filters?.status) {
+      databases = databases.filter(db => db.status === filters.status);
+    }
+
+    const totalDatabases = databases.length;
+    const runningDatabases = databases.filter(db => db.status === 'RUNNING').length;
+
+    return {
+      stats: {
+        totalDatabases,
+        runningDatabases,
+      },
+      databases,
+    };
+  }
+
+  async getDatabase(id: string) {
+    return this.prisma.managedDatabase.findUnique({
+      where: { id },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          }
+        }
+      }
+    });
+  }
 }

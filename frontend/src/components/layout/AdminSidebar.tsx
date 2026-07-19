@@ -15,7 +15,8 @@ import {
   Settings2, 
   Settings,
   ChevronDown,
-  LogOut
+  LogOut,
+  Database
 } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
 import { useSettingsStore } from "@/store/settings";
@@ -39,6 +40,7 @@ export function AdminSidebar({ mobile, onClose }: AdminSidebarProps) {
     { name: "Users", href: "/admin/users", icon: Users },
     { name: "Projects", href: "/admin/projects", icon: Folder },
     { name: "Containers", href: "/admin/containers", icon: Box },
+    { name: "Databases", href: "/admin/databases", icon: Database },
     { name: "Deployments", href: "/admin/deployments", icon: Rocket },
     { name: "Monitoring", href: "/admin/monitoring", icon: Activity },
     { name: "Domains", href: "/admin/domains", icon: Globe },

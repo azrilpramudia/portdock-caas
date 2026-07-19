@@ -40,10 +40,10 @@ export function ServerSettingsSecurity() {
   // Forms
   const [newPort, setNewPort] = useState('');
   const [newProtocol, setNewProtocol] = useState('tcp');
-  const [sshPort, setSshPort] = useState(22);
+  const [sshPort, setSshPort] = useState<number | string>(22);
   const [rootLogin, setRootLogin] = useState(false);
-  const [f2bRetry, setF2bRetry] = useState(5);
-  const [f2bTime, setF2bTime] = useState(10);
+  const [f2bRetry, setF2bRetry] = useState<number | string>(5);
+  const [f2bTime, setF2bTime] = useState<number | string>(10);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -113,7 +113,7 @@ export function ServerSettingsSecurity() {
   const saveFail2Ban = async (enable: boolean) => {
     try {
       setIsSaving(true);
-      await api.post('/admin/security/fail2ban', { enable, maxretry: f2bRetry, bantime: f2bTime });
+      await api.post('/admin/security/fail2ban', { enable, maxretry: Number(f2bRetry) || 0, bantime: Number(f2bTime) || 0 });
       toast.success(`Fail2Ban berhasil di${enable ? 'aktifkan' : 'matikan'}.`);
       fetchStatus();
     } catch (error: any) {
@@ -124,7 +124,8 @@ export function ServerSettingsSecurity() {
   };
 
   const saveSsh = async () => {
-    if (sshPort < 1 || sshPort > 65535) {
+    const port = Number(sshPort);
+    if (isNaN(port) || port < 1 || port > 65535) {
       return toast.error('Port SSH harus antara 1-65535');
     }
     const confirmed = confirm('PERHATIAN: Mengubah Port SSH atau menonaktifkan Root Login dapat menyebabkan Anda kehilangan akses ke server jika terjadi kesalahan. Lanjutkan?');
@@ -269,7 +270,7 @@ export function ServerSettingsSecurity() {
                 <Input 
                   type="number" 
                   value={sshPort} 
-                  onChange={(e) => setSshPort(parseInt(e.target.value))} 
+                  onChange={(e) => setSshPort(e.target.value === '' ? '' : parseInt(e.target.value))} 
                   min={1} max={65535}
                 />
                 <p className="text-xs text-muted-foreground">Default adalah 22. Jika Anda mengubahnya, Port UFW akan disesuaikan otomatis.</p>
@@ -323,7 +324,7 @@ export function ServerSettingsSecurity() {
                       <Input 
                         type="number" 
                         value={f2bRetry} 
-                        onChange={(e) => setF2bRetry(parseInt(e.target.value))} 
+                        onChange={(e) => setF2bRetry(e.target.value === '' ? '' : parseInt(e.target.value))} 
                         min={1} 
                       />
                     </div>
@@ -332,7 +333,7 @@ export function ServerSettingsSecurity() {
                       <Input 
                         type="number" 
                         value={f2bTime} 
-                        onChange={(e) => setF2bTime(parseInt(e.target.value))} 
+                        onChange={(e) => setF2bTime(e.target.value === '' ? '' : parseInt(e.target.value))} 
                         min={1} 
                       />
                     </div>

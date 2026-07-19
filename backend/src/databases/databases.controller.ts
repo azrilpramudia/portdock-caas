@@ -76,11 +76,7 @@ export class DatabasesController {
     return this.databasesService.getStats(req.user.id, id);
   }
 
-  @Put(':id/config')
-  @ApiOperation({ summary: 'Update database configuration' })
-  updateConfig(@Request() req: any, @Param('id') id: string, @Body() dto: { cpuLimit?: number; memoryLimit?: number; maxConnections?: number }, @Ip() ip: string) {
-    return this.databasesService.updateConfig(req.user.id, id, dto, ip);
-  }
+
 
   // Backup Endpoints
 

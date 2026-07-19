@@ -80,8 +80,6 @@ export function useAppLogsSession(selectedContainerId: string, isDatabase: boole
 
   // Try to initialize on mount
   useEffect(() => {
-    initTerminal();
-
     return () => {
       if (initTimeoutRef.current) clearTimeout(initTimeoutRef.current);
       

@@ -8,9 +8,10 @@ import { ContainersModule } from '../containers/containers.module';
 import { DbBackupService } from './db-backup.service';
 import { SecurityService } from './security.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { DatabasesModule } from '../databases/databases.module';
 
 @Module({
-  imports: [PrismaModule, DockerModule, ContainersModule],
+  imports: [PrismaModule, DockerModule, ContainersModule, DatabasesModule],
   controllers: [AdminController],
   providers: [AdminService, SystemService, DbBackupService, SecurityService, NotificationsService],
 })
