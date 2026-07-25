@@ -75,7 +75,12 @@ export class DatabasesService {
           `MYSQL_DATABASE=${dbName}`,
           `MYSQL_ROOT_PASSWORD=${randomBytes(12).toString('hex')}`,
         ];
-        cmd = [`--max_connections=${database.maxConnections || 100}`];
+        const mysqlMemory = database.memoryLimit || 512;
+        cmd = [
+          `--max_connections=${database.maxConnections || 100}`,
+          `--performance-schema=0`,
+          `--innodb-buffer-pool-size=${Math.max(64, Math.floor(mysqlMemory / 4))}M`,
+        ];
         mountPath = '/var/lib/mysql';
       } else {
         throw new Error(`Database type ${dto.type} is not yet supported`);
@@ -472,7 +477,12 @@ export class DatabasesService {
             // We assume ROOT password doesn't matter much for restarts since data is persisted
             `MYSQL_ROOT_PASSWORD=${randomBytes(12).toString('hex')}`,
           ];
-          cmd = [`--max_connections=${updatedDb.maxConnections || 100}`];
+          const mysqlMemory = updatedDb.memoryLimit || 512;
+          cmd = [
+            `--max_connections=${updatedDb.maxConnections || 100}`,
+            `--performance-schema=0`,
+            `--innodb-buffer-pool-size=${Math.max(64, Math.floor(mysqlMemory / 4))}M`,
+          ];
           mountPath = '/var/lib/mysql';
         }
 

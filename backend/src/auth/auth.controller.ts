@@ -55,8 +55,8 @@ export class AuthController {
     const data = await this.authService.register(dto, ip, userAgent);
     res.cookie('access_token', data.token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure: true,
+      sameSite: 'none',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
     return data;
@@ -76,8 +76,8 @@ export class AuthController {
     if (data.token) {
       res.cookie('access_token', data.token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        secure: true,
+        sameSite: 'none',
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       });
     }
@@ -239,8 +239,8 @@ export class AuthController {
     if (data.token) {
       res.cookie('access_token', data.token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        secure: true,
+        sameSite: 'none',
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       });
     }

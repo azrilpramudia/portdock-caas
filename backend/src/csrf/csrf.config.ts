@@ -9,8 +9,8 @@ export const {
   cookieName: 'x-csrf-token', // The name of the cookie to be used
   cookieOptions: {
     httpOnly: true,
-    sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'none',
+    secure: true,
     path: '/',
   }, 
   size: 64, 
