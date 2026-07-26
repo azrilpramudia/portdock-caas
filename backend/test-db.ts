@@ -1,7 +1,0 @@
-import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();
-async function main() {
-  const p = await prisma.project.findMany();
-  console.log(p.map(x => ({id: x.id, name: x.name, domain: x.domain})));
-}
-main().finally(() => prisma.$disconnect());

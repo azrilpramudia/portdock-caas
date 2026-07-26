@@ -52,6 +52,7 @@ export class ContainersService {
         Image: fullImage,
         ExposedPorts: { [`${dto.internalPort}/tcp`]: {} },
         HostConfig: {
+          NetworkMode: 'portdock-net',
           Memory: (dto.memoryLimit || 512) * 1024 * 1024,
           CpuQuota: Math.floor((dto.cpuLimit || 0.5) * 100000),
           PortBindings: {
@@ -272,6 +273,7 @@ export class ContainersService {
             Image: fullImage,
             ExposedPorts: { [`${container.internalPort}/tcp`]: {} },
             HostConfig: {
+              NetworkMode: 'portdock-net',
               PortBindings: portBindings,
               RestartPolicy: {
                 Name: container.restartPolicy || 'unless-stopped',
@@ -442,6 +444,7 @@ export class ContainersService {
         Image: fullImage,
         ExposedPorts: { [`${newInternalPort}/tcp`]: {} },
         HostConfig: {
+          NetworkMode: 'portdock-net',
           PortBindings: portBindings,
           RestartPolicy: {
             Name:

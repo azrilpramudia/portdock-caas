@@ -62,6 +62,12 @@ export class DatabasesController {
     return this.databasesService.restart(req.user.id, id, ip);
   }
 
+  @Post(':id/reset-password')
+  @ApiOperation({ summary: 'Reset database password' })
+  resetPassword(@Request() req: any, @Param('id') id: string) {
+    return this.databasesService.resetPassword(req.user.id, id);
+  }
+
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a managed database' })
   remove(@Request() req: any, @Param('id') id: string, @Ip() ip: string) {

@@ -119,11 +119,27 @@ export class DeploymentsService {
         this.logger.log(`Generated PHP_APACHE Dockerfile for ${project.name}`);
       }
 
+      // Parse environment variables BEFORE build
+      const globalEnvVars = await this.getGlobalEnvVarsArray();
+      const parsedEnvRecord: Record<string, string> = {};
+      globalEnvVars.forEach((e) => {
+        const [k, v] = e.split('=');
+        if (k && v) parsedEnvRecord[k] = v;
+      });
+      if (project.envVars && typeof project.envVars === 'object') {
+        Object.assign(parsedEnvRecord, project.envVars as Record<string, string>);
+      }
+      
+      // Add default NIXPACKS_NODE_VERSION to 20 if not present
+      if (!parsedEnvRecord['NIXPACKS_NODE_VERSION']) {
+        parsedEnvRecord['NIXPACKS_NODE_VERSION'] = '20';
+      }
+
       if (fs.existsSync(dockerfilePath)) {
         const tarStream = tar.pack(extractDir);
         await this.docker.buildImage(tarStream, imageName, imageTag);
       } else {
-        await this.docker.buildWithNixpacks(extractDir, imageName, imageTag);
+        await this.docker.buildWithNixpacks(extractDir, imageName, imageTag, parsedEnvRecord);
       }
 
       // Find available port
@@ -133,14 +149,11 @@ export class DeploymentsService {
       );
       const internalPort = customInternalPort || detectedPort;
 
-      // Parse environment variables
-      const globalEnvVars = await this.getGlobalEnvVarsArray();
-      let dockerEnv = [`PORT=${internalPort}`, ...globalEnvVars];
-      if (project.envVars && typeof project.envVars === 'object') {
-        const envRecord = project.envVars as Record<string, string>;
-        const envArray = Object.entries(envRecord).map(([k, v]) => `${k}=${v}`);
-        dockerEnv = [...dockerEnv, ...envArray];
-      }
+      // Prepare dockerEnv for HostConfig
+      let dockerEnv = [`PORT=${internalPort}`];
+      Object.entries(parsedEnvRecord).forEach(([k, v]) => {
+        dockerEnv.push(`${k}=${v}`);
+      });
 
       // Create Docker container
       const dockerContainer = await this.docker.createContainer({
@@ -149,6 +162,7 @@ export class DeploymentsService {
         Env: dockerEnv,
         ExposedPorts: { [`${internalPort}/tcp`]: {} },
         HostConfig: {
+          NetworkMode: 'portdock-net',
           Memory: Math.min(memoryLimit, 512) * 1024 * 1024,
           CpuQuota: Math.floor(Math.min(cpuLimit, 1.0) * 100000),
           PortBindings: {
@@ -396,6 +410,7 @@ export class DeploymentsService {
         Env: dockerEnv,
         ExposedPorts: { [`${internalPort}/tcp`]: {} },
         HostConfig: {
+          NetworkMode: 'portdock-net',
           Memory: Math.min(memoryLimit, 512) * 1024 * 1024,
           CpuQuota: Math.floor(Math.min(cpuLimit, 1.0) * 100000),
           PortBindings: {
@@ -596,6 +611,7 @@ export class DeploymentsService {
         Env: dockerEnv,
         ExposedPorts: { [`${internalPort}/tcp`]: {} },
         HostConfig: {
+          NetworkMode: 'portdock-net',
           Memory: Math.min(memoryLimit, 512) * 1024 * 1024,
           CpuQuota: Math.floor(Math.min(cpuLimit, 1.0) * 100000),
           PortBindings: {

@@ -15,7 +15,27 @@ export class DockerService implements OnModuleInit {
   }
 
   async onModuleInit() {
+    await this.ensureNetwork();
     await this.ensureSystemContainers();
+  }
+
+  private async ensureNetwork() {
+    this.logger.log('Ensuring portdock-net network exists...');
+    try {
+      const networks = await this.docker.listNetworks();
+      const networkExists = networks.some((n) => n.Name === 'portdock-net');
+      if (!networkExists) {
+        this.logger.log('Creating portdock-net network...');
+        await this.docker.createNetwork({
+          Name: 'portdock-net',
+          Driver: 'bridge',
+        });
+      } else {
+        this.logger.log('portdock-net network already exists.');
+      }
+    } catch (error) {
+      this.logger.error(`Failed to ensure network: ${error.message}`);
+    }
   }
 
   private async ensureSystemContainers() {

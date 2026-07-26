@@ -9,7 +9,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { DockerService } from '../docker/docker.service';
 import { CreateDatabaseDto } from './dto/create-database.dto';
 import { DatabaseType, ContainerStatus } from '@generated/prisma';
-import { randomBytes } from 'crypto';
+import * as crypto from 'crypto';
 import * as fs from 'fs';
 import * as path from 'path';
 import { exec } from 'child_process';
@@ -27,7 +27,7 @@ export class DatabasesService {
   ) {}
 
   async create(userId: string, dto: CreateDatabaseDto, ip?: string) {
-    const dbPassword = randomBytes(8).toString('hex'); // 16 char password
+    const dbPassword = crypto.randomBytes(8).toString('hex'); // 16 char password
     const dbUser = dto.type === DatabaseType.POSTGRESQL || dto.type === DatabaseType.MYSQL ? 'portdock' : null;
     const dbName = dto.type === DatabaseType.POSTGRESQL || dto.type === DatabaseType.MYSQL ? dto.name.toLowerCase().replace(/[^a-z0-9]/g, '_') : null;
 
@@ -73,7 +73,7 @@ export class DatabasesService {
           `MYSQL_USER=${dbUser}`,
           `MYSQL_PASSWORD=${dbPassword}`,
           `MYSQL_DATABASE=${dbName}`,
-          `MYSQL_ROOT_PASSWORD=${randomBytes(12).toString('hex')}`,
+          `MYSQL_ROOT_PASSWORD=${crypto.randomBytes(12).toString('hex')}`,
         ];
         const mysqlMemory = database.memoryLimit || 512;
         cmd = [
@@ -96,7 +96,7 @@ export class DatabasesService {
       }
       this.logger.log(`Provisioning container...`);
 
-      const containerName = `portdock-db-${database.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${Date.now()}`;
+      const containerName = `portdock-db-${database.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
 
       const createOptions: any = {
         name: containerName,
@@ -105,6 +105,7 @@ export class DatabasesService {
         ExposedPorts: { [`${database.internalPort}/tcp`]: {} },
         Cmd: cmd.length > 0 ? cmd : undefined,
         HostConfig: {
+          NetworkMode: 'portdock-net',
           PortBindings: {
             [`${database.internalPort}/tcp`]: [{ HostPort: `${hostPort}` }],
           },
@@ -475,7 +476,7 @@ export class DatabasesService {
             `MYSQL_PASSWORD=${db.dbPassword}`,
             `MYSQL_DATABASE=${db.dbName}`,
             // We assume ROOT password doesn't matter much for restarts since data is persisted
-            `MYSQL_ROOT_PASSWORD=${randomBytes(12).toString('hex')}`,
+            `MYSQL_ROOT_PASSWORD=${crypto.randomBytes(12).toString('hex')}`,
           ];
           const mysqlMemory = updatedDb.memoryLimit || 512;
           cmd = [
@@ -495,6 +496,7 @@ export class DatabasesService {
           ExposedPorts: { [`${db.internalPort}/tcp`]: {} },
           Cmd: cmd.length > 0 ? cmd : undefined,
           HostConfig: {
+            NetworkMode: 'portdock-net',
             PortBindings: {
               [`${db.internalPort}/tcp`]: [{ HostPort: `${db.hostPort}` }],
             },
@@ -550,6 +552,68 @@ export class DatabasesService {
     }
 
     return fs.createReadStream(filepath);
+  }
+
+  async resetPassword(userId: string, id: string, isAdmin: boolean = false) {
+    const database = await this.findOne(userId, id, isAdmin);
+    if (!database.dockerContainerId) throw new Error('Database container not initialized');
+    if (database.status !== ContainerStatus.RUNNING) {
+      throw new Error('Database must be running to reset password');
+    }
+    if (database.type !== DatabaseType.POSTGRESQL && database.type !== DatabaseType.MYSQL) {
+      throw new Error('Password reset is only supported for PostgreSQL and MySQL');
+    }
+
+    const newPassword = crypto.randomBytes(8).toString('hex');
+    let cmd: string[] = [];
+
+    if (database.type === DatabaseType.POSTGRESQL) {
+      cmd = ['sh', '-c', `PGPASSWORD='${database.dbPassword}' psql -U "${database.dbUser}" -d "${database.dbName || 'postgres'}" -c "ALTER USER \\"${database.dbUser}\\" WITH PASSWORD '${newPassword}';"`];
+    } else if (database.type === DatabaseType.MYSQL) {
+      cmd = ['sh', '-c', `MYSQL_PWD='${database.dbPassword}' mysql -u "${database.dbUser}" -e "ALTER USER '${database.dbUser}'@'%' IDENTIFIED BY '${newPassword}';"`];
+    }
+
+    try {
+      const container = await this.docker.getContainer(database.dockerContainerId);
+      const exec = await container.exec({
+        Cmd: cmd,
+        AttachStdout: true,
+        AttachStderr: true,
+      });
+      const stream = await exec.start({});
+      
+      // Wait for execution to finish and consume stream to prevent hanging
+      let output = '';
+      await new Promise((resolve, reject) => {
+        stream.on('data', (chunk) => { output += chunk.toString(); });
+        stream.on('end', resolve);
+        stream.on('error', reject);
+      });
+
+      const inspect = await exec.inspect();
+      if (inspect.ExitCode !== 0) {
+        throw new Error(`Command failed with exit code ${inspect.ExitCode}: ${output}`);
+      }
+
+      const updated = await this.prisma.managedDatabase.update({
+        where: { id },
+        data: { dbPassword: newPassword },
+      });
+
+      await this.prisma.activityLog.create({
+        data: {
+          userId,
+          action: 'Reset Database Password',
+          description: `Reset password for database: ${database.name}`,
+          status: 'Success',
+        },
+      });
+
+      return updated;
+    } catch (error) {
+      this.logger.error(`Failed to reset password: ${error.message}`, error.stack);
+      throw new Error('Failed to reset password');
+    }
   }
 
   // Simplified version of port finding logic

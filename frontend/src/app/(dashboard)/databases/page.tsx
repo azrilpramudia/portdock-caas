@@ -157,13 +157,13 @@ export default function DatabasesPage() {
   });
 
   const getConnectionString = (db: any) => {
-    // Determine public IP. In a real app, you'd fetch this from backend or env
-    const host = window.location.hostname;
+    // Generate deterministic container name matching the backend logic
+    const containerName = `portdock-db-${db.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
     
     if (db.type === "POSTGRESQL") {
-      return `postgres://${db.dbUser}:${db.dbPassword}@${host}:${db.hostPort}/${db.dbName}`;
+      return `postgres://${db.dbUser}:${db.dbPassword}@${containerName}:5432/${db.dbName}`;
     } else if (db.type === "MYSQL") {
-      return `mysql://${db.dbUser}:${db.dbPassword}@${host}:${db.hostPort}/${db.dbName}`;
+      return `mysql://${db.dbUser}:${db.dbPassword}@${containerName}:3306/${db.dbName}`;
     }
     return "Unsupported DB Type";
   };

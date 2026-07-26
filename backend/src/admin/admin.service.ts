@@ -603,11 +603,55 @@ export class AdminService {
   }
 
   async deleteUser(id: string) {
-    // Delete the user, Prisma will handle cascading deletes if set up correctly, 
-    // or we might need to delete related records first if not.
-    // Let's assume Prisma handles it or the user has no projects yet.
-    // Ideally, we delete projects first or let cascade do it.
-    // For safety, let's try to delete the user.
+    this.logger.log(`Starting cleanup for user ${id}`);
+
+    // 1. Cleanup Project Containers
+    const projects = await this.prisma.project.findMany({
+      where: { userId: id },
+      include: { container: true },
+    });
+    
+    for (const project of projects) {
+      if (project.container?.dockerContainerId) {
+        this.logger.log(`Stopping and removing project container: ${project.container.dockerContainerId}`);
+        try {
+          await this.dockerService.stopContainer(project.container.dockerContainerId);
+        } catch (e) {
+          // ignore if already stopped or not found
+        }
+        try {
+          await this.dockerService.removeContainer(project.container.dockerContainerId, true);
+        } catch (e) {
+          // ignore if already removed
+        }
+      }
+    }
+
+    // 2. Cleanup Database Containers and Volumes
+    const databases = await this.prisma.managedDatabase.findMany({
+      where: { userId: id },
+    });
+
+    for (const db of databases) {
+      if (db.dockerContainerId) {
+        this.logger.log(`Stopping and removing database container: ${db.dockerContainerId}`);
+        try {
+          await this.dockerService.stopContainer(db.dockerContainerId);
+        } catch (e) {}
+        try {
+          await this.dockerService.removeContainer(db.dockerContainerId, true);
+        } catch (e) {}
+      }
+      if (db.volumeName) {
+        this.logger.log(`Removing database volume: ${db.volumeName}`);
+        try {
+          await this.dockerService.removeVolume(db.volumeName);
+        } catch (e) {}
+      }
+    }
+
+    // 3. Finally, delete the user (Cascade handles the DB rows)
+    this.logger.log(`Deleting user record ${id}`);
     return this.prisma.user.delete({
       where: { id },
     });

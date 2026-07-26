@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Database, Settings, Activity, Terminal as TerminalIcon, Save, RefreshCw } from "lucide-react";
+import { ArrowLeft, Database, Settings, Activity, Terminal as TerminalIcon, Save, RefreshCw, KeyRound, AlertTriangle, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import api from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,17 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useAppLogsSession } from "@/hooks/useAppLogsSession";
 import { useSettingsStore } from "@/store/settings";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import "xterm/css/xterm.css";
 
 import {
@@ -30,9 +41,10 @@ export default function DatabaseDetailsPage() {
   const id = params.id as string;
   const queryClient = useQueryClient();
   const { settings } = useSettingsStore();
-  const dbPortalUrl = settings?.dbPortalUrl;
-
   const [activeTab, setActiveTab] = useState("overview");
+  const [newPassword, setNewPassword] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const dbPortalUrl = settings?.dbPortalUrl;
 
   // Fetch Database Info
   const { data: db, isLoading } = useQuery({
@@ -71,6 +83,30 @@ export default function DatabaseDetailsPage() {
     },
     onError: (err: any) => {
       toast.error(err.response?.data?.message || "Failed to update configuration");
+    },
+  });
+
+  const restartMutation = useMutation({
+    mutationFn: async () => await api.post(`/databases/${id}/restart`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["database", id] });
+      toast.success("Database restarted successfully");
+    },
+    onError: () => toast.error("Failed to restart database"),
+  });
+
+  const resetPasswordMutation = useMutation({
+    mutationFn: async () => {
+      const res = await api.post(`/databases/${id}/reset-password`);
+      return res.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["database", id] });
+      setNewPassword(data.dbPassword);
+      toast.success("Password reset successfully!");
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || "Failed to reset password");
     },
   });
 
@@ -248,6 +284,83 @@ export default function DatabaseDetailsPage() {
               <p className="text-xs text-muted-foreground text-right">
                 {memoryPercentage.toFixed(1)}% of limit
               </p>
+            </div>
+            
+            {/* Security Card */}
+            <div className="bg-card border border-destructive/20 rounded-2xl p-6 shadow-sm flex flex-col md:col-span-2">
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <h3 className="text-sm font-semibold text-destructive uppercase tracking-wider flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4" /> Danger Zone: Security
+                  </h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Reset your database password. This will instantly disconnect any running apps using the old password.
+                  </p>
+                </div>
+                <div className="w-10 h-10 rounded-full bg-destructive/10 flex items-center justify-center">
+                  <KeyRound className="w-5 h-5 text-destructive" />
+                </div>
+              </div>
+              
+              <div className="mt-2 flex items-center justify-between p-4 bg-muted/50 rounded-xl border border-border">
+                <div className="flex-1">
+                  <h4 className="font-medium text-foreground text-sm">Database Password</h4>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Generate a new random 16-character password for this database.
+                  </p>
+                </div>
+                <AlertDialog>
+                  <AlertDialogTrigger 
+                    render={
+                      <Button variant="destructive" size="sm" className="ml-4 h-9 shadow-sm" disabled={db.status !== 'RUNNING' || resetPasswordMutation.isPending}>
+                        {resetPasswordMutation.isPending ? "Resetting..." : "Reset Password"}
+                      </Button>
+                    } 
+                  />
+                  <AlertDialogContent className="border-border">
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will generate a new random password and immediately update the database container. 
+                        <strong> Any applications currently connected using the old password will instantly crash or lose connection.</strong>
+                        <br/><br/>
+                        You will need to update the Environment Variables in your deployed projects to match the new password.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => resetPasswordMutation.mutate()} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                        Yes, reset password
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+
+              {newPassword && (
+                <div className="mt-4 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center justify-between animate-in fade-in zoom-in duration-300">
+                  <div>
+                    <h4 className="font-semibold text-emerald-600 text-sm">New Password Generated!</h4>
+                    <div className="flex items-center gap-2 mt-1">
+                      <code className="text-sm bg-background px-2 py-1 rounded border border-border font-mono font-bold">
+                        {showPassword ? newPassword : '••••••••••••••••'}
+                      </code>
+                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setShowPassword(!showPassword)}>
+                        {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-6 w-6 ml-1" onClick={() => {
+                        navigator.clipboard.writeText(newPassword);
+                        toast.success("Password copied to clipboard");
+                      }}>
+                        <Save className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                  <Button variant="ghost" size="sm" onClick={() => setNewPassword(null)} className="text-emerald-700 hover:text-emerald-800 hover:bg-emerald-500/20">
+                    Dismiss
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         )}
