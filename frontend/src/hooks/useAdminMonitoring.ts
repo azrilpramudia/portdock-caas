@@ -59,6 +59,12 @@ export interface AdminMonitoringResponseDto {
   services: AdminMonitoringServiceDto[];
   topContainers: AdminMonitoringTopContainerDto[];
   historical: AdminMonitoringHistoricalDto[];
+  dockerStorage: {
+    imagesSize: number;
+    containersSize: number;
+    volumesSize: number;
+    totalSize: number;
+  };
 }
 
 export function useAdminMonitoring(range: string = '7d') {

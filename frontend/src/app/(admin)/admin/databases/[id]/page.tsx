@@ -148,7 +148,7 @@ export default function AdminDatabaseDetailPage() {
               <Label htmlFor="cpuLimit" className="font-semibold text-foreground">CPU Cores Limit</Label>
               <Select
                 value={String(configForm.cpuLimit)}
-                onValueChange={(val) => setConfigForm({ ...configForm, cpuLimit: parseFloat(val) })}
+                onValueChange={(val) => setConfigForm({ ...configForm, cpuLimit: parseFloat(val as string) })}
               >
                 <SelectTrigger id="cpuLimit" className="bg-muted/50 border-border focus:ring-blue-500/20">
                   <SelectValue placeholder="Select CPU Cores" />
@@ -166,7 +166,7 @@ export default function AdminDatabaseDetailPage() {
               <Label htmlFor="memoryLimit" className="font-semibold text-foreground">Memory Limit</Label>
               <Select
                 value={String(configForm.memoryLimit)}
-                onValueChange={(val) => setConfigForm({ ...configForm, memoryLimit: parseInt(val) })}
+                onValueChange={(val) => setConfigForm({ ...configForm, memoryLimit: parseInt(val as string) })}
               >
                 <SelectTrigger id="memoryLimit" className="bg-muted/50 border-border focus:ring-blue-500/20">
                   <SelectValue placeholder="Select Memory Capacity" />
