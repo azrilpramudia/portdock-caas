@@ -7,8 +7,9 @@ import { toast } from "sonner";
 import { formatDistanceToNow, format } from "date-fns";
 import { id } from "date-fns/locale";
 import { useQueryClient } from "@tanstack/react-query";
-import { useDeleteAdminUser, useUpdateAdminUser } from "@/hooks/useAdminUsers";;
+import { useDeleteAdminUser, useUpdateAdminUser, UserListItemDto } from "@/hooks/useAdminUsers";
 import api from "@/lib/api";
+import { AxiosError } from "axios";
 
 export function AddUserModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
   const queryClient = useQueryClient();
@@ -28,8 +29,8 @@ export function AddUserModal({ isOpen, onClose }: { isOpen: boolean, onClose: ()
       queryClient.invalidateQueries({ queryKey: ["adminUsers"] });
       toast.success("User created successfully");
       onClose();
-    } catch (error: any) {
-      const msg = error.response?.data?.message;
+    } catch (error: AxiosError<{ message: string | string[] }> | Error | unknown) {
+      const msg = (error as AxiosError<{ message: string | string[] }>).response?.data?.message;
       const errorMessage = Array.isArray(msg) ? msg[0] : msg || "Failed to create user";
       toast.error(errorMessage);
     } finally {
@@ -119,8 +120,8 @@ export function DeleteUserModal({ isOpen, onClose, user }: { isOpen: boolean, on
           toast.success("User deleted successfully");
           onClose();
         },
-        onError: () => {
-          toast.error("Failed to delete user");
+        onError: (error: AxiosError<{ message: string }> | Error | any) => {
+        toast.error(error.response?.data?.message || "Failed to update user");
         }
       });
     }
@@ -155,9 +156,9 @@ export function DeleteUserModal({ isOpen, onClose, user }: { isOpen: boolean, on
   );
 }
 
-export function EditUserModal({ isOpen, onClose, user }: { isOpen: boolean, onClose: () => void, user: any }) {
-  const updateUserMutation = useUpdateAdminUser();
-  const [userToEdit, setUserToEdit] = useState<any>(null);
+export function EditUserModal({ isOpen, onClose, user }: { isOpen: boolean, onClose: () => void, user: UserListItemDto | null }) {
+  const updateMutation = useUpdateAdminUser();
+  const [userToEdit, setUserToEdit] = useState<(UserListItemDto & { password?: string }) | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -172,16 +173,16 @@ export function EditUserModal({ isOpen, onClose, user }: { isOpen: boolean, onCl
     
     const dataToSend = { ...userToEdit };
     if (!dataToSend.password) {
-      delete dataToSend.password;
+      delete (dataToSend as any).password;
     }
 
-    updateUserMutation.mutate({ id: userToEdit.id, data: dataToSend }, {
+    updateMutation.mutate({ id: userToEdit.id, data: dataToSend }, {
       onSuccess: () => {
         setIsSubmitting(false);
         toast.success("User updated successfully");
         onClose();
       },
-      onError: (error: any) => {
+      onError: (error: Error | any) => {
         setIsSubmitting(false);
         const msg = error.response?.data?.message;
         const errorMessage = Array.isArray(msg) ? msg[0] : msg || "Failed to update user";
@@ -225,7 +226,7 @@ export function EditUserModal({ isOpen, onClose, user }: { isOpen: boolean, onCl
               <Input 
                 id="edit-password" 
                 type="password" 
-                value={userToEdit.password} 
+                value={(userToEdit as any).password || ''} 
                 onChange={(e) => setUserToEdit({...userToEdit, password: e.target.value})} 
                 placeholder="••••••••" 
               />
@@ -236,7 +237,7 @@ export function EditUserModal({ isOpen, onClose, user }: { isOpen: boolean, onCl
                 <select 
                   id="edit-role"
                   value={userToEdit.role}
-                  onChange={(e) => setUserToEdit({...userToEdit, role: e.target.value})}
+                  onChange={(e) => setUserToEdit({...userToEdit, role: e.target.value as "ADMIN" | "USER"})}
                   className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <option value="USER">USER</option>
@@ -248,7 +249,7 @@ export function EditUserModal({ isOpen, onClose, user }: { isOpen: boolean, onCl
                 <select 
                   id="edit-status"
                   value={userToEdit.status}
-                  onChange={(e) => setUserToEdit({...userToEdit, status: e.target.value})}
+                  onChange={(e) => setUserToEdit({...userToEdit, status: e.target.value as "ACTIVE" | "SUSPENDED"})}
                   className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <option value="ACTIVE">Active</option>
@@ -278,7 +279,8 @@ export function EditUserModal({ isOpen, onClose, user }: { isOpen: boolean, onCl
   );
 }
 
-export function ViewUserModal({ isOpen, onClose, user }: { isOpen: boolean, onClose: () => void, user: any }) {
+export function ViewUserModal({ isOpen, onClose, user }: { isOpen: boolean, onClose: () => void, user: UserListItemDto | null }) {
+  if (!user) return null;
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">

@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { useProjectDetail } from "@/hooks/useProjectDetail";
 import Link from "next/link";
 import { useDeployments } from "@/hooks/useDeployments";
 import { DeploymentLogsTerminal } from "@/components/projects/DeploymentLogsTerminal";
@@ -24,7 +24,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
-import api from "@/lib/api";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { DockerfileField } from "@/components/projects/forms/DockerfileField";
@@ -48,13 +47,7 @@ export default function DeployPage() {
     dockerfileMutation,
   } = useDeployments(projectId);
 
-  const { data: project } = useQuery({
-    queryKey: ["project", projectId],
-    queryFn: async () => {
-      const res = await api.get(`/projects/${projectId}`);
-      return res.data;
-    },
-  });
+  const { project } = useProjectDetail(projectId);
 
   useEffect(() => {
     if (project?.repositoryUrl && !githubUrl) {

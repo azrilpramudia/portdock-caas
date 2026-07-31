@@ -2,45 +2,29 @@
 
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { authService } from "@/services/auth.service";
 import { User, Loader2 } from "lucide-react";
-import { useAuthStore } from "@/store/auth";
+import { useProfileSettings } from "@/hooks/useSettings";
 
 export function ProfileSettings() {
-  const { token, setAuth } = useAuthStore();
+  const { profileQuery, updateProfileMutation } = useProfileSettings();
   
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [isSavingProfile, setIsSavingProfile] = useState(false);
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const data = await authService.getMe();
-        setName(data.name || "");
-        setEmail(data.email || "");
-      } catch (error: any) {
-        toast.error(error.response?.data?.message || "Failed to load profile");
-      }
-    };
-    fetchProfile();
-  }, []);
+    if (profileQuery.data) {
+      setName(profileQuery.data.name || "");
+      setEmail(profileQuery.data.email || "");
+    }
+  }, [profileQuery.data]);
 
   const handleUpdateProfile = async () => {
     if (!name || !email) {
       toast.error("Name and email are required");
       return;
     }
-    setIsSavingProfile(true);
-    try {
-      const updatedUser = await authService.updateProfile({ name, email });
-      if (token) setAuth(updatedUser, token);
-      toast.success("Profile updated successfully!");
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to update profile");
-    } finally {
-      setIsSavingProfile(false);
-    }
+    
+    updateProfileMutation.mutate({ name, email });
   };
 
   return (
@@ -76,10 +60,10 @@ export function ProfileSettings() {
       <div className="mt-8">
         <button 
           onClick={handleUpdateProfile}
-          disabled={isSavingProfile}
+          disabled={updateProfileMutation.isPending}
           className="flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-[14px] font-bold transition-all shadow-sm"
         >
-          {isSavingProfile ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+          {updateProfileMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
           Save Changes
         </button>
       </div>

@@ -1,74 +1,60 @@
 "use client";
 
 import { useState } from "react";
-import { toast } from "sonner";
 import { Shield, Loader2, CheckCircle2, QrCode } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import api from "@/lib/api";
 import Image from "next/image";
 import { useAuthStore } from "@/store/auth";
+import { useTwoFactorSettings } from "@/hooks/useSettings";
 
 export function TwoFactorSettings() {
-  const { user, updateUser } = useAuthStore();
+  const { user } = useAuthStore();
+  const { setup2faMutation, verify2faMutation, disable2faMutation } = useTwoFactorSettings();
   const [is2faEnabled, setIs2faEnabled] = useState(user?.isTwoFactorEnabled || false);
+  
+  const isLoading = setup2faMutation.isPending || verify2faMutation.isPending || disable2faMutation.isPending;
   
   const [setupMode, setSetupMode] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState("");
   const [otpCode, setOtpCode] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
 
-  const handleToggle = async (checked: boolean) => {
+  const handleToggle = (checked: boolean) => {
     if (checked) {
-      // Don't toggle visually yet, just open setup mode and fetch QR code
       setSetupMode(true);
-      setIsLoading(true);
-      try {
-        const res = await api.post('/auth/2fa/setup');
-        setQrCodeUrl(res.data.qrCode);
-      } catch (err: any) {
-        toast.error(err?.response?.data?.message || "Failed to initiate 2FA setup");
-        setSetupMode(false);
-      } finally {
-        setIsLoading(false);
-      }
+      setup2faMutation.mutate(undefined, {
+        onSuccess: (data) => {
+          setQrCodeUrl(data.qrCode);
+        },
+        onError: () => {
+          setSetupMode(false);
+        }
+      });
     } else {
-      // Disable 2FA
-      setIsLoading(true);
-      try {
-        await api.post('/auth/2fa/turn-off');
-        setIs2faEnabled(false);
-        updateUser({ isTwoFactorEnabled: false });
-        toast.success("Two-Factor Authentication has been disabled");
-      } catch (err: any) {
-        toast.error(err?.response?.data?.message || "Failed to disable 2FA");
-        // reset switch visual if failed
-        setIs2faEnabled(true);
-      } finally {
-        setIsLoading(false);
-      }
+      disable2faMutation.mutate(undefined, {
+        onSuccess: () => {
+          setIs2faEnabled(false);
+        },
+        onError: () => {
+          setIs2faEnabled(true);
+        }
+      });
     }
   };
 
-  const handleVerifySetup = async (e: React.FormEvent) => {
+  const handleVerifySetup = (e: React.FormEvent) => {
     e.preventDefault();
     if (otpCode.length < 6) return;
     
-    setIsLoading(true);
-    try {
-      await api.post('/auth/2fa/turn-on', { token: otpCode });
-      setIs2faEnabled(true);
-      setSetupMode(false);
-      setOtpCode("");
-      updateUser({ isTwoFactorEnabled: true });
-      toast.success("Two-Factor Authentication successfully enabled!");
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Invalid OTP code");
-    } finally {
-      setIsLoading(false);
-    }
+    verify2faMutation.mutate({ token: otpCode }, {
+      onSuccess: () => {
+        setIs2faEnabled(true);
+        setSetupMode(false);
+        setOtpCode("");
+      }
+    });
   };
 
   return (

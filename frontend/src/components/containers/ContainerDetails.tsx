@@ -12,8 +12,11 @@ import { ContainerHeader } from "./details/ContainerHeader";
 import { NetworkTab } from "./details/NetworkTab";
 import { useContainerNetwork } from "@/hooks/useContainerNetwork";
 
+import { AxiosError } from "axios";
+import { Container } from "@/types";
+
 interface ContainerDetailsProps {
-  container: any;
+  container: Container;
   onClose: () => void;
   onRefresh?: () => void;
   initialTab?: string;
@@ -49,7 +52,7 @@ export function ContainerDetails({ container, onClose, onRefresh, initialTab = "
       }
       toast.success(`Container ${action}ed successfully`);
       if (onRefresh) onRefresh();
-    } catch (error: any) {
+    } catch (error: AxiosError<{ message: string }> | any) {
       toast.error(error.response?.data?.message || `Failed to ${action} container`);
     } finally {
       setIsLoading(false);

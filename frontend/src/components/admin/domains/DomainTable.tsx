@@ -4,12 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { format } from 'date-fns';
+import { AdminProjectListItemDto } from "@/hooks/useAdminProjects";
 
-export interface DomainTableProps {
-  domains: any[];
-  onView?: (domain: any) => void;
-  onEdit?: (domain: any) => void;
-  onDelete?: (domain: any) => void;
+interface DomainTableProps {
+  domains: AdminProjectListItemDto[];
+  onView?: (domain: AdminProjectListItemDto) => void;
+  onEdit?: (domain: AdminProjectListItemDto) => void;
+  onDelete?: (domain: AdminProjectListItemDto) => void;
 }
 
 export function DomainTable({ domains, onView, onEdit, onDelete }: DomainTableProps) {
@@ -56,7 +57,7 @@ export function DomainTable({ domains, onView, onEdit, onDelete }: DomainTablePr
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {currentDomains.map((row) => {
+            {currentDomains.map((row: AdminProjectListItemDto) => {
               const userInitials = row.user?.name ? row.user.name.substring(0, 2).toUpperCase() : 'U';
               const createdDate = row.createdAt ? format(new Date(row.createdAt), 'dd MMM yyyy') : '-';
               const createdTime = row.createdAt ? format(new Date(row.createdAt), 'HH:mm') : '-';

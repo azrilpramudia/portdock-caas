@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { AxiosError } from "axios";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Box, Bell, ShieldAlert, Wrench, Send, Loader2 } from "lucide-react";
 import { useAdminSettings, useUpdateAdminSettings } from "@/hooks/useAdminSettings";
@@ -57,8 +58,8 @@ export function NotificationSettingsCard() {
         chatId: telegramChatId,
       });
       toast.success("Test message sent successfully!");
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || "Failed to send test message");
+    } catch (err: AxiosError<{ message: string }> | Error | unknown) {
+      toast.error((err as AxiosError<{ message: string }>).response?.data?.message || "Gagal menyimpan pengaturan notifikasi");
     } finally {
       setIsTesting(false);
     }

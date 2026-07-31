@@ -2,15 +2,16 @@ import { Eye, Pencil, Trash2, ChevronLeft, ChevronRight, Loader2 } from "lucide-
 import { formatDistanceToNow, format } from "date-fns";
 import { id } from "date-fns/locale";
 import { Card } from "@/components/ui/card";
+import { UserListItemDto } from "@/hooks/useAdminUsers";
 
 interface UserTableProps {
-  filteredUsers: any[];
+  filteredUsers: UserListItemDto[];
   currentPage: number;
   itemsPerPage: number;
   setCurrentPage: (page: number | ((prev: number) => number)) => void;
-  setUserToView: (user: any) => void;
+  setUserToView: (user: UserListItemDto) => void;
   setIsViewUserOpen: (open: boolean) => void;
-  setUserToEdit: (user: any) => void;
+  setUserToEdit: (user: UserListItemDto & { password?: string }) => void;
   setIsEditUserOpen: (open: boolean) => void;
   handleDeleteUser: (userId: string, userName: string) => void;
   isDeleting: boolean;
@@ -56,10 +57,10 @@ export function UserTable({
                 </td>
               </tr>
             ) : (
-              paginatedUsers.map((user: any) => {
+              paginatedUsers.map((user: UserListItemDto) => {
                 const initials = user.name
                   .split(' ')
-                  .map((n: any) => n[0])
+                  .map((n: string) => n[0])
                   .join('')
                   .substring(0, 2)
                   .toUpperCase();

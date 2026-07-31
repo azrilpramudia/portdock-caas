@@ -1,7 +1,9 @@
 import { Settings, RefreshCw } from "lucide-react";
 
+import { Container } from "@/types";
+
 interface SettingsTabProps {
-  container: any;
+  container: Container;
   memoryLimit: number;
   setMemoryLimit: (val: number) => void;
   cpuLimit: number;

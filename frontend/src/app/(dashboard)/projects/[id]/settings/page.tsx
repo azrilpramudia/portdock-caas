@@ -4,8 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ChevronLeft, Save, Settings2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { projectsService } from "@/services/projects.service";
+import { useProjectDetail } from "@/hooks/useProjectDetail";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -24,7 +23,6 @@ import { SettingsDangerZone } from "@/components/projects/settings/SettingsDange
 export default function ProjectSettingsPage() {
   const params = useParams();
   const router = useRouter();
-  const queryClient = useQueryClient();
   const projectId = params.id as string;
 
   const [name, setName] = useState("");
@@ -41,10 +39,7 @@ export default function ProjectSettingsPage() {
   const [showDiscardModal, setShowDiscardModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  const { data: projectData, isLoading } = useQuery({
-    queryKey: ["project", projectId],
-    queryFn: () => projectsService.getProjectById(projectId),
-  });
+  const { project: projectData, isLoading, updateMutation, deleteMutation } = useProjectDetail(projectId);
 
   useEffect(() => {
     if (projectData) {
@@ -64,30 +59,14 @@ export default function ProjectSettingsPage() {
     }
   }, [projectData]);
 
-  const updateMutation = useMutation({
-    mutationFn: (data: any) => projectsService.updateProject(projectId, data),
-    onSuccess: () => {
-      toast.success("Project settings updated successfully");
-      setIsDirty(false);
-      queryClient.invalidateQueries({ queryKey: ["project", projectId] });
-      queryClient.invalidateQueries({ queryKey: ["projects"] });
-    },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Failed to update project settings");
-    }
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: () => projectsService.deleteProject(projectId),
-    onSuccess: () => {
-      toast.success("Project deleted successfully");
-      queryClient.invalidateQueries({ queryKey: ["projects"] });
-      router.push("/projects");
-    },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Failed to delete project");
-    }
-  });
+  const handleDelete = async () => {
+    deleteMutation.mutate(undefined, {
+      onSuccess: () => {
+        toast.success("Project deleted successfully");
+        router.push("/projects");
+      }
+    });
+  };
 
   const handleSave = () => {
     if (!name.trim()) {
@@ -102,7 +81,7 @@ export default function ProjectSettingsPage() {
       }
     });
 
-    updateMutation.mutate({
+    const payload = {
       name,
       description,
       domain: domain.trim() || undefined,
@@ -111,6 +90,13 @@ export default function ProjectSettingsPage() {
       buildCommand: buildCommand.trim() || undefined,
       startCommand: startCommand.trim() || undefined,
       envVars: envObj
+    };
+
+    updateMutation.mutate(payload as any, {
+      onSuccess: () => {
+        setIsDirty(false);
+        toast.success("Project updated successfully");
+      }
     });
   };
 
@@ -226,9 +212,9 @@ export default function ProjectSettingsPage() {
           </DialogHeader>
           <DialogFooter className="sm:justify-end gap-2 mt-4">
             <Button variant="outline" onClick={() => setShowDeleteModal(false)}>Cancel</Button>
-            <Button variant="destructive" onClick={() => deleteMutation.mutate()} disabled={deleteMutation.isPending}>
+            <Button variant="destructive" onClick={handleDelete} disabled={deleteMutation.isPending}>
               {deleteMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
-              Confirm Delete
+              Delete
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -1,10 +1,11 @@
 import { Activity, ArrowRight, Trash2, AlertCircle, RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Container } from "@/types";
 
 interface NetworkTabProps {
-  allocations: any[];
+  allocations: { hostPort: number; internalPort: number; isPrimary: boolean }[];
   hostIp: string;
-  container: any;
+  container: Container;
   handleRemovePort: () => void;
   handleCreateAllocation: (e: React.FormEvent) => void;
   newPort: string;

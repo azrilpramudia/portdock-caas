@@ -9,7 +9,6 @@ import { id } from "date-fns/locale";
 import { useDeleteAdminProject, useUpdateAdminProject, useSuspendAdminProject, useResumeAdminProject, useResetAdminProjectStatus } from "@/hooks/useAdminProjects";;
 import { Badge } from "@/components/ui/badge";
 import { AlertCircle, PauseCircle, RefreshCw, PlayCircle } from "lucide-react";
-
 export function ViewProjectModal({ isOpen, onClose, project }: { isOpen: boolean, onClose: () => void, project: any }) {
   if (!project) return null;
 

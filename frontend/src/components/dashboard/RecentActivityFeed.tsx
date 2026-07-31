@@ -4,7 +4,9 @@ import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Activity } from "lucide-react";
 
-export function RecentActivityFeed({ activities }: { activities?: any[] }) {
+import { ActivityLog } from "@/types";
+
+export function RecentActivityFeed({ activities }: { activities?: ActivityLog[] }) {
   const recentActivities = activities || [];
   return (
     <Card className="bg-card border-border shadow-sm rounded-2xl overflow-hidden mt-6">

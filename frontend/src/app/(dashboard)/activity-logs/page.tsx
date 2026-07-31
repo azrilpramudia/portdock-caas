@@ -11,6 +11,26 @@ import { ActivityLogsFilter } from "@/components/activity-logs/ActivityLogsFilte
 import { ActivityLogsTable } from "@/components/activity-logs/ActivityLogsTable";
 import { formatDateTime } from "@/utils/formatters";
 
+import { ActivityLog } from "@/types";
+
+export interface MappedActivityLog {
+  id: string;
+  date: string;
+  time: string;
+  user: string;
+  role: string;
+  actionIcon: any;
+  actionBg: string;
+  actionTitle: string;
+  actionSub: string;
+  targetIcon: any;
+  targetBg: string;
+  targetTitle: string;
+  targetSub: string;
+  status: string;
+  ip: string;
+}
+
 export default function ActivityLogsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [search, setSearch] = useState("");
@@ -61,7 +81,7 @@ export default function ActivityLogsPage() {
     return { icon: <Terminal className="w-4 h-4" />, bg: "bg-muted text-muted-foreground", title: action, sub: "System action" };
   };
 
-  const logs = (logsData?.data || []).map((log: any) => {
+  const logs: MappedActivityLog[] = (logsData?.data || []).map((log: ActivityLog) => {
     const actionDetails = getActionDetails(log.action);
     const formatted = formatDateTime(log.createdAt);
     return {

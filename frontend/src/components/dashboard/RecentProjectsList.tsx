@@ -18,8 +18,9 @@ import { useRouter } from "next/navigation";
 import { projectsService } from "@/services/projects.service";
 import { containersService } from "@/services/containers.service";
 import { toast } from "sonner";
+import { Project, Container } from "@/types";
 
-export function RecentProjectsList({ projects, isLoading }: { projects: any[], isLoading: boolean }) {
+export function RecentProjectsList({ projects, isLoading }: { projects: Project[], isLoading: boolean }) {
   const recentProjectsList = projects || [];
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -44,7 +45,7 @@ export function RecentProjectsList({ projects, isLoading }: { projects: any[], i
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] }),
   });
 
-  const getProjectStatus = (project: any) => {
+  const getProjectStatus = (project: Project) => {
     if (!project.containers || project.containers.length === 0) {
       if (project.status === 'FAILED') return 'FAILED';
       if (project.status === 'BUILDING') return 'BUILDING';
@@ -52,7 +53,7 @@ export function RecentProjectsList({ projects, isLoading }: { projects: any[], i
     }
     
     // If any container is running, the project is deployed
-    const isRunning = project.containers.some((c: any) => c.status === 'RUNNING');
+    const isRunning = project.containers.some((c: Container) => c.status === 'RUNNING');
     if (isRunning) return 'DEPLOYED';
     
     // Otherwise, check if they are all stopped
@@ -86,7 +87,7 @@ export function RecentProjectsList({ projects, isLoading }: { projects: any[], i
           </div>
         ) : (
           <div className="divide-y divide-border flex-1">
-            {recentProjectsList.map((project: any, i: number) => {
+            {recentProjectsList.map((project: Project, i: number) => {
               const colors = ["bg-blue-500/10 text-blue-500", "bg-emerald-500/10 text-emerald-500", "bg-orange-500/10 text-orange-500", "bg-indigo-500/10 text-indigo-500"];
               const colorClass = colors[i % colors.length];
               return (

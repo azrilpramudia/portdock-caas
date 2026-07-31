@@ -21,7 +21,9 @@ const TrendIndicator = ({ value, timeframe, isPositive = true }: { value: number
   );
 };
 
-export function DomainStats({ domains }: { domains: any[] }) {
+import { AdminProjectListItemDto } from "@/hooks/useAdminProjects";
+
+export function DomainStats({ domains }: { domains: AdminProjectListItemDto[] }) {
   const totalDomains = domains?.length || 0;
   const activeDomainsList = domains?.filter(d => d.status === 'ACTIVE') || [];
   const activeDomains = activeDomainsList.length;
@@ -44,7 +46,7 @@ export function DomainStats({ domains }: { domains: any[] }) {
   }) || [];
   const expiredCount = expiredList.length;
 
-  const getGrowth = (items: any[]) => {
+  const getGrowth = (items: AdminProjectListItemDto[]) => {
     if (!items || items.length === 0) return { value: 0, isPositive: true };
     
     const totalNow = items.length;

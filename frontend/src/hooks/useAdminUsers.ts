@@ -54,7 +54,7 @@ export function useUpdateAdminUser() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, data }: { id: string, data: any }) => {
+    mutationFn: async ({ id, data }: { id: string, data: Partial<UserListItemDto> }) => {
       const res = await api.patch(`/admin/users/${id}`, data);
       return res.data;
     },

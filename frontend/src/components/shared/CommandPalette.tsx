@@ -7,7 +7,7 @@ import {
   LayoutDashboard,
   FolderOpen,
   Database,
-  Container,
+  Container as ContainerIcon,
   Activity,
   Terminal,
   Moon,
@@ -47,6 +47,7 @@ import { useAuthStore } from "@/store/auth";
 import { useQuery } from "@tanstack/react-query";
 import api from "@/lib/api";
 import { toast } from "sonner";
+import type { Project, Container, ManagedDatabase } from "@/types";
 
 export function CommandPalette() {
   const [open, setOpen] = React.useState(false);
@@ -108,7 +109,7 @@ export function CommandPalette() {
         
         {projects && projects.length > 0 && (
           <CommandGroup heading="Projects">
-            {projects.map((project: any) => (
+            {projects.map((project: Project) => (
               <React.Fragment key={project.id}>
                 <CommandItem 
                   onSelect={() => runCommand(() => router.push(`/projects/${project.id}`))}
@@ -119,12 +120,12 @@ export function CommandPalette() {
                 </CommandItem>
                 {project.domain && (
                   <>
-                    <CommandItem key={`visit-${project.id}`} onSelect={() => runCommand(() => visitUrl(project.domain))}>
+                    <CommandItem key={`visit-${project.id}`} onSelect={() => runCommand(() => visitUrl(project.domain!))}>
                       <ExternalLink className="mr-2 h-4 w-4 text-emerald-500" />
                       <span>Visit {project.name} Website</span>
                       <span className="ml-auto text-xs text-muted-foreground">Action</span>
                     </CommandItem>
-                    <CommandItem key={`copy-${project.id}`} onSelect={() => runCommand(() => copyToClipboard(project.domain, "Domain"))}>
+                    <CommandItem key={`copy-${project.id}`} onSelect={() => runCommand(() => copyToClipboard(project.domain!, "Domain"))}>
                       <Copy className="mr-2 h-4 w-4 text-slate-500" />
                       <span>Copy {project.name} Domain</span>
                       <span className="ml-auto text-xs text-muted-foreground">Action</span>
@@ -141,7 +142,7 @@ export function CommandPalette() {
         {databases && databases.length > 0 && (
           <>
             <CommandGroup heading="Databases">
-              {databases.map((db: any) => (
+              {databases.map((db: ManagedDatabase) => (
                 <CommandItem 
                   key={db.id} 
                   onSelect={() => runCommand(() => router.push(`/databases`))}
@@ -158,7 +159,7 @@ export function CommandPalette() {
 
         {containers && containers.length > 0 && (
           <CommandGroup heading="Container Actions">
-            {containers.map((container: any) => (
+            {containers.map((container: Container) => (
               <React.Fragment key={container.id}>
                 <CommandItem onSelect={() => runCommand(() => router.push(`/terminal?containerId=${container.id}&tab=app-logs`))}>
                   <TerminalSquare className="mr-2 h-4 w-4 text-blue-500" />
@@ -187,12 +188,12 @@ export function CommandPalette() {
                 )}
                 {container.networkAllocations && container.networkAllocations.length > 0 && (
                   <>
-                    <CommandItem key={`visit-ip-${container.id}`} onSelect={() => runCommand(() => visitUrl(`${container.project?.domain || window.location.hostname}:${container.networkAllocations[0].hostPort}`))}>
+                    <CommandItem key={`visit-ip-${container.id}`} onSelect={() => runCommand(() => visitUrl(`${container.project?.domain || window.location.hostname}:${container.networkAllocations![0].hostPort}`))}>
                       <Globe className="mr-2 h-4 w-4 text-emerald-500" />
                       <span>Visit {container.name} IP</span>
                       <span className="ml-auto text-xs text-muted-foreground">Action</span>
                     </CommandItem>
-                    <CommandItem key={`copy-ip-${container.id}`} onSelect={() => runCommand(() => copyToClipboard(`${container.project?.domain || window.location.hostname}:${container.networkAllocations[0].hostPort}`, "IP Address"))}>
+                    <CommandItem key={`copy-ip-${container.id}`} onSelect={() => runCommand(() => copyToClipboard(`${container.project?.domain || window.location.hostname}:${container.networkAllocations![0].hostPort}`, "IP Address"))}>
                       <Copy className="mr-2 h-4 w-4 text-slate-500" />
                       <span>Copy {container.name} IP Address</span>
                       <span className="ml-auto text-xs text-muted-foreground">Action</span>
@@ -220,7 +221,7 @@ export function CommandPalette() {
             <span>Databases</span>
           </CommandItem>
           <CommandItem onSelect={() => runCommand(() => router.push("/containers"))}>
-            <Container className="mr-2 h-4 w-4" />
+            <ContainerIcon className="mr-2 h-4 w-4" />
             <span>Containers</span>
           </CommandItem>
           <CommandItem onSelect={() => runCommand(() => router.push("/monitoring"))}>

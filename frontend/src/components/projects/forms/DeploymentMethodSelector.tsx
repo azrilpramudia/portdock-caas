@@ -29,9 +29,11 @@ export const deployTypes = [
   },
 ];
 
+import { FormData } from "@/app/(dashboard)/projects/new/page";
+
 interface DeploymentMethodSelectorProps {
   deploymentType: "ZIP" | "GITHUB" | "DOCKERFILE";
-  setValue: UseFormSetValue<any>;
+  setValue: UseFormSetValue<FormData>;
 }
 
 export function DeploymentMethodSelector({

@@ -8,6 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { useUpdateAdminProject, useAdminProjects } from "@/hooks/useAdminProjects";
 
+import { Project } from "@/types";
+import { AdminProjectListItemDto } from "@/hooks/useAdminProjects";
+import { AxiosError } from "axios";
+
 export function AddDomainModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
   const { data: responseData, isLoading: isProjectsLoading } = useAdminProjects();
   const updateProjectMutation = useUpdateAdminProject();
@@ -88,7 +92,7 @@ export function AddDomainModal({ isOpen, onClose }: { isOpen: boolean, onClose: 
                 className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <option value="" disabled>Select a project...</option>
-                {projects.map((p: any) => (
+                {projects.map((p: AdminProjectListItemDto) => (
                   <option key={p.id} value={p.id}>
                     {p.name} {p.domain ? `(Current: ${p.domain})` : ''}
                   </option>
@@ -121,7 +125,7 @@ export function AddDomainModal({ isOpen, onClose }: { isOpen: boolean, onClose: 
   );
 }
 
-export function EditDomainModal({ isOpen, onClose, domain }: { isOpen: boolean, onClose: () => void, domain: any }) {
+export function EditDomainModal({ isOpen, onClose, domain }: { isOpen: boolean, onClose: () => void, domain: AdminProjectListItemDto | null }) {
   const updateProjectMutation = useUpdateAdminProject();
   
   const [isSubmitting, setIsSubmitting] = useState(false);

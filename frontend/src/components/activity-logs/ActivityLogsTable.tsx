@@ -1,8 +1,10 @@
 import { Activity, RefreshCw, MoreHorizontal, ChevronLeft, ChevronRight } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 
+import { MappedActivityLog } from "@/app/(dashboard)/activity-logs/page";
+
 interface ActivityLogsTableProps {
-  logs: any[];
+  logs: MappedActivityLog[];
   isLoading: boolean;
   currentPage: number;
   totalPages: number;
@@ -54,7 +56,7 @@ export function ActivityLogsTable({
                 </td>
               </tr>
             ) : (
-              logs.map((log: any) => (
+              logs.map((log: MappedActivityLog) => (
                 <tr key={log.id} className="hover:bg-muted/50 transition-colors group">
                   
                   {/* Time */}

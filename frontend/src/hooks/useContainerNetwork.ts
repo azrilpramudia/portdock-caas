@@ -1,15 +1,17 @@
 import { useState } from "react";
 import { containersService } from "@/services/containers.service";
 import { toast } from "sonner";
+import { Container } from "@/types";
+import { AxiosError } from "axios";
 
-export function useContainerNetwork(container: any, onRefresh?: () => void) {
+export function useContainerNetwork(container: Container, onRefresh?: () => void) {
   const [newPort, setNewPort] = useState<string>('');
   const [isCreatingAllocation, setIsCreatingAllocation] = useState(false);
   const [allocations, setAllocations] = useState([{
     hostPort: container.hostPort,
     internalPort: container.internalPort || 80,
     isPrimary: true
-  }].filter(a => a.hostPort));
+  }].filter(a => a.hostPort !== undefined) as { hostPort: number; internalPort: number; isPrimary: boolean }[]);
 
   const handleCreateAllocation = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,7 +68,7 @@ export function useContainerNetwork(container: any, onRefresh?: () => void) {
       toast.success("Target internal port berhasil diperbarui");
       if (onRefresh) onRefresh();
     } catch (err: any) {
-      toast.error(err.response?.data?.message || "Gagal memperbarui target internal port");
+      toast.error(err.response?.data?.message || "Failed to update internal port");
     } finally {
       setIsUpdatingInternalPort(false);
     }

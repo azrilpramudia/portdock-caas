@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { authService } from "@/services/auth.service";
 import { Lock, Eye, EyeOff, Loader2 } from "lucide-react";
+import { useSecuritySettings } from "@/hooks/useSettings";
 
 export function PasswordSettings() {
+  const { updatePasswordMutation } = useSecuritySettings();
+  
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -13,8 +15,6 @@ export function PasswordSettings() {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  
-  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
 
   const handleUpdatePassword = async () => {
     if (!currentPassword || !newPassword || !confirmPassword) {
@@ -30,18 +30,16 @@ export function PasswordSettings() {
       return;
     }
 
-    setIsUpdatingPassword(true);
-    try {
-      await authService.updatePassword({ currentPassword, newPassword });
-      toast.success("Password updated successfully!");
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to update password");
-    } finally {
-      setIsUpdatingPassword(false);
-    }
+    updatePasswordMutation.mutate(
+      { currentPassword, newPassword },
+      {
+        onSuccess: () => {
+          setCurrentPassword("");
+          setNewPassword("");
+          setConfirmPassword("");
+        },
+      }
+    );
   };
 
   return (
@@ -101,10 +99,10 @@ export function PasswordSettings() {
       <div className="mt-8">
         <button 
           onClick={handleUpdatePassword}
-          disabled={isUpdatingPassword}
+          disabled={updatePasswordMutation.isPending}
           className="flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-[14px] font-bold transition-all shadow-sm"
         >
-          {isUpdatingPassword ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+          {updatePasswordMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
           Update Password
         </button>
       </div>

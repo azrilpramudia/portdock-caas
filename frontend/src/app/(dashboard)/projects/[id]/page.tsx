@@ -7,7 +7,7 @@ import Link from "next/link";
 import {
   ArrowLeft,
   FolderOpen,
-  Container,
+  Container as ContainerIcon,
   Rocket,
   Clock,
   ExternalLink,
@@ -20,8 +20,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { useProjectDetail } from "@/hooks/useProjectDetail";
 import api from "@/lib/api";
 import { formatDistanceToNow, format } from "date-fns";
+import { Container, ActivityLog } from "@/types";
 import { id } from "date-fns/locale";
 import { ContainerDetails } from "@/components/containers/ContainerDetails";
 import { useSettingsStore } from "@/store/settings";
@@ -48,16 +50,10 @@ export default function ProjectDetailPage() {
   const [selectedContainerId, setSelectedContainerId] = useState<string | null>(null);
   const { settings } = useSettingsStore();
 
-  const { data: project, isLoading, refetch } = useQuery({
-    queryKey: ["project", projectId],
-    queryFn: async () => {
-      const res = await api.get(`/projects/${projectId}`);
-      return res.data;
-    },
-  });
+  const { project, isLoading, refetch } = useProjectDetail(projectId as string);
 
   const selectedContainer = selectedContainerId 
-    ? project?.containers?.find((c: any) => c.id === selectedContainerId) 
+    ? project?.containers?.find((c: Container) => c.id === selectedContainerId) 
     : null;
 
   if (isLoading) {
@@ -117,22 +113,22 @@ export default function ProjectDetailPage() {
           <Card className="bg-card border border-border shadow-sm">
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
-                <Container className="w-4 h-4 text-blue-500" />
+                <ContainerIcon className="w-4 h-4 text-blue-500" />
                 Containers ({project.containers?.length || 0})
               </CardTitle>
             </CardHeader>
             <Separator />
             <CardContent className="p-0">
-              {project.containers?.length > 0 ? (
+              {(project.containers?.length ?? 0) > 0 ? (
                 <div className="divide-y divide-border">
-                  {project.containers.map((container: any) => (
+                  {project.containers?.map((container: Container) => (
                     <div
                       key={container.id}
                       onClick={() => setSelectedContainerId(container.id)}
                       className="flex items-center gap-4 px-6 py-4 hover:bg-muted/50 transition-colors cursor-pointer"
                     >
                       <div className="w-9 h-9 bg-muted rounded-lg flex items-center justify-center">
-                        <Container className="w-4 h-4 text-muted-foreground" />
+                        <ContainerIcon className="w-4 h-4 text-muted-foreground" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-0.5">
@@ -153,7 +149,7 @@ export default function ProjectDetailPage() {
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center py-10 text-center">
-                  <Container className="w-8 h-8 text-muted-foreground/30 mb-2" />
+                  <ContainerIcon className="w-8 h-8 text-muted-foreground/30 mb-2" />
                   <p className="text-sm text-muted-foreground">Belum ada container</p>
                   {settings.isMaintenanceMode ? (
                     <Button disabled size="sm" className="mt-3 bg-muted text-muted-foreground shadow-none">
@@ -181,9 +177,9 @@ export default function ProjectDetailPage() {
             </CardHeader>
             <Separator />
             <CardContent className="p-0">
-              {project.activityLogs?.length > 0 ? (
+              {(project.activityLogs?.length ?? 0) > 0 ? (
                 <div className="divide-y divide-border">
-                  {project.activityLogs.map((log: any) => (
+                  {project.activityLogs?.map((log: ActivityLog) => (
                     <div key={log.id} className="flex items-start gap-3 px-6 py-3.5">
                       <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 shrink-0" />
                       <div className="flex-1">

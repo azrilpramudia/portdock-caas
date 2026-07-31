@@ -5,12 +5,28 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { Box } from "lucide-react";
 import { SiNginx, SiNodedotjs, SiMysql, SiRedis, SiPhp } from "react-icons/si";
+import { Container } from "@/types";
 
+export interface MappedContainer {
+  id: string;
+  containerId: string;
+  name: string;
+  image: string;
+  project: string;
+  domain: string | null;
+  port: string | number;
+  hostPort?: number;
+  status: string;
+  uptime: string;
+  createdAt: string;
+  icon: any;
+  iconColor: string;
+}
 export const useContainersList = (search: string, statusFilter: string) => {
   return useQuery({
     queryKey: ["containers", search, statusFilter],
     queryFn: () => {
-      const params: any = {};
+      const params: Record<string, string> = {};
       if (search) params.search = search;
       if (statusFilter && statusFilter !== "all") params.status = statusFilter;
       return containersService.getContainers(params);
@@ -136,8 +152,8 @@ export function useContainers() {
       toast.success(`Successfully executed ${action} on selected containers`, { id: toastId });
       queryClient.invalidateQueries({ queryKey: ["containers"] });
       setSelectedIds(new Set());
-    } catch (error: any) {
-      toast.error(`Some actions failed: ${error.message}`, { id: toastId });
+    } catch (error: Error | unknown) {
+      toast.error(`Some actions failed: ${(error as Error).message}`, { id: toastId });
     } finally {
       setIsBulkProcessing(false);
     }
@@ -152,7 +168,7 @@ export function useContainers() {
     return { icon: Box, color: 'text-blue-600' };
   };
 
-  const mappedContainers = rawContainers.map((c: any) => {
+  const mappedContainers: MappedContainer[] = rawContainers.map((c: Container) => {
     const { icon, color } = getIcon(c.imageName);
     return {
       id: c.id,
@@ -172,12 +188,12 @@ export function useContainers() {
   });
 
   const totalContainers = rawContainers.length;
-  const runningCount = rawContainers.filter((c: any) => c.status === 'RUNNING').length;
-  const stoppedCount = rawContainers.filter((c: any) => c.status === 'STOPPED').length;
-  const failedCount = rawContainers.filter((c: any) => c.status === 'FAILED' || c.status === 'ERROR').length;
-  const uniqueProjects = Array.from(new Set(rawContainers.map((c: any) => c.project?.name).filter(Boolean))) as string[];
+  const runningCount = rawContainers.filter((c: Container) => c.status === 'RUNNING').length;
+  const stoppedCount = rawContainers.filter((c: Container) => c.status === 'STOPPED').length;
+  const failedCount = rawContainers.filter((c: Container) => c.status === 'FAILED' || c.status === 'ERROR').length;
+  const uniqueProjects = Array.from(new Set(rawContainers.map((c: Container) => c.project?.name).filter(Boolean))) as string[];
 
-  const filteredContainers = mappedContainers.filter((c: any) => {
+  const filteredContainers = mappedContainers.filter((c: MappedContainer) => {
     const matchSearch = c.name.toLowerCase().includes(search.toLowerCase()) || c.image.toLowerCase().includes(search.toLowerCase());
     const matchStatus = statusFilter === "All Status" || c.status === statusFilter;
     const matchProject = projectFilter === "All Projects" || c.project === projectFilter;

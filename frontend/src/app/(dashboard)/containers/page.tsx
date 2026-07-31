@@ -17,7 +17,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-const FailedIcon = ({ className }: any) => (
+import { Container } from "@/types";
+
+const FailedIcon = ({ className }: { className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" className={className}>
     <circle cx="12" cy="12" r="10" fill="currentColor" />
     <path d="M9 9l6 6M15 9l-6 6" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
@@ -218,9 +220,9 @@ export default function ContainersPage() {
       )}
 
       {/* Container Details Sidebar/Modal */}
-      {!!selectedContainer && rawContainers.find((c: any) => c.id === selectedContainer.id) && (
+      {!!selectedContainer && rawContainers.find((c: Container) => c.id === selectedContainer.id) && (
         <ContainerDetails 
-          container={rawContainers.find((c: any) => c.id === selectedContainer.id)} 
+          container={rawContainers.find((c: Container) => c.id === selectedContainer.id)!} 
           onClose={() => setSelectedContainer(null)} 
           onRefresh={refetch}
           initialTab={selectedContainer.initialTab}

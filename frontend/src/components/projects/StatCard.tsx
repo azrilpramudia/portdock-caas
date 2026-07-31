@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 interface StatCardProps {
   title: string;
   value: number | string;
-  icon: any;
+  icon: React.ElementType;
   iconColor: string;
   iconBgColor: string;
   trend?: string;

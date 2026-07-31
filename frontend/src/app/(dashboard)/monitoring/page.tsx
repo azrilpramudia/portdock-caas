@@ -10,6 +10,7 @@ import { MonitoringStats } from "@/components/monitoring/MonitoringStats";
 import { MonitoringCharts } from "@/components/monitoring/MonitoringCharts";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
+import { Container } from "@/types";
 
 export default function MonitoringIndexPage() {
   const router = useRouter();
@@ -30,7 +31,7 @@ export default function MonitoringIndexPage() {
     if (containerIdParam) {
       setSelectedContainerId(containerIdParam);
     } else if (containers.length > 0 && !selectedContainerId) {
-      const running = containers.find((c: any) => c.status === "RUNNING");
+      const running = containers.find((c: Container) => c.status === "RUNNING");
       setSelectedContainerId(running ? running.id : containers[0].id);
     }
   }, [containers, containerIdParam, selectedContainerId]);
@@ -54,7 +55,7 @@ export default function MonitoringIndexPage() {
     handleManualRefresh
   } = useContainerMonitoring(selectedContainerId, isRealTime);
 
-  const selectedContainerDetails = containers.find((c: any) => c.id === selectedContainerId);
+  const selectedContainerDetails = containers.find((c: Container) => c.id === selectedContainerId);
 
   return (
     <div className="space-y-6">

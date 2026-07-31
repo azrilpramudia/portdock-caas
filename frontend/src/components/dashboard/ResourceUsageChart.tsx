@@ -20,7 +20,9 @@ import {
 } from "recharts";
 import { Activity } from "lucide-react";
 
-export function ResourceUsageChart({ data }: { data?: any[] }) {
+import { ResourceStat } from "@/types";
+
+export function ResourceUsageChart({ data }: { data?: ResourceStat[] }) {
   const chartData = data || [];
   return (
     <Card className="bg-card border-border shadow-sm rounded-2xl overflow-hidden flex flex-col h-full">
@@ -56,9 +58,9 @@ export function ResourceUsageChart({ data }: { data?: any[] }) {
             </div>
             <div>
               <p className="text-[12px] font-medium text-muted-foreground mb-1 flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> RAM
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Memory
               </p>
-              <p className="text-2xl font-bold text-foreground leading-none">{chartData.length ? chartData[chartData.length - 1]?.ram : 0}<span className="text-lg text-muted-foreground">%</span></p>
+              <p className="text-2xl font-bold text-foreground leading-none">{chartData.length ? chartData[chartData.length - 1]?.memory : 0}<span className="text-lg text-muted-foreground">MB</span></p>
             </div>
           </div>
         </div>
@@ -90,7 +92,7 @@ export function ResourceUsageChart({ data }: { data?: any[] }) {
                   itemStyle={{ color: 'var(--foreground)' }}
                 />
                 <Area type="monotone" dataKey="cpu" name="CPU (%)" stroke="#2563eb" strokeWidth={2.5} fillOpacity={1} fill="url(#colorCpu)" />
-                <Area type="monotone" dataKey="ram" name="RAM (%)" stroke="#10b981" strokeWidth={2.5} fillOpacity={1} fill="url(#colorRam)" />
+                <Area type="monotone" dataKey="memory" name="RAM (%)" stroke="#10b981" strokeWidth={2.5} fillOpacity={1} fill="url(#colorRam)" />
               </AreaChart>
             </ResponsiveContainer>
           )}

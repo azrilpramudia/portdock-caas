@@ -15,8 +15,10 @@ import { ApplicationLogsWindow } from "@/components/terminal/ApplicationLogsWind
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TerminalSquare, ListTodo, ScrollText } from "lucide-react";
 
+import { Container } from "@/types";
+
 export default function TerminalPage() {
-  const [containers, setContainers] = useState<any[]>([]);
+  const [containers, setContainers] = useState<Container[]>([]);
   const [selectedContainerId, setSelectedContainerId] = useState("");
   const [activeTab, setActiveTab] = useState("live");
 
@@ -49,12 +51,12 @@ export default function TerminalPage() {
     const fetchContainers = async () => {
       try {
         const data = await containersService.getContainers();
-        const running = data.filter((c: any) => c.status === "RUNNING");
+        const running = data.filter((c: Container) => c.status === "RUNNING");
         setContainers(running);
         
         const params = new URLSearchParams(window.location.search);
         const urlContainerId = params.get("containerId");
-        if (urlContainerId && running.some((c: any) => c.id === urlContainerId)) {
+        if (urlContainerId && running.some((c: Container) => c.id === urlContainerId)) {
           setSelectedContainerId(urlContainerId);
         }
         

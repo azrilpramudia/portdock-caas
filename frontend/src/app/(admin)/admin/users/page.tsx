@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useAdminUsers } from "@/hooks/useAdminUsers";;
+import { useAdminUsers, UserListItemDto } from "@/hooks/useAdminUsers";
 import {
   Users, UserCheck, UserX, UserPlus, 
   Download, Plus, Loader2, ArrowUp
@@ -32,9 +32,9 @@ export default function AdminUsersPage() {
   const [isDeleteUserOpen, setIsDeleteUserOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<{id: string, name: string} | null>(null);
   const [isEditUserOpen, setIsEditUserOpen] = useState(false);
-  const [userToEdit, setUserToEdit] = useState<any>(null);
+  const [userToEdit, setUserToEdit] = useState<(UserListItemDto & { password?: string }) | null>(null);
   const [isViewUserOpen, setIsViewUserOpen] = useState(false);
-  const [userToView, setUserToView] = useState<any>(null);
+  const [userToView, setUserToView] = useState<UserListItemDto | null>(null);
 
   const handleExport = () => {
     if (!data?.users || data.users.length === 0) return;

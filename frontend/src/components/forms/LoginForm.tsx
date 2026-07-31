@@ -17,7 +17,7 @@ import Image from "next/image";
 import api from "@/lib/api";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
-
+import { AxiosError } from "axios";
 
 export function LoginForm() {
   
@@ -56,7 +56,7 @@ export function LoginForm() {
       { ...data, turnstileToken },
       {
         
-        onSuccess: async (data: any) => {
+        onSuccess: async (data: { requires2fa: boolean; tempToken: string; user?: any; token?: string }) => {
           if (data.requires2fa) {
             setTempToken(data.tempToken);
             setTwoFactorState('verify');
@@ -65,7 +65,7 @@ export function LoginForm() {
             setTwoFactorState('none');
           }
         },
-        onError: (err: any) => {
+        onError: (err: AxiosError<{ message: string }> | any) => {
           const msg = err?.response?.data?.message;
           if (msg && msg.includes('locked')) {
             toast.error(msg, { duration: 5000 });
@@ -94,7 +94,7 @@ export function LoginForm() {
       localStorage.setItem("auth-storage", JSON.stringify({ state: { user: res.data.user, token: res.data.token, isAuthenticated: true }, version: 0 }));
       toast.success("Login successful");
       window.location.href = "/dashboard";
-    } catch (err: any) {
+    } catch (err: AxiosError<{ message: string }> | any) {
       toast.error(err?.response?.data?.message || "Invalid OTP code");
     } finally {
       setIsLoading2fa(false);

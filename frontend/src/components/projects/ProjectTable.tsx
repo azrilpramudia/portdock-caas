@@ -13,37 +13,35 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { useSettingsStore } from "@/store/settings";
-
+import { Project, Container } from "@/types";
 interface ProjectTableProps {
   isLoading: boolean;
-  projects: any[];
+  projects: Project[];
   setDeleteId: (id: string) => void;
 }
 
-function getStatusBadge(project: any) {
+function getStatusBadge(project: Project) {
   let status = project.status;
   
   // If project is ACTIVE, but all containers are stopped, consider it INACTIVE
-  if (status === "ACTIVE" && project.containers && project.containers.length > 0) {
-    const allStopped = project.containers.every((c: any) => c.status === "STOPPED");
+  if (project.status === "ACTIVE" && project.containers && project.containers.length > 0) {
+    const allStopped = project.containers.every((c: Container) => c.status === "STOPPED");
     if (allStopped) {
       status = "INACTIVE";
     }
   }
 
-  let label = status;
+  let label: string = status;
   let dotColor = "bg-slate-500";
   let badgeColor = "bg-slate-50 text-slate-600 dark:bg-slate-500/10 dark:text-slate-400";
   
   switch(status) {
     case "ACTIVE":
-    case "DEPLOYED":
       label = "Running";
       dotColor = "bg-emerald-500";
       badgeColor = "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400";
       break;
     case "INACTIVE":
-    case "STOPPED":
       label = "Stopped";
       dotColor = "bg-slate-500";
       badgeColor = "bg-slate-50 text-slate-600 dark:bg-slate-500/10 dark:text-slate-400";
@@ -54,13 +52,12 @@ function getStatusBadge(project: any) {
       badgeColor = "bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400";
       break;
     case "FAILED":
-    case "ERROR":
       label = "Failed";
       dotColor = "bg-red-500";
       badgeColor = "bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400";
       break;
     default:
-      label = status ? status.charAt(0).toUpperCase() + status.slice(1).toLowerCase() : "Unknown";
+      label = "Unknown";
       dotColor = "bg-slate-500";
       badgeColor = "bg-slate-50 text-slate-600 dark:bg-slate-500/10 dark:text-slate-400";
   }
@@ -125,7 +122,8 @@ export function ProjectTable({ isLoading, projects, setDeleteId }: ProjectTableP
           </tr>
         </thead>
         <tbody className="divide-y divide-border">
-          {projects.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((project: any) => {
+          {projects.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((project: Project) => {
+            const domain = project.domain || project.containers?.[0]?.subdomain || null;
             const iconStyle = getProjectIcon(project.name);
             const ProjectIcon = iconStyle.icon;
             const iconColor = `${iconStyle.bg} ${iconStyle.text}`;

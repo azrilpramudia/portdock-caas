@@ -1,45 +1,25 @@
 "use client";
 
 import { useState } from "react";
-import { toast } from "sonner";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Laptop, Smartphone, Globe, LogOut, Loader2, MonitorSmartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import api from "@/lib/api";
 import { Session } from "@/types";
 import { formatDistanceToNow } from "date-fns";
+import { useSessions } from "@/hooks/useSessions";
 
 export function ActiveSessions() {
-  const queryClient = useQueryClient();
   const [revokingId, setRevokingId] = useState<string | null>(null);
-
-  const { data: sessions = [], isLoading } = useQuery<Session[]>({
-    queryKey: ['active-sessions'],
-    queryFn: async () => {
-      const res = await api.get('/auth/sessions');
-      return res.data;
-    },
-  });
-
-  const revokeSessionMutation = useMutation({
-    mutationFn: async (id: string) => {
-      await api.delete(`/auth/sessions/${id}`);
-    },
-    onSuccess: () => {
-      toast.success("Session revoked successfully");
-      queryClient.invalidateQueries({ queryKey: ['active-sessions'] });
-    },
-    onError: (err: any) => {
-      toast.error(err?.response?.data?.message || "Failed to revoke session");
-    },
-    onSettled: () => {
-      setRevokingId(null);
-    }
-  });
+  const { sessionsQuery, revokeSessionMutation } = useSessions();
+  
+  const { data: sessions = [], isLoading } = sessionsQuery;
 
   const handleRevoke = (id: string) => {
     setRevokingId(id);
-    revokeSessionMutation.mutate(id);
+    revokeSessionMutation.mutate(id, {
+      onSettled: () => {
+        setRevokingId(null);
+      }
+    });
   };
 
   const parseDevice = (userAgent?: string) => {

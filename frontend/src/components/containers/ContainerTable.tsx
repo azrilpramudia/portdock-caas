@@ -10,12 +10,13 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { useRouter } from "next/navigation";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { MappedContainer } from "@/hooks/useContainers";
 
 interface ContainerTableProps {
-  containers: any[];
+  containers: MappedContainer[];
   isLoading: boolean;
   rawContainersCount: number;
-  selectedContainer: any | null;
+  selectedContainer: { id: string; name: string; initialTab?: string } | null;
   setSelectedContainer: (container: { id: string; name: string; initialTab?: string }) => void;
   onStart: (id: string) => void;
   onStop: (id: string) => void;
@@ -89,7 +90,7 @@ export function ContainerTable({
                 </td>
               </tr>
             ) : (
-              validContainers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((c: any) => {
+              validContainers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((c: MappedContainer) => {
                 const isSelected = selectedIds.has(c.id);
                 return (
                   <tr key={c.id} className={`group hover:bg-muted/50 transition-colors border-b border-border last:border-0 ${isSelected ? 'bg-muted/40' : ''}`}>

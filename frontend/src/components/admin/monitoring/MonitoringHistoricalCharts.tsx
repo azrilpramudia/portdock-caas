@@ -59,6 +59,7 @@ export function MonitoringHistoricalCharts({ historicalData, timeRange, setTimeR
               <Tooltip 
                 contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px' }}
                 itemStyle={{ color: 'hsl(var(--foreground))' }}
+                formatter={(value: any) => [`${value}%`, 'CPU']}
               />
               <Area 
                 type="monotone" 

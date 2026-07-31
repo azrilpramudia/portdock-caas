@@ -12,13 +12,16 @@ import { GithubRepoField } from "@/components/projects/forms/GithubRepoField";
 import { ZipUploadField } from "@/components/projects/forms/ZipUploadField";
 import { DockerfileField } from "@/components/projects/forms/DockerfileField";
 
+import { UseFormRegister, UseFormHandleSubmit, UseFormWatch, UseFormSetValue, Control, FieldErrors } from "react-hook-form";
+import { FormData } from "@/app/(dashboard)/projects/new/page";
+
 interface NewProjectFormProps {
-  register: any;
-  handleSubmit: any;
-  watch: any;
-  setValue: any;
-  control: any;
-  errors: any;
+  register: UseFormRegister<FormData>;
+  handleSubmit: UseFormHandleSubmit<FormData>;
+  watch: UseFormWatch<FormData>;
+  setValue: UseFormSetValue<FormData>;
+  control: Control<FormData>;
+  errors: FieldErrors<FormData>;
   deploymentType: "ZIP" | "GITHUB" | "DOCKERFILE";
   file: File | null;
   setFile: (file: File | null) => void;
@@ -27,7 +30,7 @@ interface NewProjectFormProps {
   handleFileDrop: (e: React.DragEvent) => void;
   uploadProgress: number;
   isPending: boolean;
-  onSubmit: (data: any) => void;
+  onSubmit: (data: FormData) => void;
 }
 
 export function NewProjectForm({

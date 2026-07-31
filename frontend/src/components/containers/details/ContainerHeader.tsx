@@ -2,8 +2,10 @@ import { Box, Play, Square, RefreshCw, Trash2, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useSettingsStore } from "@/store/settings";
 
+import { Container } from "@/types";
+
 interface ContainerHeaderProps {
-  container: any;
+  container: Container;
   isLoading: boolean;
   onClose: () => void;
   handleAction: (action: 'start' | 'stop' | 'restart' | 'delete') => void;

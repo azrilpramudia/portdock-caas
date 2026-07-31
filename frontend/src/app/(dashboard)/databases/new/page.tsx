@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import api from "@/lib/api";
 import { toast } from "sonner";
+import { AxiosError } from "axios";
 
 const formSchema = z.object({
   name: z.string().min(3).max(50),
@@ -47,7 +48,7 @@ export default function NewDatabasePage() {
       toast.success("Database provisioned successfully!");
       router.push("/databases");
     },
-    onError: (err: any) => {
+    onError: (err: AxiosError<{ message: string }>) => {
       toast.error(err.response?.data?.message || "Failed to create database");
     },
     onSettled: () => {

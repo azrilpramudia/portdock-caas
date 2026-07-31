@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import {
   Card,
@@ -20,37 +19,34 @@ import {
 import { Input } from "@/components/ui/input";
 import { AlertTriangle, Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import api from "@/lib/api";
 import { useAuthStore } from "@/store/auth";
+import { useSecuritySettings } from "@/hooks/useSettings";
+import { AxiosError } from "axios";
 
 export function DeleteAccountSettings() {
   const router = useRouter();
   const logout = useAuthStore((state) => state.logout);
+  const { deleteAccountMutation } = useSecuritySettings();
+  
   const [isOpen, setIsOpen] = useState(false);
   const [confirmText, setConfirmText] = useState("");
-
-  const deleteMutation = useMutation({
-    mutationFn: async () => {
-      const res = await api.delete("/auth/me");
-      return res.data;
-    },
-    onSuccess: () => {
-      toast.success("Akun berhasil dihapus.");
-      setIsOpen(false);
-      logout();
-      router.push("/login");
-    },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Gagal menghapus akun");
-    },
-  });
 
   const handleDelete = () => {
     if (confirmText !== "HAPUS") {
       toast.error("Ketik 'HAPUS' untuk mengkonfirmasi");
       return;
     }
-    deleteMutation.mutate();
+    deleteAccountMutation.mutate(undefined, {
+      onSuccess: () => {
+        toast.success("Akun berhasil dihapus.");
+        setIsOpen(false);
+        logout();
+        router.push("/login");
+      },
+      onError: (error: AxiosError<{ message: string }> | any) => {
+        toast.error(error.response?.data?.message || "Gagal menghapus akun");
+      },
+    });
   };
 
   return (
@@ -110,9 +106,9 @@ export function DeleteAccountSettings() {
             <Button
               variant="destructive"
               onClick={handleDelete}
-              disabled={confirmText !== "HAPUS" || deleteMutation.isPending}
+              disabled={confirmText !== "HAPUS" || deleteAccountMutation.isPending}
             >
-              {deleteMutation.isPending ? (
+              {deleteAccountMutation.isPending ? (
                 <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Menghapus...</>
               ) : (
                 "Ya, Hapus Semuanya"

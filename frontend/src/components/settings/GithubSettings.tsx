@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { authService } from "@/services/auth.service";
 import { GitBranch, Loader2 } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
+import { useIntegrationSettings } from "@/hooks/useSettings";
 import {
   Dialog,
   DialogContent,
@@ -16,10 +16,9 @@ import {
 import { Button } from "@/components/ui/button";
 
 export function GithubSettings() {
-  const { user, token, setAuth } = useAuthStore();
+  const { user } = useAuthStore();
+  const { connectGithubMutation, disconnectGithubMutation } = useIntegrationSettings();
   
-  const [isConnectingGithub, setIsConnectingGithub] = useState(false);
-  const [isDisconnectingGithub, setIsDisconnectingGithub] = useState(false);
   const [isEditingGithub, setIsEditingGithub] = useState(false);
   const [githubTokenInput, setGithubTokenInput] = useState("");
   const [showDisconnectDialog, setShowDisconnectDialog] = useState(false);
@@ -29,36 +28,21 @@ export function GithubSettings() {
       toast.error("Please enter a valid Personal Access Token");
       return;
     }
-    setIsConnectingGithub(true);
-    try {
-      const data = await authService.connectGithub(githubTokenInput);
-      if (user && token) {
-        setAuth({ ...user, githubUsername: data.githubUsername }, token);
+    
+    connectGithubMutation.mutate(githubTokenInput, {
+      onSuccess: () => {
+        setIsEditingGithub(false);
+        setGithubTokenInput("");
       }
-      setIsEditingGithub(false);
-      setGithubTokenInput("");
-      toast.success("GitHub connected successfully!");
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to connect GitHub");
-    } finally {
-      setIsConnectingGithub(false);
-    }
+    });
   };
 
   const handleDisconnectGithub = async () => {
-    setIsDisconnectingGithub(true);
-    try {
-      await authService.disconnectGithub();
-      if (user && token) {
-        setAuth({ ...user, githubUsername: undefined }, token);
+    disconnectGithubMutation.mutate(undefined, {
+      onSuccess: () => {
+        setShowDisconnectDialog(false);
       }
-      toast.success("GitHub disconnected successfully!");
-      setShowDisconnectDialog(false);
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to disconnect GitHub");
-    } finally {
-      setIsDisconnectingGithub(false);
-    }
+    });
   };
 
   return (
@@ -107,10 +91,10 @@ export function GithubSettings() {
               <div className="flex items-center gap-2">
                 <button 
                   onClick={handleConnectGithub}
-                  disabled={isConnectingGithub}
+                  disabled={connectGithubMutation.isPending}
                   className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50 rounded-xl text-[13px] font-bold transition-colors"
                 >
-                  {isConnectingGithub ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
+                  {connectGithubMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
                   Save Token
                 </button>
                 <button 
@@ -133,7 +117,7 @@ export function GithubSettings() {
               {user?.githubUsername && (
                 <button 
                   onClick={() => setShowDisconnectDialog(true)}
-                  disabled={isDisconnectingGithub}
+                  disabled={disconnectGithubMutation.isPending}
                   className="flex items-center gap-2 px-4 py-2.5 border border-red-500/20 text-red-500 hover:bg-red-500/10 rounded-xl text-[13px] font-bold transition-colors disabled:opacity-50"
                 >
                   Disconnect
@@ -157,7 +141,7 @@ export function GithubSettings() {
               variant="outline" 
               onClick={() => setShowDisconnectDialog(false)}
               className="h-10 rounded-xl font-bold"
-              disabled={isDisconnectingGithub}
+              disabled={disconnectGithubMutation.isPending}
             >
               Cancel
             </Button>
@@ -165,9 +149,9 @@ export function GithubSettings() {
               variant="destructive" 
               onClick={handleDisconnectGithub}
               className="h-10 rounded-xl font-bold bg-red-600 hover:bg-red-700 text-white"
-              disabled={isDisconnectingGithub}
+              disabled={disconnectGithubMutation.isPending}
             >
-              {isDisconnectingGithub ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+              {disconnectGithubMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
               Disconnect
             </Button>
           </DialogFooter>
