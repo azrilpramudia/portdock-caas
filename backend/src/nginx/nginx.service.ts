@@ -70,12 +70,12 @@ server {
     ssl_certificate /etc/letsencrypt/live/${baseDomain}/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/${baseDomain}/privkey.pem;
 
-    include /etc/nginx/conf.d/paths/*.conf;
+    include /etc/nginx/portdock-apps/paths/*.conf;
 }
 `;
       } else {
         baseConfContent += `
-    include /etc/nginx/conf.d/paths/*.conf;
+    include /etc/nginx/portdock-apps/paths/*.conf;
 }
 `;
       }
@@ -141,7 +141,7 @@ server {
     }
 
     location / {
-        include /etc/nginx/conf.d/maintenance/status.conf;
+        include /etc/nginx/portdock-apps/maintenance/status.conf;
         proxy_pass http://127.0.0.1:${hostPort};
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
@@ -164,7 +164,7 @@ server {
     if (baseDomain && projectName) {
       const pathConfContent = `
 location /${projectName}/ {
-    include /etc/nginx/conf.d/maintenance/status.conf;
+    include /etc/nginx/portdock-apps/maintenance/status.conf;
     proxy_pass http://127.0.0.1:${hostPort}/;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
@@ -357,7 +357,7 @@ location /${projectName}/ {
       const forceHttps = process.env.FORCE_HTTPS !== 'false';
       const httpRedirectOrProxy = forceHttps
         ? `        return 301 https://$host$request_uri;`
-        : `        include /etc/nginx/conf.d/maintenance/status.conf;
+        : `        include /etc/nginx/portdock-apps/maintenance/status.conf;
         proxy_pass http://127.0.0.1:${hostPort};
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
@@ -388,7 +388,7 @@ server {
     ssl_certificate_key ${keyPath};
 
     location / {
-        include /etc/nginx/conf.d/maintenance/status.conf;
+        include /etc/nginx/portdock-apps/maintenance/status.conf;
         proxy_pass http://127.0.0.1:${hostPort};
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
@@ -439,7 +439,7 @@ server {
     ssl_certificate /etc/letsencrypt/live/${baseDomain}/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/${baseDomain}/privkey.pem;
 
-    include /etc/nginx/conf.d/paths/*.conf;
+    include /etc/nginx/portdock-apps/paths/*.conf;
 }
 `;
         fs.writeFileSync(baseConfPath, baseConfContent);
@@ -539,12 +539,12 @@ server {
         let content = fs.readFileSync(p, 'utf8');
         if (
           !content.includes(
-            'include /etc/nginx/conf.d/maintenance/status.conf;',
+            'include /etc/nginx/portdock-apps/maintenance/status.conf;',
           )
         ) {
           content = content.replace(
             /location \/ \{/g,
-            'location / {\n        include /etc/nginx/conf.d/maintenance/status.conf;',
+            'location / {\n        include /etc/nginx/portdock-apps/maintenance/status.conf;',
           );
           fs.writeFileSync(p, content);
         }
