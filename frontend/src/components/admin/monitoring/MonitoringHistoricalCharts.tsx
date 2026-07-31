@@ -54,7 +54,7 @@ export function MonitoringHistoricalCharts({ historicalData, timeRange, setTimeR
                 </linearGradient>
               </defs>
               <CartesianGrid vertical={false} stroke="hsl(var(--border))" opacity={0.3} />
-              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#888888' }} dy={10} interval={0} />
+              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#888888' }} dy={10} minTickGap={30} />
               <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#888888' }} tickFormatter={(val) => `${val}%`} domain={[0, 100]} ticks={[0, 25, 50, 75, 100]} />
               <Tooltip 
                 contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px' }}
@@ -68,7 +68,7 @@ export function MonitoringHistoricalCharts({ historicalData, timeRange, setTimeR
                 strokeWidth={3} 
                 fillOpacity={1} 
                 fill="url(#colorCpu)" 
-                dot={{ r: 3, fill: '#3b82f6', stroke: '#ffffff', strokeWidth: 1.5 }}
+                dot={false}
                 activeDot={{ r: 6, strokeWidth: 0, fill: '#3b82f6' }} 
               />
             </AreaChart>
@@ -104,7 +104,7 @@ export function MonitoringHistoricalCharts({ historicalData, timeRange, setTimeR
                 </linearGradient>
               </defs>
               <CartesianGrid vertical={false} stroke="hsl(var(--border))" opacity={0.3} />
-              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#888888' }} dy={10} interval={0} />
+              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#888888' }} dy={10} minTickGap={30} />
               <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#888888' }} tickFormatter={(val) => `${val}%`} domain={[0, 100]} ticks={[0, 25, 50, 75, 100]} />
               <Tooltip 
                 contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px' }}
@@ -118,7 +118,7 @@ export function MonitoringHistoricalCharts({ historicalData, timeRange, setTimeR
                 strokeWidth={3} 
                 fillOpacity={1} 
                 fill="url(#colorRam)" 
-                dot={{ r: 3, fill: '#10b981', stroke: '#ffffff', strokeWidth: 1.5 }}
+                dot={false}
                 activeDot={{ r: 6, strokeWidth: 0, fill: '#10b981' }} 
               />
             </AreaChart>
