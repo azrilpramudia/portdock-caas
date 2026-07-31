@@ -243,47 +243,55 @@ export class SystemService implements OnModuleInit {
   async getTopContainers() {
     try {
       const containers = await this.docker.listContainers({ all: false });
-      const statsPromises = containers.map(async (c) => {
-        try {
-          const stats = await this.docker
-            .getContainer(c.Id)
-            .stats({ stream: false });
-          // calculate CPU%
-          let cpuPercent = 0;
-          const cpuDelta =
-            stats.cpu_stats.cpu_usage.total_usage -
-            stats.precpu_stats.cpu_usage.total_usage;
-          const systemDelta =
-            stats.cpu_stats.system_cpu_usage -
-            stats.precpu_stats.system_cpu_usage;
-          if (cpuDelta > 0 && systemDelta > 0) {
-            cpuPercent =
-              (cpuDelta / systemDelta) * stats.cpu_stats.online_cpus * 100;
+      
+      // Execute docker stats in batch (extremely fast)
+      const { stdout } = await execAsync("docker stats --no-stream --format '{{json .}}'");
+      
+      const statsOutput = stdout
+        .split('\n')
+        .map((line) => line.trim())
+        .filter((line) => line.length > 0)
+        .map((line) => {
+          try {
+            return JSON.parse(line);
+          } catch {
+            return null;
           }
+        })
+        .filter(Boolean);
 
-          // calculate RAM%
-          const memUsage = stats.memory_stats.usage || 0;
-          const memLimit = stats.memory_stats.limit || 1;
-          const memPercent = (memUsage / memLimit) * 100;
-
-          const name = c.Names[0]?.replace('/', '') || 'Unknown';
-          const project =
-            c.Labels['com.docker.compose.project'] || c.Image || 'Standalone';
-          const isCaas = !!c.Labels['portdock.caas'];
-
-          return {
-            id: c.Id,
-            name: isCaas ? name.replace('portdock-', '') : name,
-            cpu: Math.round(cpuPercent * 10) / 10,
-            ram: Math.round(memPercent * 10) / 10,
-            project: isCaas ? 'App' : project,
-          };
-        } catch {
-          return null;
-        }
+      // Create a map for quick lookup by ID or Name
+      const statsMap = new Map<string, any>();
+      statsOutput.forEach((stat: any) => {
+        statsMap.set(stat.ID, stat); // ID might be shortened
+        statsMap.set(stat.Name, stat);
       });
 
-      const containerStats = (await Promise.all(statsPromises)).filter(Boolean);
+      const containerStats = containers.map((c) => {
+        const name = c.Names[0]?.replace('/', '') || 'Unknown';
+        const project =
+          c.Labels['com.docker.compose.project'] || c.Image || 'Standalone';
+        const isCaas = !!c.Labels['portdock.caas'];
+
+        // Find stats by matching Name or partial ID
+        const stat = statsMap.get(name) || statsOutput.find((s: any) => c.Id.startsWith(s.ID));
+        
+        let cpu = 0;
+        let ram = 0;
+
+        if (stat) {
+          cpu = parseFloat(stat.CPUPerc.replace('%', '')) || 0;
+          ram = parseFloat(stat.MemPerc.replace('%', '')) || 0;
+        }
+
+        return {
+          id: c.Id,
+          name: isCaas ? name.replace('portdock-', '') : name,
+          cpu: Math.round(cpu * 10) / 10,
+          ram: Math.round(ram * 10) / 10,
+          project: isCaas ? 'App' : project,
+        };
+      });
       // Sort by CPU + RAM combined score or just CPU
       containerStats.sort((a, b) => b!.cpu + b!.ram - (a!.cpu + a!.ram));
       return containerStats.slice(0, 5);

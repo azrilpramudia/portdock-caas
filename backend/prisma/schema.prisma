@@ -114,6 +114,8 @@ model ActivityLog {
   user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   project Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
 
+  @@index([createdAt])
+  @@index([userId])
   @@map("activity_logs")
 }
 
@@ -143,6 +145,8 @@ model Deployment {
 
   project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   
+  @@index([startedAt])
+  @@index([projectId])
   @@map("deployments")
 }
 
@@ -249,6 +253,7 @@ model SystemMetric {
   networkOut Float?
   createdAt  DateTime @default(now()) @map("created_at")
 
+  @@index([createdAt])
   @@map("system_metrics")
 }
 

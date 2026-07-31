@@ -25,7 +25,7 @@ export class SecurityService {
   // ==========================
   async getUfwStatus(): Promise<UfwStatus> {
     try {
-      const { stdout } = await execAsync('ufw status');
+      const { stdout } = await execAsync('sudo ufw status');
       const lines = stdout
         .split('\n')
         .map((l) => l.trim())
@@ -77,10 +77,10 @@ export class SecurityService {
       if (enable) {
         // SAFETY FIRST: Always allow SSH before enabling UFW to prevent lockout
         const sshConfig = await this.getSshConfig();
-        await execAsync(`ufw allow ${sshConfig.port}`);
-        await execAsync('echo "y" | ufw enable');
+        await execAsync(`sudo ufw allow ${sshConfig.port}`);
+        await execAsync('echo "y" | sudo ufw enable');
       } else {
-        await execAsync('ufw disable');
+        await execAsync('sudo ufw disable');
       }
       return { success: true };
     } catch (e: any) {
@@ -92,7 +92,7 @@ export class SecurityService {
 
   async addUfwRule(port: string, protocol: string = 'tcp') {
     try {
-      await execAsync(`ufw allow ${port}/${protocol}`);
+      await execAsync(`sudo ufw allow ${port}/${protocol}`);
       return { success: true };
     } catch (e: any) {
       throw new Error(
@@ -113,7 +113,7 @@ export class SecurityService {
           'Penghapusan port SSH diblokir demi keamanan (Safety First) agar Anda tidak terkunci.',
         );
       }
-      await execAsync(`ufw delete allow ${port}/${protocol}`);
+      await execAsync(`sudo ufw delete allow ${port}/${protocol}`);
       return { success: true };
     } catch (e: any) {
       throw new Error(

@@ -1,5 +1,8 @@
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import api from "@/lib/api";
+import { useState, useEffect } from 'react';
+import { io, Socket } from 'socket.io-client';
+import { API_BASE_URL } from "@/constants/config";
 
 // Monitoring Types
 export interface AdminMonitoringOverviewDto {
@@ -59,15 +62,41 @@ export interface AdminMonitoringResponseDto {
 }
 
 export function useAdminMonitoring(range: string = '7d') {
-  return useQuery({
-    queryKey: ["adminMonitoring", range],
-    queryFn: async () => {
-      const res = await api.get<AdminMonitoringResponseDto>(`/admin/monitoring?range=${range}`);
-      return res.data;
-    },
-    refetchInterval: 5000, // Refresh stats every 5s
-    placeholderData: keepPreviousData,
-  });
+  const [data, setData] = useState<AdminMonitoringResponseDto | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+
+  useEffect(() => {
+    // Determine the backend URL by stripping /api if it exists
+    const socketUrl = API_BASE_URL.replace(/\/api\/?$/, '');
+    
+    const socket: Socket = io(`${socketUrl}/admin/metrics`, {
+      transports: ['websocket', 'polling'],
+      reconnectionDelay: 1000,
+    });
+
+    socket.on('connect', () => {
+      console.log('Connected to metrics gateway');
+      setIsLoading(false);
+    });
+
+    socket.on('monitoringStats', (stats: AdminMonitoringResponseDto) => {
+      setData(stats);
+      setIsLoading(false);
+    });
+
+    socket.on('connect_error', (err) => {
+      console.error('Socket connection error:', err);
+      setError(err);
+      setIsLoading(false);
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [range]); // We pass range, though currently backend gateway ignores range and defaults to 7d.
+
+  return { data, isLoading, error };
 }
 
 export function useAdminServerAction() {

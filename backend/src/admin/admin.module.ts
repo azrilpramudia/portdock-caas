@@ -15,6 +15,7 @@ import { AdminProjectsService } from './admin-projects.service';
 import { AdminContainersService } from './admin-containers.service';
 import { AdminActivityService } from './admin-activity.service';
 import { AdminDatabasesService } from './admin-databases.service';
+import { MetricsGateway } from './metrics.gateway';
 
 @Module({
   imports: [PrismaModule, DockerModule, ContainersModule, DatabasesModule],
@@ -30,6 +31,7 @@ import { AdminDatabasesService } from './admin-databases.service';
     DbBackupService,
     SecurityService,
     NotificationsService,
+    MetricsGateway,
   ],
 })
 export class AdminModule {}
