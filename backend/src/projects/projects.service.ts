@@ -7,7 +7,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
-import { Prisma, ProjectStatus } from '@prisma/client';
+import { Prisma, ProjectStatus } from '@generated/prisma';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { DockerService } from '../docker/docker.service';
 import { NginxService } from '../nginx/nginx.service';
