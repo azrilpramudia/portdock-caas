@@ -14,6 +14,7 @@ export function useProjectDetail(id: string) {
       return res.data;
     },
     enabled: !!id,
+    refetchInterval: 5000,
   });
 
   const { data: stats } = useQuery({
