@@ -164,7 +164,7 @@ export function useTerminalSession(selectedContainerId: string) {
     }
 
     const apiUrl = API_BASE_URL;
-    const socketUrl = apiUrl.replace("/api", "");
+    const socketUrl = apiUrl.replace(/\/api\/?$/, "");
 
     xtermRef.current?.clear();
     xtermRef.current?.write("\x1b[H\x1b[2J"); // Better clear

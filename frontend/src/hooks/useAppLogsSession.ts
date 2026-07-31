@@ -107,7 +107,7 @@ export function useAppLogsSession(selectedContainerId: string, isDatabase: boole
     }
 
     const apiUrl = API_BASE_URL;
-    const socketUrl = apiUrl.replace("/api", "");
+    const socketUrl = apiUrl.replace(/\/api\/?$/, "");
 
     appLogsXtermRef.current?.clear();
     appLogsXtermRef.current?.write("\x1b[H\x1b[2J"); 
