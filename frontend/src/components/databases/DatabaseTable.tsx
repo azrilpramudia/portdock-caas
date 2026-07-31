@@ -286,11 +286,12 @@ export function DatabaseTable({
                                   const isPg = db.type === 'POSTGRESQL';
                                   const validUrl = dbPortalUrl.startsWith('http') ? dbPortalUrl : `https://${dbPortalUrl}`;
                                   const portal = new URL(validUrl);
-                                  const hostIp = '172.17.0.1'; // IP Bridge Docker (Host)
+                                  const containerName = `portdock-db-${db.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
+                                  const internalPort = isPg ? '5432' : '3306';
                                   if (isPg) {
-                                    portal.searchParams.set('pgsql', `${hostIp}:${db.hostPort}`);
+                                    portal.searchParams.set('pgsql', `${containerName}:${internalPort}`);
                                   } else {
-                                    portal.searchParams.set('server', `${hostIp}:${db.hostPort}`);
+                                    portal.searchParams.set('server', `${containerName}:${internalPort}`);
                                   }
                                   portal.searchParams.set('username', db.dbUser || '');
                                   window.open(portal.toString(), '_blank');
