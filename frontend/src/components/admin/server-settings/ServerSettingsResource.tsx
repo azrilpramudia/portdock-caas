@@ -55,7 +55,7 @@ export function ServerSettingsResource({ historical, overview, range, setRange }
             strokeWidth={1.5}
             fillOpacity={1} 
             fill={`url(#${gradientId})`} 
-            dot={{ r: 2.5, fill: color, stroke: "hsl(var(--background))", strokeWidth: 1.5 }}
+            dot={false}
             activeDot={{ r: 4, fill: color, stroke: "hsl(var(--background))", strokeWidth: 2 }}
           />
         </AreaChart>
