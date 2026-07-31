@@ -8,6 +8,9 @@ import * as fs from 'fs';
 import cookieParser from 'cookie-parser';
 import { doubleCsrfProtection } from './csrf/csrf.config';
 import { PrismaService } from './prisma/prisma.service';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const basicAuth = require('express-basic-auth');
+
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -66,6 +69,20 @@ async function bootstrap() {
 
   // API prefix
   app.setGlobalPrefix('api');
+
+  // Secure Swagger UI with Basic Auth
+  const swaggerUser = process.env.SWAGGER_USERNAME || 'admin';
+  const swaggerPass = process.env.SWAGGER_PASSWORD || 'portdock-secret-2024';
+  
+  app.use(
+    ['/api/docs', '/api/docs-json'],
+    basicAuth({
+      challenge: true,
+      users: {
+        [swaggerUser]: swaggerPass,
+      },
+    }),
+  );
 
   // Swagger docs
   const config = new DocumentBuilder()
