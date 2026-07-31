@@ -286,7 +286,7 @@ export function DatabaseTable({
                                   const isPg = db.type === 'POSTGRESQL';
                                   const validUrl = dbPortalUrl.startsWith('http') ? dbPortalUrl : `https://${dbPortalUrl}`;
                                   const portal = new URL(validUrl);
-                                  const hostIp = '127.0.0.1'; 
+                                  const hostIp = '172.17.0.1'; // IP Gateway Docker untuk Host
                                   if (isPg) {
                                     portal.searchParams.set('pgsql', `${hostIp}:${db.hostPort}`);
                                   } else {
