@@ -40,7 +40,7 @@ export function RecentActivity({ data }: RecentActivityProps) {
       </div>
 
       <div className="mt-auto pt-4 border-t border-border">
-        <Link href="/admin/activity" className="inline-flex items-center text-sm font-semibold text-primary hover:text-primary/80 transition-colors">
+        <Link href="/admin/activity-logs" className="inline-flex items-center text-sm font-semibold text-primary hover:text-primary/80 transition-colors">
           Lihat semua log aktivitas <ArrowRight className="w-4 h-4 ml-1" />
         </Link>
       </div>

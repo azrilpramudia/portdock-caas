@@ -31,7 +31,7 @@ export class SecurityService {
         .map((l) => l.trim())
         .filter((l) => l.length > 0);
 
-      const isEnabled = lines[0]?.toLowerCase().includes('active');
+      const isEnabled = lines[0]?.toLowerCase().includes('status: active');
 
       if (!isEnabled) {
         return { enabled: false, rules: [] };
