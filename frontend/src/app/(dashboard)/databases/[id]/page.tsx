@@ -73,9 +73,14 @@ export default function DatabaseDetailsPage() {
                   className="h-8 text-xs bg-indigo-500/10 text-indigo-500 hover:bg-indigo-500/20 hover:text-indigo-600 border-0"
                   onClick={() => {
                     const isPg = db.type === 'POSTGRESQL';
-                    const portal = new URL(dbPortalUrl);
-                    portal.searchParams.set(isPg ? 'pgsql' : 'mysql', '');
-                    portal.searchParams.set('server', `host.docker.internal:${db.hostPort}`);
+                    const validUrl = dbPortalUrl.startsWith('http') ? dbPortalUrl : `https://${dbPortalUrl}`;
+                    const portal = new URL(validUrl);
+                    const hostIp = '172.17.0.1'; // IP Gateway Docker untuk Host
+                    if (isPg) {
+                      portal.searchParams.set('pgsql', `${hostIp}:${db.hostPort}`);
+                    } else {
+                      portal.searchParams.set('server', `${hostIp}:${db.hostPort}`);
+                    }
                     portal.searchParams.set('username', db.dbUser || '');
                     window.open(portal.toString(), '_blank');
                   }}
@@ -86,14 +91,14 @@ export default function DatabaseDetailsPage() {
               )}
               <Button 
                 variant={activeTab === "overview" ? "default" : "outline"}
-                className={activeTab === "overview" ? "bg-blue-600 hover:bg-blue-700 text-white shadow-md" : ""}
+                className={`${activeTab === "overview" ? "bg-blue-600 hover:bg-blue-700 text-white shadow-md" : ""} transition-none active:scale-100`}
                 onClick={() => setActiveTab("overview")}
               >
                 <Activity className="w-4 h-4 mr-2" /> Overview
               </Button>
               <Button 
                 variant={activeTab === "logs" ? "default" : "outline"}
-                className={activeTab === "logs" ? "bg-blue-600 hover:bg-blue-700 text-white shadow-md" : ""}
+                className={`${activeTab === "logs" ? "bg-blue-600 hover:bg-blue-700 text-white shadow-md" : ""} transition-none active:scale-100`}
                 onClick={() => setActiveTab("logs")}
               >
                 <TerminalIcon className="w-4 h-4 mr-2" /> Logs
