@@ -17,7 +17,7 @@ export class NginxService {
     private dockerService: DockerService,
     private configService: ConfigService,
   ) {
-    this.confDir = path.resolve(process.cwd(), 'nginx-conf.d');
+    this.confDir = '/etc/nginx/portdock-apps';
     this.pathsDir = path.resolve(this.confDir, 'paths');
     if (!fs.existsSync(this.confDir)) {
       fs.mkdirSync(this.confDir, { recursive: true });
@@ -511,21 +511,11 @@ server {
    */
   async reloadNginx(): Promise<void> {
     try {
-      const containerId = await this.dockerService.getSystemNginxContainerId();
-      if (!containerId) {
-        this.logger.warn('portdock-nginx container not found, skip reload.');
-        return;
-      }
-      const container = await this.dockerService.getContainer(containerId);
-      const exec = await container.exec({
-        Cmd: ['nginx', '-s', 'reload'],
-        AttachStdout: true,
-        AttachStderr: true,
-      });
-      await exec.start({});
-      this.logger.log('Nginx reloaded successfully');
+      const { execSync } = require('child_process');
+      execSync('sudo systemctl reload nginx');
+      this.logger.log('Host Nginx reloaded successfully');
     } catch (err) {
-      this.logger.error('Failed to reload Nginx', err);
+      this.logger.error('Failed to reload Host Nginx', err);
     }
   }
 

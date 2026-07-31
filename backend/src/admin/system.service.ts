@@ -558,7 +558,7 @@ export class SystemService implements OnModuleInit {
     const path = require('path');
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const confDir = path.resolve(process.cwd(), 'nginx-conf.d');
+    const confDir = '/etc/nginx/portdock-apps';
 
     let clientMaxBodySize = '';
     let proxyReadTimeout = '';
@@ -617,7 +617,7 @@ export class SystemService implements OnModuleInit {
     const path = require('path');
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const confDir = path.resolve(process.cwd(), 'nginx-conf.d');
+    const confDir = '/etc/nginx/portdock-apps';
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     if (!fs.existsSync(confDir)) {
