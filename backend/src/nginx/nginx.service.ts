@@ -196,16 +196,10 @@ location /${projectName}/ {
       // Check for Wildcard SSL Certificate first
       const baseDomain = this.configService.get<string>('BASE_DOMAIN');
       if (baseDomain && domain.endsWith(`.${baseDomain}`)) {
-        const wildcardPath = path.join(
-          certbotConfDir,
-          'live',
-          baseDomain,
-          'fullchain.pem',
-        );
-        if (fs.existsSync(wildcardPath)) {
-          this.logger.log(
-            `Wildcard certificate for ${baseDomain} found. Using it for ${domain}.`,
-          );
+        const wildcardPath1 = path.join(certbotConfDir, 'live', baseDomain, 'fullchain.pem');
+        const wildcardPath2 = path.join(certbotConfDir, 'live', `${baseDomain}-0001`, 'fullchain.pem');
+        if (fs.existsSync(wildcardPath1) || fs.existsSync(wildcardPath2)) {
+          this.logger.log(`Using existing wildcard SSL for ${domain}`);
           return true;
         }
       }
@@ -337,15 +331,15 @@ location /${projectName}/ {
 
     if (baseDomain && domain.endsWith(`.${baseDomain}`)) {
       const certbotConfDir = path.resolve(process.cwd(), 'certbot-conf');
-      const wildcardPath = path.join(
-        certbotConfDir,
-        'live',
-        baseDomain,
-        'fullchain.pem',
-      );
-      if (fs.existsSync(wildcardPath)) {
+      const wildcardPath1 = path.join(certbotConfDir, 'live', baseDomain, 'fullchain.pem');
+      const wildcardPath2 = path.join(certbotConfDir, 'live', `${baseDomain}-0001`, 'fullchain.pem');
+      
+      if (fs.existsSync(wildcardPath1)) {
         certPath = `/etc/letsencrypt/live/${baseDomain}/fullchain.pem`;
         keyPath = `/etc/letsencrypt/live/${baseDomain}/privkey.pem`;
+      } else if (fs.existsSync(wildcardPath2)) {
+        certPath = `/etc/letsencrypt/live/${baseDomain}-0001/fullchain.pem`;
+        keyPath = `/etc/letsencrypt/live/${baseDomain}-0001/privkey.pem`;
       }
     }
 
