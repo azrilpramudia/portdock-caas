@@ -28,7 +28,7 @@ export function DatabaseLogs({ id, active }: DatabaseLogsProps) {
   }, [active, fitAppLogsTerminal]);
 
   return (
-    <div className={`bg-card border border-border rounded-2xl shadow-sm overflow-hidden flex flex-col h-[600px] ${active ? "animate-in fade-in slide-in-from-bottom-4 duration-500" : "hidden"}`}>
+    <div className={`bg-card border border-border rounded-2xl shadow-sm overflow-hidden flex flex-col h-[600px] ${active ? "block" : "hidden"}`}>
       <div className="flex items-center justify-between p-4 border-b border-border bg-muted/30">
         <div className="flex items-center gap-2">
           <TerminalIcon className="w-5 h-5 text-muted-foreground" />

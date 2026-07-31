@@ -50,7 +50,7 @@ export function DatabaseOverview({ db, stats, resetPasswordMutation }: DatabaseO
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {/* CPU Card */}
       <div className="bg-card border border-border rounded-2xl p-6 shadow-sm flex flex-col">
         <div className="flex justify-between items-start mb-6">
