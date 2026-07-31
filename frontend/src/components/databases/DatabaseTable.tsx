@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Database, Server, Key, Copy, CheckCircle2, Search, RefreshCw, Filter, Eye, EyeOff, MoreVertical, Play, Square, RotateCw, Archive, Trash2 } from "lucide-react";
+import { Copy, CheckCircle2, Search, RefreshCw, Filter, Eye, EyeOff, MoreVertical, Play, Square, RotateCw, Archive, Trash2, Database, Server, Key, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useSettingsStore } from "@/store/settings";
 import { Input } from "@/components/ui/input";
-import { Plus } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -54,6 +54,9 @@ export function DatabaseTable({
   setBackupDb,
   dbPortalUrl
 }: DatabaseTableProps) {
+  const { settings } = useSettingsStore();
+  const isMaintenanceMode = settings?.maintenanceMode;
+  
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -102,8 +105,11 @@ export function DatabaseTable({
               <RefreshCw className={`w-4 h-4 mr-1.5 ${isLoading ? 'animate-spin' : ''}`} />
               Refresh
             </Button>
-            <Link href="/databases/new">
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold h-9 rounded-lg shadow-[0_4px_14px_0_rgba(37,99,235,0.39)] text-[13px]">
+            <Link 
+              href={isMaintenanceMode ? "#" : "/databases/new"} 
+              className={isMaintenanceMode ? "pointer-events-none opacity-50 cursor-not-allowed" : ""}
+            >
+              <Button disabled={isMaintenanceMode} className="bg-blue-600 hover:bg-blue-700 text-white font-semibold h-9 rounded-lg shadow-[0_4px_14px_0_rgba(37,99,235,0.39)] text-[13px]">
                 <Plus className="w-4 h-4 mr-1.5" /> Create New Database
               </Button>
             </Link>
