@@ -284,7 +284,8 @@ export function DatabaseTable({
                                 className="inline-flex h-8 w-8 items-center justify-center rounded-md text-sm font-medium transition-colors hover:bg-indigo-50 text-indigo-500 hover:text-indigo-600 dark:hover:bg-indigo-500/10"
                                 onClick={() => {
                                   const isPg = db.type === 'POSTGRESQL';
-                                  const portal = new URL(dbPortalUrl);
+                                  const validUrl = dbPortalUrl.startsWith('http') ? dbPortalUrl : `https://${dbPortalUrl}`;
+                                  const portal = new URL(validUrl);
                                   portal.searchParams.set(isPg ? 'pgsql' : 'mysql', '');
                                   portal.searchParams.set('server', `host.docker.internal:${db.hostPort}`);
                                   portal.searchParams.set('username', db.dbUser || '');
