@@ -286,12 +286,11 @@ export function DatabaseTable({
                                   const isPg = db.type === 'POSTGRESQL';
                                   const validUrl = dbPortalUrl.startsWith('http') ? dbPortalUrl : `https://${dbPortalUrl}`;
                                   const portal = new URL(validUrl);
-                                  const containerName = `portdock-db-${db.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
-                                  const internalPort = isPg ? '5432' : '3306';
+                                  const hostIp = '127.0.0.1'; 
                                   if (isPg) {
-                                    portal.searchParams.set('pgsql', `${containerName}:${internalPort}`);
+                                    portal.searchParams.set('pgsql', `${hostIp}:${db.hostPort}`);
                                   } else {
-                                    portal.searchParams.set('server', `${containerName}:${internalPort}`);
+                                    portal.searchParams.set('server', `${hostIp}:${db.hostPort}`);
                                   }
                                   portal.searchParams.set('username', db.dbUser || '');
                                   window.open(portal.toString(), '_blank');
