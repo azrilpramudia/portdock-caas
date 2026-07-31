@@ -115,9 +115,11 @@ export class SystemService implements OnModuleInit {
     // Check Nginx
     let nginxStatus: 'Active' | 'Warning' | 'Down' = 'Down';
     try {
-      const response = await fetch('http://127.0.0.1');
-      nginxStatus = response.ok ? 'Active' : 'Warning';
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { execSync } = require('child_process');
+      const nginx = execSync('systemctl is-active nginx', { stdio: 'pipe' })
+        .toString()
+        .trim();
+      nginxStatus = nginx === 'active' ? 'Active' : 'Warning';
     } catch (e) {
       nginxStatus = 'Down';
     }
