@@ -1,7 +1,17 @@
-import { Controller, Get, Delete, Param, UseGuards, Request, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Delete,
+  Param,
+  UseGuards,
+  Request,
+  UnauthorizedException,
+  BadRequestException,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiCookieAuth } from '@nestjs/swagger';
 import { PrismaService } from '../prisma/prisma.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import type { AuthenticatedRequest } from './interfaces/auth.interface';
 
 @ApiTags('sessions')
 @Controller('auth/sessions')
@@ -12,13 +22,13 @@ export class SessionsController {
 
   @Get()
   @ApiOperation({ summary: 'Get all active sessions for current user' })
-  async getSessions(@Request() req: any) {
+  async getSessions(@Request() req: AuthenticatedRequest) {
     const sessions = await this.prisma.session.findMany({
       where: { userId: req.user.id },
       orderBy: { lastActive: 'desc' },
     });
 
-    return sessions.map(session => ({
+    return sessions.map((session) => ({
       ...session,
       isCurrent: session.id === req.user.sessionId,
     }));
@@ -26,7 +36,7 @@ export class SessionsController {
 
   @Delete('others')
   @ApiOperation({ summary: 'Revoke all other sessions' })
-  async revokeOtherSessions(@Request() req: any) {
+  async revokeOtherSessions(@Request() req: AuthenticatedRequest) {
     if (!req.user.sessionId) {
       throw new BadRequestException('Current session ID is missing');
     }
@@ -43,9 +53,14 @@ export class SessionsController {
 
   @Delete(':id')
   @ApiOperation({ summary: 'Revoke a specific session' })
-  async revokeSession(@Request() req: any, @Param('id') id: string) {
+  async revokeSession(
+    @Request() req: AuthenticatedRequest,
+    @Param('id') id: string,
+  ) {
     if (id === req.user.sessionId) {
-      throw new BadRequestException('Cannot revoke the current session here, please logout instead');
+      throw new BadRequestException(
+        'Cannot revoke the current session here, please logout instead',
+      );
     }
 
     const session = await this.prisma.session.findUnique({

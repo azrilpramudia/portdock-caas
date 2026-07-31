@@ -21,6 +21,7 @@ import { MonitoringHistoricalCharts } from "@/components/admin/monitoring/Monito
 import { MonitoringServicesList } from "@/components/admin/monitoring/MonitoringServicesList";
 import { ServerInfoPanel } from "@/components/admin/monitoring/ServerInfoPanel";
 import { TopContainersPanel } from "@/components/admin/monitoring/TopContainersPanel";
+import { StorageHealthPanel } from "@/components/admin/monitoring/StorageHealthPanel";
 import { NginxLogsTerminal } from "@/components/admin/monitoring/NginxLogsTerminal";
 import { useNginxLogsSession } from "@/hooks/useNginxLogsSession";
 
@@ -132,8 +133,13 @@ export default function AdminMonitoringPage() {
 
         {/* Info Panels */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <ServerInfoPanel data={data.serverInfo} />
-          <TopContainersPanel topContainers={data.topContainers} />
+          <div className="lg:col-span-1 flex flex-col gap-6">
+            <ServerInfoPanel data={data.serverInfo} />
+            <StorageHealthPanel data={data.dockerStorage} />
+          </div>
+          <div className="lg:col-span-2">
+            <TopContainersPanel topContainers={data.topContainers} />
+          </div>
         </div>
 
         <MonitoringServicesList services={data.services} />

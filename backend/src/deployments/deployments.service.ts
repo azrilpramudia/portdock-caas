@@ -40,7 +40,10 @@ export class DeploymentsService {
     });
     if (!setting) return [];
     try {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const parsed = JSON.parse(setting.value);
+
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       return Object.entries(parsed).map(([k, v]) => `${k}=${v}`);
     } catch {
       return [];
@@ -85,7 +88,7 @@ export class DeploymentsService {
         domain: project.domain,
         status: 'In Progress',
         progress: 0,
-      }
+      },
     });
 
     try {
@@ -127,19 +130,29 @@ export class DeploymentsService {
         if (k && v) parsedEnvRecord[k] = v;
       });
       if (project.envVars && typeof project.envVars === 'object') {
-        Object.assign(parsedEnvRecord, project.envVars as Record<string, string>);
+        Object.assign(
+          parsedEnvRecord,
+          project.envVars as Record<string, string>,
+        );
       }
-      
+
       // Add default NIXPACKS_NODE_VERSION to 20 if not present
       if (!parsedEnvRecord['NIXPACKS_NODE_VERSION']) {
         parsedEnvRecord['NIXPACKS_NODE_VERSION'] = '20';
       }
 
       if (fs.existsSync(dockerfilePath)) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const tarStream = tar.pack(extractDir);
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         await this.docker.buildImage(tarStream, imageName, imageTag);
       } else {
-        await this.docker.buildWithNixpacks(extractDir, imageName, imageTag, parsedEnvRecord);
+        await this.docker.buildWithNixpacks(
+          extractDir,
+          imageName,
+          imageTag,
+          parsedEnvRecord,
+        );
       }
 
       // Find available port
@@ -150,7 +163,7 @@ export class DeploymentsService {
       const internalPort = customInternalPort || detectedPort;
 
       // Prepare dockerEnv for HostConfig
-      let dockerEnv = [`PORT=${internalPort}`];
+      const dockerEnv = [`PORT=${internalPort}`];
       Object.entries(parsedEnvRecord).forEach(([k, v]) => {
         dockerEnv.push(`${k}=${v}`);
       });
@@ -225,7 +238,7 @@ export class DeploymentsService {
       this.eventEmitter.emit('deployment.success', {
         projectName: project.name,
         domain: project.domain,
-        timeMs: new Date().getTime() - deployment.startedAt.getTime()
+        timeMs: new Date().getTime() - deployment.startedAt.getTime(),
       });
 
       // Generate Nginx config if domain exists
@@ -262,7 +275,7 @@ export class DeploymentsService {
         userId,
         projectId,
         action: 'DEPLOYMENT_FAILED',
-        description: `Deployment failed: ${err.message}`,
+        description: `Deployment failed: ${err instanceof Error ? err.message : String(err)}`,
         status: 'Failed',
         ipAddress: ip,
       });
@@ -277,12 +290,14 @@ export class DeploymentsService {
 
       this.eventEmitter.emit('deployment.failed', {
         projectName: project.name,
-        reason: err.message
+        reason: err instanceof Error ? err.message : String(err),
       });
 
       this.archive.cleanup(extractDir, file.path);
 
-      throw new BadRequestException(`Deployment failed: ${err.message}`);
+      throw new BadRequestException(
+        `Deployment failed: ${err instanceof Error ? err.message : String(err)}`,
+      );
     }
   }
 
@@ -325,7 +340,7 @@ export class DeploymentsService {
         domain: project.domain,
         status: 'In Progress',
         progress: 0,
-      }
+      },
     });
 
     const user = await this.prisma.user.findUnique({
@@ -370,14 +385,17 @@ export class DeploymentsService {
 
       // Parse environment variables
       const globalEnvVars = await this.getGlobalEnvVarsArray();
-      
+
       const parsedEnvRecord: Record<string, string> = {};
-      globalEnvVars.forEach(e => {
+      globalEnvVars.forEach((e) => {
         const [k, v] = e.split('=');
         if (k && v) parsedEnvRecord[k] = v;
       });
       if (project.envVars && typeof project.envVars === 'object') {
-        Object.assign(parsedEnvRecord, project.envVars as Record<string, string>);
+        Object.assign(
+          parsedEnvRecord,
+          project.envVars as Record<string, string>,
+        );
       }
 
       // Add default NIXPACKS_NODE_VERSION to 20 if not present
@@ -386,10 +404,17 @@ export class DeploymentsService {
       }
 
       if (fs.existsSync(dockerfilePath)) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const tarStream = tar.pack(cloneDir);
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         await this.docker.buildImage(tarStream, imageName, imageTag);
       } else {
-        await this.docker.buildWithNixpacks(cloneDir, imageName, imageTag, parsedEnvRecord);
+        await this.docker.buildWithNixpacks(
+          cloneDir,
+          imageName,
+          imageTag,
+          parsedEnvRecord,
+        );
       }
 
       const hostPort = await this.getAvailablePort();
@@ -398,7 +423,7 @@ export class DeploymentsService {
       );
       const internalPort = customInternalPort || detectedPort;
 
-      let dockerEnv = [`PORT=${internalPort}`];
+      const dockerEnv = [`PORT=${internalPort}`];
       Object.entries(parsedEnvRecord).forEach(([k, v]) => {
         dockerEnv.push(`${k}=${v}`);
       });
@@ -472,7 +497,7 @@ export class DeploymentsService {
       this.eventEmitter.emit('deployment.success', {
         projectName: project.name,
         domain: project.domain,
-        timeMs: new Date().getTime() - deployment.startedAt.getTime()
+        timeMs: new Date().getTime() - deployment.startedAt.getTime(),
       });
 
       // Generate Nginx config if domain exists
@@ -507,7 +532,7 @@ export class DeploymentsService {
         userId,
         projectId,
         action: 'DEPLOYMENT_FAILED',
-        description: `GitHub deployment failed: ${err.message}`,
+        description: `GitHub deployment failed: ${err instanceof Error ? err.message : String(err)}`,
         status: 'Failed',
         ipAddress: ip,
       });
@@ -522,12 +547,14 @@ export class DeploymentsService {
 
       this.eventEmitter.emit('deployment.failed', {
         projectName: project.name,
-        reason: err.message
+        reason: err instanceof Error ? err.message : String(err),
       });
 
       this.archive.cleanup(cloneDir);
 
-      throw new BadRequestException(`Deployment failed: ${err.message}`);
+      throw new BadRequestException(
+        `Deployment failed: ${err instanceof Error ? err.message : String(err)}`,
+      );
     }
   }
 
@@ -573,7 +600,7 @@ export class DeploymentsService {
         domain: project.domain,
         status: 'In Progress',
         progress: 0,
-      }
+      },
     });
 
     try {
@@ -585,7 +612,10 @@ export class DeploymentsService {
       const imageTag = `v${Date.now()}`;
 
       // Build Image
+
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const tarStream = tar.pack(extractDir);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       await this.docker.buildImage(tarStream, imageName, imageTag);
 
       // Find available port
@@ -667,12 +697,14 @@ export class DeploymentsService {
       this.eventEmitter.emit('deployment.success', {
         projectName: project.name,
         domain: project.domain,
-        timeMs: new Date().getTime() - deployment.startedAt.getTime()
+        timeMs: new Date().getTime() - deployment.startedAt.getTime(),
       });
 
       if (project.domain) {
         const domain = project.domain;
-        const projectNameSafe = project.name.toLowerCase().replace(/[^a-z0-9]/g, '-');
+        const projectNameSafe = project.name
+          .toLowerCase()
+          .replace(/[^a-z0-9]/g, '-');
         const pathRoute = projectNameSafe;
         await this.nginx.generateHttpConfig(domain, hostPort, pathRoute);
 
@@ -705,7 +737,7 @@ export class DeploymentsService {
         userId,
         projectId,
         action: 'DEPLOYMENT_FAILED',
-        description: `Custom Dockerfile deployment failed: ${err.message}`,
+        description: `Custom Dockerfile deployment failed: ${err instanceof Error ? err.message : String(err)}`,
         status: 'Failed',
         ipAddress: ip,
       });
@@ -720,12 +752,14 @@ export class DeploymentsService {
 
       this.eventEmitter.emit('deployment.failed', {
         projectName: project.name,
-        reason: err.message
+        reason: err instanceof Error ? err.message : String(err),
       });
 
       this.archive.cleanup(extractDir, file.path);
 
-      throw new BadRequestException(`Deployment failed: ${err.message}`);
+      throw new BadRequestException(
+        `Deployment failed: ${err instanceof Error ? err.message : String(err)}`,
+      );
     }
   }
 
@@ -775,7 +809,7 @@ export class DeploymentsService {
             }
           } catch (e) {
             this.logger.error(
-              `Failed to remove old docker container or image: ${e.message}`,
+              `Failed to remove old docker container or image: ${e instanceof Error ? e.message : String(e)}`,
             );
           }
         }
@@ -783,7 +817,7 @@ export class DeploymentsService {
       }
     } catch (err) {
       this.logger.error(
-        `Error during cleanup of old containers: ${err.message}`,
+        `Error during cleanup of old containers: ${err instanceof Error ? err.message : String(err)}`,
       );
     }
   }

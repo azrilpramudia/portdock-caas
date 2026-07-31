@@ -102,7 +102,10 @@ export class TerminalGateway
           this.cleanupSession(client.id);
         },
         (err) => {
-          client.emit('terminal_error', err.message);
+          client.emit(
+            'terminal_error',
+            err instanceof Error ? err.message : String(err),
+          );
           this.cleanupSession(client.id);
         },
       );
@@ -110,7 +113,10 @@ export class TerminalGateway
       this.sessions.set(client.id, session);
       client.emit('terminal_ready', { host: container.name });
     } catch (err) {
-      client.emit('terminal_error', err.message);
+      client.emit(
+        'terminal_error',
+        err instanceof Error ? err.message : String(err),
+      );
     }
   }
 
@@ -135,6 +141,7 @@ export class TerminalGateway
         });
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       if (!container || !container.dockerContainerId) {
         client.emit(
           'app_logs_error',
@@ -147,20 +154,29 @@ export class TerminalGateway
       this.cleanupSession(client.id);
 
       const session = await this.terminalService.streamApplicationLogs(
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         container.dockerContainerId,
         (chunk) => {
           client.emit('app_logs_output', chunk);
         },
         (err) => {
-          client.emit('app_logs_error', err.message);
+          client.emit(
+            'app_logs_error',
+            err instanceof Error ? err.message : String(err),
+          );
           this.cleanupSession(client.id);
         },
       );
 
       this.sessions.set(client.id, session);
+
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       client.emit('app_logs_ready', { host: container.name });
     } catch (err) {
-      client.emit('app_logs_error', err.message);
+      client.emit(
+        'app_logs_error',
+        err instanceof Error ? err.message : String(err),
+      );
     }
   }
 
@@ -194,7 +210,7 @@ export class TerminalGateway
               })
               .catch((err) =>
                 this.logger.error(
-                  `Failed to save terminal log: ${err.message}`,
+                  `Failed to save terminal log: ${err instanceof Error ? err.message : String(err)}`,
                 ),
               );
           }
@@ -204,6 +220,7 @@ export class TerminalGateway
         // Backspace
         this.commandBuffers.set(client.id, buffer.slice(0, -1));
       } else {
+        // eslint-disable-next-line no-control-regex
         const printable = input.replace(/[\u0000-\u001F\u007F-\u009F]/g, '');
         this.commandBuffers.set(client.id, buffer + printable);
       }
@@ -228,6 +245,7 @@ export class TerminalGateway
   }
 
   @SubscribeMessage('connect_nginx_logs')
+  // eslint-disable-next-line @typescript-eslint/require-await
   async handleConnectNginxLogs(
     @ConnectedSocket() client: Socket,
     @MessageBody() data: { logType?: string },
@@ -246,21 +264,31 @@ export class TerminalGateway
       // Cleanup any existing session for this client
       this.cleanupSession(client.id);
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const { spawn } = require('child_process');
+
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const tail = spawn('tail', ['-n', '200', '-f', logFile]);
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
       tail.stdout.on('data', (chunk: Buffer) => {
         client.emit('nginx_logs_output', chunk.toString('utf8'));
       });
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
       tail.stderr.on('data', (chunk: Buffer) => {
         client.emit('nginx_logs_error', chunk.toString('utf8'));
       });
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
       tail.on('error', (err: Error) => {
-        client.emit('nginx_logs_error', `Failed to tail log: ${err.message}`);
+        client.emit(
+          'nginx_logs_error',
+          `Failed to tail log: ${err instanceof Error ? err.message : String(err)}`,
+        );
       });
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
       tail.on('close', () => {
         client.emit('nginx_logs_output', '\r\n[Log stream ended]\r\n');
       });
@@ -268,7 +296,9 @@ export class TerminalGateway
       this.sessions.set(client.id, {
         kill: () => {
           try {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
             tail.kill();
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
           } catch (e) {
             // Ignore
           }
@@ -277,7 +307,10 @@ export class TerminalGateway
 
       client.emit('nginx_logs_ready', { logType, logFile });
     } catch (err) {
-      client.emit('nginx_logs_error', err.message);
+      client.emit(
+        'nginx_logs_error',
+        err instanceof Error ? err.message : String(err),
+      );
     }
   }
 

@@ -5,6 +5,7 @@ import {
   Delete,
   Param,
   Body,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   Put,
   UseGuards,
   Request,
@@ -17,6 +18,7 @@ import { ApiTags, ApiOperation, ApiCookieAuth } from '@nestjs/swagger';
 import { DatabasesService } from './databases.service';
 import { CreateDatabaseDto } from './dto/create-database.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import type { AuthenticatedRequest } from '../auth/interfaces/auth.interface';
 
 @ApiTags('Databases')
 @ApiCookieAuth()
@@ -28,49 +30,69 @@ export class DatabasesController {
   @Post()
   @Throttle({ default: { limit: 5, ttl: 3600000 } }) // 5 requests per 1 hour
   @ApiOperation({ summary: 'Create a new managed database' })
-  create(@Request() req: any, @Body() dto: CreateDatabaseDto, @Ip() ip: string) {
+  create(
+    @Request() req: AuthenticatedRequest,
+    @Body() dto: CreateDatabaseDto,
+    @Ip() ip: string,
+  ) {
     return this.databasesService.create(req.user.id, dto, ip);
   }
 
   @Get()
   @ApiOperation({ summary: 'Get all managed databases' })
-  findAll(@Request() req: any) {
+  findAll(@Request() req: AuthenticatedRequest) {
     return this.databasesService.findAll(req.user.id);
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get a managed database by ID' })
-  findOne(@Request() req: any, @Param('id') id: string) {
+  findOne(@Request() req: AuthenticatedRequest, @Param('id') id: string) {
     return this.databasesService.findOne(req.user.id, id);
   }
 
   @Post(':id/start')
   @ApiOperation({ summary: 'Start a managed database' })
-  start(@Request() req: any, @Param('id') id: string, @Ip() ip: string) {
+  start(
+    @Request() req: AuthenticatedRequest,
+    @Param('id') id: string,
+    @Ip() ip: string,
+  ) {
     return this.databasesService.start(req.user.id, id, ip);
   }
 
   @Post(':id/stop')
   @ApiOperation({ summary: 'Stop a managed database' })
-  stop(@Request() req: any, @Param('id') id: string, @Ip() ip: string) {
+  stop(
+    @Request() req: AuthenticatedRequest,
+    @Param('id') id: string,
+    @Ip() ip: string,
+  ) {
     return this.databasesService.stop(req.user.id, id, ip);
   }
 
   @Post(':id/restart')
   @ApiOperation({ summary: 'Restart a managed database' })
-  restart(@Request() req: any, @Param('id') id: string, @Ip() ip: string) {
+  restart(
+    @Request() req: AuthenticatedRequest,
+    @Param('id') id: string,
+    @Ip() ip: string,
+  ) {
     return this.databasesService.restart(req.user.id, id, ip);
   }
 
   @Post(':id/reset-password')
   @ApiOperation({ summary: 'Reset database password' })
-  resetPassword(@Request() req: any, @Param('id') id: string) {
+  resetPassword(@Request() req: AuthenticatedRequest, @Param('id') id: string) {
     return this.databasesService.resetPassword(req.user.id, id);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a managed database' })
-  remove(@Request() req: any, @Param('id') id: string, @Ip() ip: string) {
+  remove(
+    @Request() req: AuthenticatedRequest,
+    @Param('id') id: string,
+    @Ip() ip: string,
+  ) {
     return this.databasesService.remove(req.user.id, id, ip);
   }
 
@@ -78,43 +100,65 @@ export class DatabasesController {
 
   @Get(':id/stats')
   @ApiOperation({ summary: 'Get real-time database stats' })
-  getStats(@Request() req: any, @Param('id') id: string) {
+  getStats(@Request() req: AuthenticatedRequest, @Param('id') id: string) {
     return this.databasesService.getStats(req.user.id, id);
   }
-
-
 
   // Backup Endpoints
 
   @Get(':id/backups')
   @ApiOperation({ summary: 'List backups for a database' })
-  listBackups(@Request() req: any, @Param('id') id: string) {
+  listBackups(@Request() req: AuthenticatedRequest, @Param('id') id: string) {
     return this.databasesService.listBackups(req.user.id, id);
   }
 
   @Post(':id/backups')
   @ApiOperation({ summary: 'Create a backup for a database' })
-  createBackup(@Request() req: any, @Param('id') id: string, @Ip() ip: string) {
+  createBackup(
+    @Request() req: AuthenticatedRequest,
+    @Param('id') id: string,
+    @Ip() ip: string,
+  ) {
     return this.databasesService.createBackup(req.user.id, id, ip);
   }
 
   @Delete(':id/backups/:backupId')
   @ApiOperation({ summary: 'Delete a database backup' })
-  deleteBackup(@Request() req: any, @Param('id') id: string, @Param('backupId') backupId: string) {
+  deleteBackup(
+    @Request() req: AuthenticatedRequest,
+    @Param('id') id: string,
+    @Param('backupId') backupId: string,
+  ) {
     return this.databasesService.deleteBackup(req.user.id, id, backupId);
   }
 
   @Post(':id/backups/:backupId/restore')
   @ApiOperation({ summary: 'Restore a database backup' })
-  restoreBackup(@Request() req: any, @Param('id') id: string, @Param('backupId') backupId: string, @Ip() ip: string) {
+  restoreBackup(
+    @Request() req: AuthenticatedRequest,
+    @Param('id') id: string,
+    @Param('backupId') backupId: string,
+    @Ip() ip: string,
+  ) {
     return this.databasesService.restoreBackup(req.user.id, id, backupId, ip);
   }
 
   @Get(':id/backups/:backupId/download')
   @ApiOperation({ summary: 'Download a database backup' })
-  async downloadBackup(@Request() req: any, @Param('id') id: string, @Param('backupId') backupId: string, @Res({ passthrough: true }) res: any) {
-    const fileStream = await this.databasesService.getBackupStream(req.user.id, id, backupId);
+  async downloadBackup(
+    @Request() req: AuthenticatedRequest,
+    @Param('id') id: string,
+    @Param('backupId') backupId: string,
+    @Res({ passthrough: true }) res: any,
+  ) {
+    const fileStream = await this.databasesService.getBackupStream(
+      req.user.id,
+      id,
+      backupId,
+    );
     const backup = await this.databasesService.getBackupRecord(backupId);
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     res.set({
       'Content-Type': 'application/sql',
       'Content-Disposition': `attachment; filename="${backup.filename}"`,

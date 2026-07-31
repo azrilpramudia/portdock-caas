@@ -13,7 +13,7 @@ interface ServerInfoPanelProps {
 
 export function ServerInfoPanel({ data }: ServerInfoPanelProps) {
   return (
-    <div className="bg-card border border-border rounded-xl p-6 shadow-sm">
+    <div className="bg-card border border-border rounded-xl p-6 shadow-sm flex-1 flex flex-col">
       <h3 className="text-base font-bold text-foreground mb-6">Server Information</h3>
       <div className="space-y-5">
         <div className="flex justify-between items-center text-sm">

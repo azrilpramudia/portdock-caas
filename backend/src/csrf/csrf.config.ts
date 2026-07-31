@@ -4,7 +4,8 @@ export const {
   generateCsrfToken, // Use this in your routes to provide a CSRF hash cookie and token.
   doubleCsrfProtection, // This is the default CSRF protection middleware.
 } = doubleCsrf({
-  getSecret: () => process.env.CSRF_SECRET || 'PortdockCsrfSuperSecret2026', 
+  getSecret: () => process.env.CSRF_SECRET || 'PortdockCsrfSuperSecret2026',
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   getSessionIdentifier: (req) => 'stateless', // We use stateless JWTs
   cookieName: 'x-csrf-token', // The name of the cookie to be used
   cookieOptions: {
@@ -12,8 +13,8 @@ export const {
     sameSite: 'none',
     secure: true,
     path: '/',
-  }, 
-  size: 64, 
+  },
+  size: 64,
   ignoredMethods: ['GET', 'HEAD', 'OPTIONS'],
-  getCsrfTokenFromRequest: (req) => req.headers['x-csrf-token'] as string, 
+  getCsrfTokenFromRequest: (req) => req.headers['x-csrf-token'],
 });

@@ -1,4 +1,6 @@
-import { Controller, UnauthorizedException,
+import {
+  Controller,
+  UnauthorizedException,
   Post,
   Get,
   Body,
@@ -12,21 +14,25 @@ import { Controller, UnauthorizedException,
 } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import type { Response, Request as ExpressRequest } from 'express';
-import { ApiTags,
+import {
+  ApiTags,
   ApiOperation,
   ApiCookieAuth,
   ApiParam,
   ApiResponse,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   ApiExcludeEndpoint,
 } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
+import type { AuthenticatedRequest } from './interfaces/auth.interface';
 import { LoginDto } from './dto/login.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RolesGuard } from './guards/roles.guard';
 import { Roles } from './decorators/roles.decorator';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Role } from '@generated/prisma';
 import { generateCsrfToken } from '../csrf/csrf.config';
 
@@ -37,7 +43,10 @@ export class AuthController {
 
   @Get('csrf-token')
   @ApiOperation({ summary: 'Get CSRF token' })
-  getCsrfToken(@Req() req: ExpressRequest, @Res({ passthrough: true }) res: Response) {
+  getCsrfToken(
+    @Req() req: ExpressRequest,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     const csrfToken = generateCsrfToken(req, res);
     return { csrfToken };
   }
@@ -95,7 +104,7 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @ApiCookieAuth()
   @ApiOperation({ summary: 'Get current user profile' })
-  getMe(@Request() req: any) {
+  getMe(@Request() req: AuthenticatedRequest) {
     return this.authService.getMe(req.user.id);
   }
 
@@ -104,7 +113,7 @@ export class AuthController {
   @ApiCookieAuth()
   @ApiOperation({ summary: 'Update user profile' })
   updateProfile(
-    @Request() req: any,
+    @Request() req: AuthenticatedRequest,
     @Body() dto: UpdateProfileDto,
     @Ip() ip: string,
   ) {
@@ -116,7 +125,7 @@ export class AuthController {
   @ApiCookieAuth()
   @ApiOperation({ summary: 'Update user password' })
   updatePassword(
-    @Request() req: any,
+    @Request() req: AuthenticatedRequest,
     @Body() dto: UpdatePasswordDto,
     @Ip() ip: string,
   ) {
@@ -127,7 +136,7 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @ApiCookieAuth()
   @ApiOperation({ summary: 'Generate a new SSH key pair' })
-  generateSshKey(@Request() req: any, @Ip() ip: string) {
+  generateSshKey(@Request() req: AuthenticatedRequest, @Ip() ip: string) {
     return this.authService.generateSshKey(req.user.id, ip);
   }
 
@@ -136,7 +145,7 @@ export class AuthController {
   @ApiCookieAuth()
   @ApiOperation({ summary: 'Connect GitHub via Personal Access Token' })
   connectGithub(
-    @Request() req: any,
+    @Request() req: AuthenticatedRequest,
     @Body('token') token: string,
     @Ip() ip: string,
   ) {
@@ -147,7 +156,7 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @ApiCookieAuth()
   @ApiOperation({ summary: 'Disconnect GitHub account' })
-  disconnectGithub(@Request() req: any, @Ip() ip: string) {
+  disconnectGithub(@Request() req: AuthenticatedRequest, @Ip() ip: string) {
     return this.authService.disconnectGithub(req.user.id, ip);
   }
 
@@ -156,7 +165,7 @@ export class AuthController {
   @ApiCookieAuth()
   @ApiOperation({ summary: 'Delete own account and all resources' })
   deleteAccount(
-    @Request() req: any,
+    @Request() req: AuthenticatedRequest,
     @Res({ passthrough: true }) res: Response,
   ) {
     res.clearCookie('access_token');
@@ -209,33 +218,42 @@ export class AuthController {
 
   @Post('2fa/setup')
   @UseGuards(JwtAuthGuard)
-  async setup2fa(@Request() req: any) {
+  async setup2fa(@Request() req: AuthenticatedRequest) {
     return this.authService.setup2fa(req.user.id);
   }
 
   @Post('2fa/turn-off')
   @UseGuards(JwtAuthGuard)
-  async turnOff2fa(@Request() req: any) {
+  async turnOff2fa(@Request() req: AuthenticatedRequest) {
     return this.authService.turnOff2fa(req.user.id);
   }
 
   @Post('2fa/verify')
   async verify2fa(
     @Body() body: { token: string; setupToken: string; isSetup: boolean },
-    @Request() req: any,
-    @Res({ passthrough: true }) res: Response
+    @Request() req: AuthenticatedRequest,
+    @Res({ passthrough: true }) res: Response,
   ) {
     // We need to decode the setupToken (or tempToken) to get the user ID.
     let payload;
     try {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       payload = this.authService['jwtService'].verify(body.setupToken);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (e) {
       throw new UnauthorizedException('Invalid or expired 2FA session');
     }
-    
+
     const userAgent = req.headers['user-agent'] || 'Unknown Device';
-    const data = await this.authService.verify2fa(payload.sub, body.token, body.isSetup, req.ip || req.connection.remoteAddress, userAgent);
-    
+    const data = await this.authService.verify2fa(
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      payload.sub,
+      body.token,
+      body.isSetup,
+      (req.ip || req.socket.remoteAddress) as string,
+      userAgent,
+    );
+
     if (data.token) {
       res.cookie('access_token', data.token, {
         httpOnly: true,
@@ -244,8 +262,7 @@ export class AuthController {
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       });
     }
-    
+
     return data;
   }
-
 }

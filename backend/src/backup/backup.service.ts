@@ -3,6 +3,7 @@ import {
   Logger,
   InternalServerErrorException,
 } from '@nestjs/common';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { ConfigService } from '@nestjs/config';
 import * as fs from 'fs';
@@ -32,7 +33,9 @@ export class BackupService {
     try {
       await this.runBackup();
     } catch (error) {
-      this.logger.error(`Scheduled backup failed: ${error.message}`);
+      this.logger.error(
+        `Scheduled backup failed: ${error instanceof Error ? error.message : String(error)}`,
+      );
     }
   }
 
@@ -63,6 +66,7 @@ export class BackupService {
       // Using postgres:15 alpine image because it's small and contains pg_dump
       const dockerCmd = `docker run --rm --network host -e PGPASSWORD="${password}" postgres:15-alpine pg_dump -h ${host} -p ${port} -U ${username} -d ${dbName} | gzip > ${filePath}`;
 
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { stdout, stderr } = await execAsync(dockerCmd);
 
       if (stderr) {
@@ -82,10 +86,13 @@ export class BackupService {
       };
     } catch (error) {
       this.logger.error('Database backup failed', error);
-      throw new InternalServerErrorException(`Backup failed: ${error.message}`);
+      throw new InternalServerErrorException(
+        `Backup failed: ${error instanceof Error ? error.message : String(error)}`,
+      );
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   private async enforceRetentionPolicy() {
     try {
       const files = fs

@@ -22,7 +22,10 @@ export class GitService {
     );
 
     let finalUrl = repositoryUrl;
-    const env: Record<string, string | undefined> = { ...process.env, GIT_TERMINAL_PROMPT: '0' };
+    const env: Record<string, string | undefined> = {
+      ...process.env,
+      GIT_TERMINAL_PROMPT: '0',
+    };
     let tempKeyPath: string | null = null;
 
     if (credentials?.sshPrivateKey && repositoryUrl.startsWith('git@')) {

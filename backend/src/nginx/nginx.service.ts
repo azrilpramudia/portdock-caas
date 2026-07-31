@@ -33,14 +33,19 @@ export class NginxService {
     if (!fs.existsSync(maintenanceFile)) {
       fs.writeFileSync(maintenanceFile, '');
     }
-    
+
     // Create base domain config
     const baseDomain = this.configService.get<string>('BASE_DOMAIN');
     if (baseDomain) {
       const baseConfPath = path.join(this.confDir, '00-base-domain.conf');
       const certbotConfDir = path.resolve(process.cwd(), 'certbot-conf');
-      const baseCertPath = path.join(certbotConfDir, 'live', baseDomain, 'fullchain.pem');
-      
+      const baseCertPath = path.join(
+        certbotConfDir,
+        'live',
+        baseDomain,
+        'fullchain.pem',
+      );
+
       let baseConfContent = `
 server {
     listen 80;
@@ -74,14 +79,14 @@ server {
 }
 `;
       }
-      
+
       fs.writeFileSync(baseConfPath, baseConfContent);
     }
   }
 
   private async addToHostsFile(domain: string): Promise<void> {
     if (domain === 'localhost' || domain === '127.0.0.1') return;
-    
+
     return new Promise((resolve) => {
       try {
         const hostsContent = fs.readFileSync('/etc/hosts', 'utf8');
@@ -89,11 +94,14 @@ server {
           this.logger.log(`Domain ${domain} already exists in /etc/hosts`);
           return resolve();
         }
+
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (e) {}
 
       const scriptPath = path.resolve(process.cwd(), 'scripts', 'add-host.sh');
       const command = `sudo ${scriptPath} ${domain}`;
-      
+
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       exec(command, (error, stdout, stderr) => {
         if (error) {
           this.logger.error(`Failed to add ${domain} to /etc/hosts`, error);
@@ -108,7 +116,11 @@ server {
   /**
    * Menghasilkan HTTP file Nginx (port 80) yang mendukung Let's Encrypt webroot
    */
-  async generateHttpConfig(domain: string, hostPort: number, projectName?: string): Promise<void> {
+  async generateHttpConfig(
+    domain: string,
+    hostPort: number,
+    projectName?: string,
+  ): Promise<void> {
     const templatePath = path.join(this.confDir, 'template-http.conf');
     let confContent = '';
 
@@ -164,7 +176,9 @@ location /${projectName}/ {
 `;
       const pathConfPath = path.join(this.pathsDir, `${projectName}.conf`);
       fs.writeFileSync(pathConfPath, pathConfContent);
-      this.logger.log(`Path-based config created for /${projectName}/ -> Port ${hostPort}`);
+      this.logger.log(
+        `Path-based config created for /${projectName}/ -> Port ${hostPort}`,
+      );
     } else {
       // Only add to hosts file if it's a custom domain, not path based
       await this.addToHostsFile(domain);
@@ -209,17 +223,22 @@ location /${projectName}/ {
       }
 
       if (process.env.NODE_ENV === 'development') {
-        this.logger.log(`Generating mkcert SSL for ${domain} in development mode...`);
+        this.logger.log(
+          `Generating mkcert SSL for ${domain} in development mode...`,
+        );
         const domainCertDir = path.join(certbotConfDir, 'live', domain);
         if (!fs.existsSync(domainCertDir)) {
           fs.mkdirSync(domainCertDir, { recursive: true });
         }
-        
+
         return new Promise((resolve) => {
           const mkcertCmd = `mkcert -cert-file "${path.join(domainCertDir, 'fullchain.pem')}" -key-file "${path.join(domainCertDir, 'privkey.pem')}" "${domain}"`;
           exec(mkcertCmd, (error) => {
             if (error) {
-              this.logger.error(`Failed to generate mkcert for ${domain}`, error);
+              this.logger.error(
+                `Failed to generate mkcert for ${domain}`,
+                error,
+              );
               resolve(false);
             } else {
               this.logger.log(`Successfully generated mkcert for ${domain}`);
@@ -276,19 +295,25 @@ location /${projectName}/ {
         stderr: true,
       });
       stream.on('data', (chunk) =>
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         this.logger.debug(`Certbot: ${chunk.toString('utf8')}`),
       );
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const result = await container.wait();
 
       try {
         await container.remove();
+
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (e) {}
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       if (result.StatusCode === 0) {
         this.logger.log(`SSL certificate successfully generated for ${domain}`);
         return true;
       } else {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         this.logger.warn(`Certbot failed with status ${result.StatusCode}`);
         return false;
       }
@@ -301,7 +326,11 @@ location /${projectName}/ {
   /**
    * Menghasilkan HTTPS file Nginx (port 443 + redirect) setelah SSL berhasil
    */
-  async generateHttpsConfig(domain: string, hostPort: number, projectName?: string): Promise<void> {
+  async generateHttpsConfig(
+    domain: string,
+    hostPort: number,
+    projectName?: string,
+  ): Promise<void> {
     const baseDomain = this.configService.get<string>('BASE_DOMAIN');
     let certPath = `/etc/letsencrypt/live/${domain}/fullchain.pem`;
     let keyPath = `/etc/letsencrypt/live/${domain}/privkey.pem`;
@@ -333,8 +362,8 @@ location /${projectName}/ {
         .replace(/{{keyPath}}/g, keyPath);
     } else {
       const forceHttps = process.env.FORCE_HTTPS !== 'false';
-      const httpRedirectOrProxy = forceHttps 
-        ? `        return 301 https://$host$request_uri;` 
+      const httpRedirectOrProxy = forceHttps
+        ? `        return 301 https://$host$request_uri;`
         : `        include /etc/nginx/conf.d/maintenance/status.conf;
         proxy_pass http://127.0.0.1:${hostPort};
         proxy_set_header Host $host;
@@ -387,8 +416,13 @@ server {
     // Also update base domain to support HTTPS if it has a wildcard or base cert
     if (baseDomain) {
       const certbotConfDir = path.resolve(process.cwd(), 'certbot-conf');
-      const baseCertPath = path.join(certbotConfDir, 'live', baseDomain, 'fullchain.pem');
-      
+      const baseCertPath = path.join(
+        certbotConfDir,
+        'live',
+        baseDomain,
+        'fullchain.pem',
+      );
+
       if (fs.existsSync(baseCertPath)) {
         const baseConfPath = path.join(this.confDir, '00-base-domain.conf');
         const baseConfContent = `
@@ -439,7 +473,7 @@ server {
       fs.unlinkSync(confPath);
       this.logger.log(`Removed Nginx config for ${domain}`);
     }
-    
+
     if (projectName) {
       const pathConfPath = path.join(this.pathsDir, `${projectName}.conf`);
       if (fs.existsSync(pathConfPath)) {
@@ -450,12 +484,19 @@ server {
 
     // Menghapus domain dari /etc/hosts secara otomatis tanpa password (Passwordless Sudo)
     if (domain) {
-      const scriptPath = path.resolve(process.cwd(), 'scripts', 'remove-host.sh');
+      const scriptPath = path.resolve(
+        process.cwd(),
+        'scripts',
+        'remove-host.sh',
+      );
       const command = `sudo ${scriptPath} ${domain}`;
-      
+
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       exec(command, (error, stdout, stderr) => {
         if (error) {
-          this.logger.error(`Failed to remove ${domain} from /etc/hosts: ${error.message}`);
+          this.logger.error(
+            `Failed to remove ${domain} from /etc/hosts: ${error.message}`,
+          );
         } else {
           this.logger.log(`Successfully removed ${domain} from /etc/hosts`);
         }
@@ -490,7 +531,11 @@ server {
 
   @OnEvent('system.maintenance.toggled')
   async handleMaintenanceToggle(payload: { enabled: boolean }) {
-    const maintenanceFile = path.join(this.confDir, 'maintenance', 'status.conf');
+    const maintenanceFile = path.join(
+      this.confDir,
+      'maintenance',
+      'status.conf',
+    );
     if (payload.enabled) {
       const content = `
         default_type text/html;
@@ -500,15 +545,24 @@ server {
     } else {
       fs.writeFileSync(maintenanceFile, '');
     }
-    
+
     // Attempt to inject include into any existing configs that miss it
     try {
-      const files = fs.readdirSync(this.confDir).filter(f => f.endsWith('.conf') && f !== '00-base-domain.conf');
+      const files = fs
+        .readdirSync(this.confDir)
+        .filter((f) => f.endsWith('.conf') && f !== '00-base-domain.conf');
       for (const file of files) {
         const p = path.join(this.confDir, file);
         let content = fs.readFileSync(p, 'utf8');
-        if (!content.includes('include /etc/nginx/conf.d/maintenance/status.conf;')) {
-          content = content.replace(/location \/ \{/g, 'location / {\n        include /etc/nginx/conf.d/maintenance/status.conf;');
+        if (
+          !content.includes(
+            'include /etc/nginx/conf.d/maintenance/status.conf;',
+          )
+        ) {
+          content = content.replace(
+            /location \/ \{/g,
+            'location / {\n        include /etc/nginx/conf.d/maintenance/status.conf;',
+          );
           fs.writeFileSync(p, content);
         }
       }
@@ -516,7 +570,9 @@ server {
       this.logger.error('Failed to update existing configs for maintenance', e);
     }
 
-    this.logger.log(`Maintenance mode ${payload.enabled ? 'enabled' : 'disabled'}`);
+    this.logger.log(
+      `Maintenance mode ${payload.enabled ? 'enabled' : 'disabled'}`,
+    );
     await this.reloadNginx();
   }
 }

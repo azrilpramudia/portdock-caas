@@ -1,7 +1,27 @@
-import { Controller, Get, Post, Patch, Delete, Param, Body, UseGuards, Query, Request, Res, StreamableFile, BadRequestException, Ip } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Param,
+  Body,
+  UseGuards,
+  Query,
+  Request,
+  Res,
+  StreamableFile,
+  BadRequestException,
+  Ip,
+} from '@nestjs/common';
 import type { Response } from 'express';
 import { ApiOperation } from '@nestjs/swagger';
-import { AdminService } from './admin.service';
+import { AdminDashboardService } from './admin-dashboard.service';
+import { AdminUsersService } from './admin-users.service';
+import { AdminProjectsService } from './admin-projects.service';
+import { AdminContainersService } from './admin-containers.service';
+import { AdminActivityService } from './admin-activity.service';
+import { AdminDatabasesService } from './admin-databases.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -19,40 +39,47 @@ import { DatabasesService } from '../databases/databases.service';
 @Roles(Role.ADMIN)
 export class AdminController {
   constructor(
-    private readonly adminService: AdminService,
+    private readonly adminDashboardService: AdminDashboardService,
+    private readonly adminUsersService: AdminUsersService,
+    private readonly adminProjectsService: AdminProjectsService,
+    private readonly adminContainersService: AdminContainersService,
+    private readonly adminActivityService: AdminActivityService,
+    private readonly adminDatabasesService: AdminDatabasesService,
     private readonly containersService: ContainersService,
     private readonly systemService: SystemService,
     private readonly telegramService: TelegramService,
     private readonly securityService: SecurityService,
     private readonly notificationsService: NotificationsService,
-    private readonly databasesService: DatabasesService
+    private readonly databasesService: DatabasesService,
   ) {}
 
   @Post('settings/test-telegram')
   async testTelegram(@Body() body: { token: string; chatId: string }) {
     const result = await this.telegramService.sendMessage(
       '👋 <b>Test Notification</b>\n\nThis is a test message from Portdock CAAS to verify your Telegram Bot configuration.',
-      { token: body.token, chatId: body.chatId }
+      { token: body.token, chatId: body.chatId },
     );
     if (!result.success) {
-      throw new BadRequestException(result.message || 'Failed to send test message');
+      throw new BadRequestException(
+        result.message || 'Failed to send test message',
+      );
     }
     return { success: true, message: 'Message sent successfully' };
   }
 
   @Get('dashboard')
   async getDashboardStats() {
-    return this.adminService.getDashboardStats();
+    return this.adminDashboardService.getDashboardStats();
   }
 
   @Get('settings')
   async getSettings() {
-    return this.adminService.getSettings();
+    return this.adminDashboardService.getSettings();
   }
 
   @Patch('settings')
   async updateSettings(@Body() data: Record<string, string>) {
-    await this.adminService.updateSettings(data);
+    await this.adminDashboardService.updateSettings(data);
     return { success: true, message: 'Settings updated successfully' };
   }
 
@@ -65,12 +92,14 @@ export class AdminController {
       this.systemService.getTopContainers(),
     ]);
 
-    const historical = await this.systemService.getHistoricalStats(range || '7d');
+    const historical = await this.systemService.getHistoricalStats(
+      range || '7d',
+    );
 
     // Add uptime to overview to match frontend interface
     const overviewData = {
       ...overview,
-      uptime: serverInfo.uptime
+      uptime: serverInfo.uptime,
     };
 
     return {
@@ -78,60 +107,70 @@ export class AdminController {
       serverInfo,
       services,
       topContainers,
-      historical
+      historical,
     };
   }
 
   @Get('users')
   async getAllUsers() {
-    return this.adminService.getAllUsers();
+    return this.adminUsersService.getAllUsers();
   }
 
   @Get('projects')
   async getAllProjects(@Query() filters: any) {
-    return this.adminService.getAllProjects(filters);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    return this.adminProjectsService.getAllProjects(filters);
   }
 
   @Get('deployments')
   async getAllDeployments(@Query() filters: any) {
-    return this.adminService.getAllDeployments(filters);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    return this.adminProjectsService.getAllDeployments(filters);
   }
 
   @Get('databases')
   @ApiOperation({ summary: 'Get all managed databases for admin' })
   async getAllDatabases(@Query() filters: any) {
-    return this.adminService.getAllDatabases(filters);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    return this.adminDatabasesService.getAllDatabases(filters);
   }
 
   @Get('databases/:id')
   @ApiOperation({ summary: 'Get a managed database by ID for admin' })
   async getDatabase(@Param('id') id: string) {
-    return this.adminService.getDatabase(id);
+    return this.adminDatabasesService.getDatabase(id);
   }
 
   @Patch('databases/:id/config')
   @ApiOperation({ summary: 'Update database configuration as admin' })
-  async updateDatabaseConfig(@Param('id') id: string, @Body() dto: { cpuLimit?: number; memoryLimit?: number; maxConnections?: number }, @Request() req: any, @Ip() ip: string) {
+  async updateDatabaseConfig(
+    @Param('id') id: string,
+    @Body()
+    dto: { cpuLimit?: number; memoryLimit?: number; maxConnections?: number },
+    @Request() req: any,
+    @Ip() ip: string,
+  ) {
     return this.databasesService.updateConfig(null, id, dto, ip, true);
   }
 
   @Get('containers')
   async getAllContainers(@Query() filters: any) {
-    return this.adminService.getAllContainers(filters);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    return this.adminContainersService.getAllContainers(filters);
   }
 
   @Get('activity-logs')
   async getAllActivityLogs(@Query() filters: any) {
-    return this.adminService.getAllActivityLogs(filters);
+    return this.adminActivityService.getAllActivityLogs(filters);
   }
 
   @Get('activity-logs/export')
   @ApiOperation({ summary: 'Export all activity logs to CSV' })
   async exportAllActivityLogs(
     @Query() filters: any,
-    @Res({ passthrough: true }) res: Response
+    @Res({ passthrough: true }) res: Response,
   ) {
-    const csv = await this.adminService.exportAllActivityLogs(filters);
+    const csv = await this.adminActivityService.exportAllActivityLogs(filters);
     res.set({
       'Content-Type': 'text/csv',
       'Content-Disposition': `attachment; filename="admin-activity-logs-${new Date().toISOString().split('T')[0]}.csv"`,
@@ -141,22 +180,22 @@ export class AdminController {
 
   @Post('containers/:id/start')
   async startContainer(@Param('id') id: string) {
-    return this.adminService.startContainer(id);
+    return this.adminContainersService.startContainer(id);
   }
 
   @Post('containers/:id/stop')
   async stopContainer(@Param('id') id: string) {
-    return this.adminService.stopContainer(id);
+    return this.adminContainersService.stopContainer(id);
   }
 
   @Post('containers/:id/restart')
   async restartContainer(@Param('id') id: string) {
-    return this.adminService.restartContainer(id);
+    return this.adminContainersService.restartContainer(id);
   }
 
   @Delete('containers/:id')
   async deleteContainer(@Param('id') id: string) {
-    return this.adminService.deleteContainer(id);
+    return this.adminContainersService.deleteContainer(id);
   }
 
   @Patch('containers/:id/resources')
@@ -166,47 +205,55 @@ export class AdminController {
     @Body() dto: UpdateResourcesDto,
   ) {
     // Pass isAdmin=true to bypass ownership checks
-    return this.containersService.updateResources(id, req.user.id, dto, undefined, true);
+    return this.containersService.updateResources(
+      id,
+
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      req.user.id,
+      dto,
+      undefined,
+      true,
+    );
   }
 
   @Patch('projects/:id')
   async updateProject(@Param('id') id: string, @Body() data: any) {
-    return this.adminService.updateProject(id, data);
+    return this.adminProjectsService.updateProject(id, data);
   }
 
   @Post('projects/:id/suspend')
   async suspendProject(@Param('id') id: string) {
-    return this.adminService.suspendProject(id);
+    return this.adminProjectsService.suspendProject(id);
   }
 
   @Post('projects/:id/resume')
   async resumeProject(@Param('id') id: string) {
-    return this.adminService.resumeProject(id);
+    return this.adminProjectsService.resumeProject(id);
   }
 
   @Post('projects/:id/reset-status')
   async resetProjectStatus(@Param('id') id: string) {
-    return this.adminService.resetProjectStatus(id);
+    return this.adminProjectsService.resetProjectStatus(id);
   }
 
   @Delete('projects/:id')
   async deleteProject(@Param('id') id: string) {
-    return this.adminService.deleteProject(id);
+    return this.adminProjectsService.deleteProject(id);
   }
 
   @Post('users')
   async createUser(@Body() data: any) {
-    return this.adminService.createUser(data);
+    return this.adminUsersService.createUser(data);
   }
 
   @Patch('users/:id')
   async updateUser(@Param('id') id: string, @Body() data: any) {
-    return this.adminService.updateUser(id, data);
+    return this.adminUsersService.updateUser(id, data);
   }
 
   @Delete('users/:id')
   async deleteUser(@Param('id') id: string) {
-    return this.adminService.deleteUser(id);
+    return this.adminUsersService.deleteUser(id);
   }
 
   @Post('server/action')
@@ -225,17 +272,27 @@ export class AdminController {
 
   @Get('docker/config')
   async getDockerConfig() {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return this.systemService.getDockerDaemonConfig();
   }
 
   @Patch('docker/config')
   async updateDockerConfig(@Body() config: any) {
     await this.systemService.updateDockerDaemonConfig(config);
-    return { success: true, message: 'Docker configuration updated successfully' };
+    return {
+      success: true,
+      message: 'Docker configuration updated successfully',
+    };
+  }
+
+  @Post('docker/prune')
+  async pruneDockerSystem() {
+    return this.systemService.pruneDockerSystem();
   }
 
   @Get('nginx/config')
   async getNginxConfig() {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return this.systemService.getNginxConfig();
   }
 
@@ -246,6 +303,7 @@ export class AdminController {
   }
 
   @Get('db/config')
+  // eslint-disable-next-line @typescript-eslint/require-await
   async getDbConfig() {
     return this.systemService.getDbConfig();
   }
@@ -259,10 +317,14 @@ export class AdminController {
   @Post('db/backup/run')
   async runDbBackup() {
     const res = await this.systemService.runDbBackup();
-    return { success: true, message: `Backup berhasil disimpan dengan nama: ${res.filePath}` };
+    return {
+      success: true,
+      message: `Backup berhasil disimpan dengan nama: ${res.filePath}`,
+    };
   }
 
   @Get('ssl/config')
+  // eslint-disable-next-line @typescript-eslint/require-await
   async getSslConfig() {
     return this.systemService.getSslConfig();
   }
@@ -274,6 +336,7 @@ export class AdminController {
   }
 
   @Get('backup/config')
+  // eslint-disable-next-line @typescript-eslint/require-await
   async getBackupConfig() {
     return this.systemService.getBackupConfig();
   }
@@ -311,13 +374,24 @@ export class AdminController {
   }
 
   @Post('security/fail2ban')
-  async configureFail2Ban(@Body() body: { enable: boolean; maxretry: number; bantime: number }) {
-    return this.securityService.configureFail2Ban(body.enable, body.maxretry, body.bantime);
+  async configureFail2Ban(
+    @Body() body: { enable: boolean; maxretry: number; bantime: number },
+  ) {
+    return this.securityService.configureFail2Ban(
+      body.enable,
+      body.maxretry,
+      body.bantime,
+    );
   }
 
   @Post('security/ssh')
-  async updateSshConfig(@Body() body: { port: number; permitRootLogin: boolean }) {
-    return this.securityService.updateSshConfig(body.port, body.permitRootLogin);
+  async updateSshConfig(
+    @Body() body: { port: number; permitRootLogin: boolean },
+  ) {
+    return this.securityService.updateSshConfig(
+      body.port,
+      body.permitRootLogin,
+    );
   }
 
   // ==========================
@@ -353,7 +427,9 @@ export class AdminController {
   }
 
   @Patch('advanced/env')
-  async updateGlobalEnv(@Body() body: { vars: Array<{ key: string; value: string }> }) {
+  async updateGlobalEnv(
+    @Body() body: { vars: Array<{ key: string; value: string }> },
+  ) {
     await this.systemService.updateGlobalEnvVars(body.vars);
     return { success: true };
   }

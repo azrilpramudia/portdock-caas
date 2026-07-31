@@ -21,6 +21,7 @@ import {
   ApiQuery,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import type { AuthenticatedRequest } from '../auth/interfaces/auth.interface';
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
@@ -35,7 +36,11 @@ export class ProjectsController {
   @Post()
   @Throttle({ default: { limit: 5, ttl: 3600000 } }) // 5 requests per 1 hour
   @ApiOperation({ summary: 'Create a new project' })
-  create(@Request() req: any, @Body() dto: CreateProjectDto, @Ip() ip: string) {
+  create(
+    @Request() req: AuthenticatedRequest,
+    @Body() dto: CreateProjectDto,
+    @Ip() ip: string,
+  ) {
     return this.projectsService.create(req.user.id, dto, ip);
   }
 
@@ -46,7 +51,7 @@ export class ProjectsController {
   @ApiQuery({ name: 'page', required: false })
   @ApiQuery({ name: 'limit', required: false })
   findAll(
-    @Request() req: any,
+    @Request() req: AuthenticatedRequest,
     @Query('search') search?: string,
     @Query('status') status?: string,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page?: number,
@@ -63,20 +68,20 @@ export class ProjectsController {
 
   @Get('stats')
   @ApiOperation({ summary: 'Get dashboard stats' })
-  getStats(@Request() req: any) {
+  getStats(@Request() req: AuthenticatedRequest) {
     return this.projectsService.getStats(req.user.id);
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get a project by ID' })
-  findOne(@Request() req: any, @Param('id') id: string) {
+  findOne(@Request() req: AuthenticatedRequest, @Param('id') id: string) {
     return this.projectsService.findOne(id, req.user.id);
   }
 
   @Put(':id')
   @ApiOperation({ summary: 'Update a project' })
   update(
-    @Request() req: any,
+    @Request() req: AuthenticatedRequest,
     @Param('id') id: string,
     @Body() dto: UpdateProjectDto,
     @Ip() ip: string,
@@ -86,7 +91,11 @@ export class ProjectsController {
 
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a project' })
-  remove(@Request() req: any, @Param('id') id: string, @Ip() ip: string) {
+  remove(
+    @Request() req: AuthenticatedRequest,
+    @Param('id') id: string,
+    @Ip() ip: string,
+  ) {
     return this.projectsService.remove(id, req.user.id, ip);
   }
 }

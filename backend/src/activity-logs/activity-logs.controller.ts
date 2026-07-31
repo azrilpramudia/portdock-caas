@@ -16,6 +16,7 @@ import {
   ApiProduces,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import type { AuthenticatedRequest } from '../auth/interfaces/auth.interface';
 import { ActivityLogsService } from './activity-logs.service';
 
 @ApiTags('activity-logs')
@@ -28,7 +29,7 @@ export class ActivityLogsController {
   @Get()
   @ApiOperation({ summary: 'Get activity logs' })
   findAll(
-    @Request() req: any,
+    @Request() req: AuthenticatedRequest,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page?: number,
     @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit?: number,
     @Query('search') search?: string,
@@ -53,7 +54,7 @@ export class ActivityLogsController {
   @ApiOperation({ summary: 'Export activity logs to CSV' })
   @ApiProduces('text/csv')
   async export(
-    @Request() req: any,
+    @Request() req: AuthenticatedRequest,
     @Res() res: Response,
     @Query('search') search?: string,
     @Query('action') action?: string,
@@ -76,7 +77,7 @@ export class ActivityLogsController {
 
   @Get('recent')
   @ApiOperation({ summary: 'Get recent activity logs' })
-  findRecent(@Request() req: any) {
+  findRecent(@Request() req: AuthenticatedRequest) {
     return this.activityLogsService.findRecent(req.user.id, 10);
   }
 }

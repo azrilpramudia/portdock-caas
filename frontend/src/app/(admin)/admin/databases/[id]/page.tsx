@@ -18,8 +18,16 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/api";
+import { toast } from "sonner";
 
 export default function AdminDatabaseDetailPage() {
   const params = useParams();
@@ -60,8 +68,12 @@ export default function AdminDatabaseDetailPage() {
       return response.data;
     },
     onSuccess: () => {
+      toast.success("Configuration updated successfully");
       queryClient.invalidateQueries({ queryKey: ["admin_database", id] });
     },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "Failed to update configuration");
+    }
   });
 
   if (isLoading) {
@@ -134,30 +146,38 @@ export default function AdminDatabaseDetailPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div className="space-y-2">
               <Label htmlFor="cpuLimit" className="font-semibold text-foreground">CPU Cores Limit</Label>
-              <Input 
-                id="cpuLimit" 
-                type="number" 
-                step="0.1"
-                min="0.1"
-                value={configForm.cpuLimit}
-                onChange={(e) => setConfigForm({ ...configForm, cpuLimit: e.target.value === '' ? '' : parseFloat(e.target.value) })}
-                className="bg-muted/50 border-border focus-visible:ring-blue-500/20"
-              />
-              <p className="text-[11px] text-muted-foreground">Example: 0.5 for half a core, 1 for 1 core.</p>
+              <Select
+                value={String(configForm.cpuLimit)}
+                onValueChange={(val) => setConfigForm({ ...configForm, cpuLimit: parseFloat(val) })}
+              >
+                <SelectTrigger id="cpuLimit" className="bg-muted/50 border-border focus:ring-blue-500/20">
+                  <SelectValue placeholder="Select CPU Cores" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="0.5">0.5 (Shared Core)</SelectItem>
+                  <SelectItem value="1">1.0 (1 Dedicated Core)</SelectItem>
+                  <SelectItem value="2">2.0 (2 Dedicated Cores)</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-[11px] text-muted-foreground">Select the amount of CPU allocated.</p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="memoryLimit" className="font-semibold text-foreground">Memory Limit (MB)</Label>
-              <Input 
-                id="memoryLimit" 
-                type="number" 
-                step="128"
-                min="256"
-                value={configForm.memoryLimit}
-                onChange={(e) => setConfigForm({ ...configForm, memoryLimit: e.target.value === '' ? '' : parseInt(e.target.value) })}
-                className="bg-muted/50 border-border focus-visible:ring-blue-500/20"
-              />
-              <p className="text-[11px] text-muted-foreground">Minimum recommended is 256MB.</p>
+              <Label htmlFor="memoryLimit" className="font-semibold text-foreground">Memory Limit</Label>
+              <Select
+                value={String(configForm.memoryLimit)}
+                onValueChange={(val) => setConfigForm({ ...configForm, memoryLimit: parseInt(val) })}
+              >
+                <SelectTrigger id="memoryLimit" className="bg-muted/50 border-border focus:ring-blue-500/20">
+                  <SelectValue placeholder="Select Memory Capacity" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="256">256 MB - Minimum</SelectItem>
+                  <SelectItem value="512">512 MB - Standard</SelectItem>
+                  <SelectItem value="1024">1 GB - Performance</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-[11px] text-muted-foreground">Select the memory capacity.</p>
             </div>
           </div>
 

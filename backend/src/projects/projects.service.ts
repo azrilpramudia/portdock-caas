@@ -7,6 +7,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
+import { Prisma, ProjectStatus } from '@prisma/client';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { DockerService } from '../docker/docker.service';
 import { NginxService } from '../nginx/nginx.service';
@@ -51,7 +52,7 @@ export class ProjectsService {
 
     const project = await this.prisma.project.create({
       data: {
-        ...(dto as any),
+        ...dto,
         domain,
         userId,
       },
@@ -76,12 +77,12 @@ export class ProjectsService {
     page = 1,
     limit = 10,
   ) {
-    const where: any = { userId };
+    const where: Prisma.ProjectWhereInput = { userId };
     if (search) {
       where.name = { contains: search, mode: 'insensitive' };
     }
     if (status) {
-      where.status = status;
+      where.status = status as ProjectStatus;
     }
 
     const [total, projects] = await Promise.all([
@@ -127,7 +128,7 @@ export class ProjectsService {
 
     const project = await this.prisma.project.update({
       where: { id },
-      data: dto as any,
+      data: dto,
     });
 
     await this.activityLogs.create({
@@ -143,16 +144,25 @@ export class ProjectsService {
         await this.nginx.removeConfig(oldProject.domain).catch(() => {});
       }
 
-      const activeContainer = oldProject.containers.find((c: any) => c.status === 'RUNNING' && c.hostPort);
+      const activeContainer = oldProject.containers.find(
+        (c: { status: string; hostPort?: number | null }) =>
+          c.status === 'RUNNING' && c.hostPort,
+      );
       if (activeContainer && activeContainer.hostPort) {
-        await this.nginx.generateHttpConfig(dto.domain, activeContainer.hostPort);
-        
+        await this.nginx.generateHttpConfig(
+          dto.domain,
+          activeContainer.hostPort,
+        );
+
         const userEmail = 'admin@portdock.my.id'; // Default email since user object isn't fetched here
         this.nginx
           .requestSsl(dto.domain, userEmail)
           .then(async (sslSuccess) => {
             if (sslSuccess) {
-              await this.nginx.generateHttpsConfig(dto.domain as string, activeContainer.hostPort as number);
+              await this.nginx.generateHttpsConfig(
+                dto.domain as string,
+                activeContainer.hostPort as number,
+              );
             }
           })
           .catch((err) => console.error('Background SSL Error', err));
@@ -181,7 +191,7 @@ export class ProjectsService {
         }
       } catch (err) {
         this.logger.warn(
-          `Failed to cleanup docker container ${container.dockerContainerId}: ${err.message}`,
+          `Failed to cleanup docker container ${container.dockerContainerId}: ${err instanceof Error ? err.message : String(err)}`,
         );
       }
     }

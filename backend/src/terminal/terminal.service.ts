@@ -56,7 +56,7 @@ export class TerminalService {
 
       stream.on('error', (err) => {
         this.logger.error(
-          `Terminal stream error for ${dockerContainerId}: ${err.message}`,
+          `Terminal stream error for ${dockerContainerId}: ${err instanceof Error ? err.message : String(err)}`,
         );
         onError(err);
       });
@@ -71,6 +71,7 @@ export class TerminalService {
         kill: () => {
           try {
             stream.destroy();
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
           } catch (e) {
             // Ignore if already dead
           }
@@ -78,8 +79,9 @@ export class TerminalService {
       };
     } catch (err) {
       this.logger.error(
-        `Failed to spawn terminal for ${dockerContainerId}: ${err.message}`,
+        `Failed to spawn terminal for ${dockerContainerId}: ${err instanceof Error ? err.message : String(err)}`,
       );
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       onError(err);
       throw err;
     }
@@ -120,7 +122,7 @@ export class TerminalService {
 
       logStream.on('error', (err: Error) => {
         this.logger.error(
-          `Application log stream error for ${dockerContainerId}: ${err.message}`,
+          `Application log stream error for ${dockerContainerId}: ${err instanceof Error ? err.message : String(err)}`,
         );
         onError(err);
       });
@@ -128,7 +130,9 @@ export class TerminalService {
       return {
         kill: () => {
           try {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
             (logStream as any).destroy();
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
           } catch (e) {
             // Ignore if already dead
           }
@@ -136,8 +140,9 @@ export class TerminalService {
       };
     } catch (err) {
       this.logger.error(
-        `Failed to stream application logs for ${dockerContainerId}: ${err.message}`,
+        `Failed to stream application logs for ${dockerContainerId}: ${err instanceof Error ? err.message : String(err)}`,
       );
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       onError(err);
       throw err;
     }

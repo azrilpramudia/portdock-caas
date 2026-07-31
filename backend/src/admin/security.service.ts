@@ -26,10 +26,13 @@ export class SecurityService {
   async getUfwStatus(): Promise<UfwStatus> {
     try {
       const { stdout } = await execAsync('ufw status');
-      const lines = stdout.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-      
+      const lines = stdout
+        .split('\n')
+        .map((l) => l.trim())
+        .filter((l) => l.length > 0);
+
       const isEnabled = lines[0]?.toLowerCase().includes('active');
-      
+
       if (!isEnabled) {
         return { enabled: false, rules: [] };
       }
@@ -37,14 +40,18 @@ export class SecurityService {
       // Parse rules
       const rules: UfwRule[] = [];
       let inRulesSection = false;
-      
+
       for (const line of lines) {
-        if (line.includes('To') && line.includes('Action') && line.includes('From')) {
+        if (
+          line.includes('To') &&
+          line.includes('Action') &&
+          line.includes('From')
+        ) {
           inRulesSection = true;
           continue;
         }
         if (line.startsWith('--')) continue;
-        
+
         if (inRulesSection) {
           // Format: 22/tcp ALLOW Anywhere
           const parts = line.split(/\s{2,}/); // Split by 2 or more spaces
@@ -52,7 +59,7 @@ export class SecurityService {
             rules.push({
               to: parts[0],
               action: parts[1],
-              from: parts[2]
+              from: parts[2],
             });
           }
         }
@@ -77,7 +84,9 @@ export class SecurityService {
       }
       return { success: true };
     } catch (e: any) {
-      throw new Error(`Failed to toggle UFW: ${e.message}`);
+      throw new Error(
+        `Failed to toggle UFW: ${e instanceof Error ? e.message : String(e)}`,
+      );
     }
   }
 
@@ -86,7 +95,9 @@ export class SecurityService {
       await execAsync(`ufw allow ${port}/${protocol}`);
       return { success: true };
     } catch (e: any) {
-      throw new Error(`Failed to add UFW rule: ${e.message}`);
+      throw new Error(
+        `Failed to add UFW rule: ${e instanceof Error ? e.message : String(e)}`,
+      );
     }
   }
 
@@ -94,13 +105,20 @@ export class SecurityService {
     try {
       // Safety check to prevent deleting SSH
       const sshConfig = await this.getSshConfig();
-      if (port === sshConfig.port.toString() || port === `${sshConfig.port}/tcp`) {
-        throw new Error('Penghapusan port SSH diblokir demi keamanan (Safety First) agar Anda tidak terkunci.');
+      if (
+        port === sshConfig.port.toString() ||
+        port === `${sshConfig.port}/tcp`
+      ) {
+        throw new Error(
+          'Penghapusan port SSH diblokir demi keamanan (Safety First) agar Anda tidak terkunci.',
+        );
       }
       await execAsync(`ufw delete allow ${port}/${protocol}`);
       return { success: true };
     } catch (e: any) {
-      throw new Error(`Failed to delete UFW rule: ${e.message}`);
+      throw new Error(
+        `Failed to delete UFW rule: ${e instanceof Error ? e.message : String(e)}`,
+      );
     }
   }
 
@@ -111,7 +129,7 @@ export class SecurityService {
     try {
       // Check if installed
       await execAsync('which fail2ban-client');
-      
+
       // Get config if exists
       const configPath = '/etc/fail2ban/jail.local';
       let maxretry = 5;
@@ -123,7 +141,7 @@ export class SecurityService {
         const content = fs.readFileSync(configPath, 'utf8');
         const retryMatch = content.match(/maxretry\s*=\s*(\d+)/);
         const banMatch = content.match(/bantime\s*=\s*(\d+[smhd]?)/);
-        
+
         if (retryMatch) maxretry = parseInt(retryMatch[1], 10);
         if (banMatch) {
           const val = banMatch[1];
@@ -137,15 +155,20 @@ export class SecurityService {
         installed: true,
         enabled,
         maxretry,
-        bantime: Math.floor(bantime / 60) // return in minutes
+        bantime: Math.floor(bantime / 60), // return in minutes
       };
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (e) {
       // Not installed or error
       return { installed: false, enabled: false, maxretry: 5, bantime: 10 };
     }
   }
 
-  async configureFail2Ban(enable: boolean, maxretry: number, bantimeMins: number) {
+  async configureFail2Ban(
+    enable: boolean,
+    maxretry: number,
+    bantimeMins: number,
+  ) {
     try {
       if (enable) {
         // Install if not present
@@ -153,7 +176,9 @@ export class SecurityService {
           await execAsync('which fail2ban-client');
         } catch {
           this.logger.log('Installing fail2ban...');
-          await execAsync('apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y fail2ban');
+          await execAsync(
+            'apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y fail2ban',
+          );
         }
 
         const configPath = '/etc/fail2ban/jail.local';
@@ -181,13 +206,16 @@ maxretry = ${maxretry}
         return { success: true, message: 'Fail2Ban disabled.' };
       }
     } catch (e: any) {
-      throw new Error(`Failed to configure Fail2Ban: ${e.message}`);
+      throw new Error(
+        `Failed to configure Fail2Ban: ${e instanceof Error ? e.message : String(e)}`,
+      );
     }
   }
 
   // ==========================
   // SSH Config Methods
   // ==========================
+  // eslint-disable-next-line @typescript-eslint/require-await
   async getSshConfig() {
     try {
       const configPath = '/etc/ssh/sshd_config';
@@ -199,7 +227,7 @@ maxretry = ${maxretry}
         for (const line of lines) {
           const t = line.trim();
           if (t.startsWith('#')) continue;
-          
+
           if (t.startsWith('Port ')) {
             port = parseInt(t.split(/\s+/)[1], 10);
           } else if (t.startsWith('PermitRootLogin ')) {
@@ -209,7 +237,7 @@ maxretry = ${maxretry}
       }
       return {
         port,
-        permitRootLogin: rootLogin === 'yes'
+        permitRootLogin: rootLogin === 'yes',
       };
     } catch (e) {
       this.logger.error('Failed to read SSH config', e);
@@ -225,11 +253,13 @@ maxretry = ${maxretry}
 
       const configPath = '/etc/ssh/sshd_config';
       if (!fs.existsSync(configPath)) {
-        throw new Error('File konfigurasi SSH (/etc/ssh/sshd_config) tidak ditemukan.');
+        throw new Error(
+          'File konfigurasi SSH (/etc/ssh/sshd_config) tidak ditemukan.',
+        );
       }
 
       let content = fs.readFileSync(configPath, 'utf8');
-      
+
       // Update Port
       if (content.match(/^Port\s+\d+/m)) {
         content = content.replace(/^Port\s+\d+/m, `Port ${newPort}`);
@@ -242,15 +272,21 @@ maxretry = ${maxretry}
       // Update PermitRootLogin
       const rootStr = permitRootLogin ? 'yes' : 'no';
       if (content.match(/^PermitRootLogin\s+\S+/m)) {
-        content = content.replace(/^PermitRootLogin\s+\S+/m, `PermitRootLogin ${rootStr}`);
+        content = content.replace(
+          /^PermitRootLogin\s+\S+/m,
+          `PermitRootLogin ${rootStr}`,
+        );
       } else if (content.match(/^#PermitRootLogin\s+\S+/m)) {
-        content = content.replace(/^#PermitRootLogin\s+\S+/m, `PermitRootLogin ${rootStr}`);
+        content = content.replace(
+          /^#PermitRootLogin\s+\S+/m,
+          `PermitRootLogin ${rootStr}`,
+        );
       } else {
         content = `PermitRootLogin ${rootStr}\n` + content;
       }
 
       fs.writeFileSync(configPath, content);
-      
+
       // SAFETY FIRST: If UFW is enabled, allow the new port BEFORE restarting SSH
       const ufw = await this.getUfwStatus();
       if (ufw.enabled) {
@@ -262,7 +298,9 @@ maxretry = ${maxretry}
 
       return { success: true };
     } catch (e: any) {
-      throw new Error(`Failed to update SSH config: ${e.message}`);
+      throw new Error(
+        `Failed to update SSH config: ${e instanceof Error ? e.message : String(e)}`,
+      );
     }
   }
 }

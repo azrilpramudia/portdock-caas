@@ -17,7 +17,7 @@ export class DbBackupService implements OnModuleInit {
 
   constructor(
     private configService: ConfigService,
-    private schedulerRegistry: SchedulerRegistry
+    private schedulerRegistry: SchedulerRegistry,
   ) {
     this.backupDir = path.resolve(process.cwd(), 'backups');
     if (!fs.existsSync(this.backupDir)) {
@@ -31,10 +31,10 @@ export class DbBackupService implements OnModuleInit {
 
   scheduleBackupJob() {
     const schedule = process.env.DB_BACKUP_SCHEDULE || '0 0 * * *'; // Default: every midnight
-    
+
     const job = new CronJob(schedule, () => {
       this.logger.log('Running automated database backup...');
-      this.runBackup().catch(e => this.logger.error('Auto backup failed', e));
+      this.runBackup().catch((e) => this.logger.error('Auto backup failed', e));
     });
 
     try {
@@ -46,9 +46,12 @@ export class DbBackupService implements OnModuleInit {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async reloadSchedule() {
     try {
       this.schedulerRegistry.deleteCronJob(this.jobName);
+
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (e) {}
     this.scheduleBackupJob();
   }
@@ -57,25 +60,25 @@ export class DbBackupService implements OnModuleInit {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const fileName = `portdock-db-${timestamp}.sql`;
     const filePath = path.join(this.backupDir, fileName);
-    
+
     const dbUser = process.env.DB_USER || 'portdock';
     const dbName = process.env.DB_NAME || 'portdock_db';
 
     const command = `sudo docker exec portdock_db pg_dump -U ${dbUser} ${dbName} > ${filePath}`;
-    
+
     try {
       await execAsync(command);
       this.logger.log(`Backup successful locally: ${fileName}`);
-      
+
       const provider = process.env.BACKUP_PROVIDER || 'local';
       if (provider === 's3') {
         await this.uploadToS3(filePath, fileName);
       } else if (provider === 'sftp') {
         await this.uploadToSftp(filePath, fileName);
       }
-      
+
       this.cleanupOldBackups();
-      
+
       return { success: true, filePath: fileName };
     } catch (error) {
       this.logger.error('Failed to run backup', error);
@@ -84,41 +87,56 @@ export class DbBackupService implements OnModuleInit {
   }
 
   private async uploadToS3(filePath: string, fileName: string) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
     const endpoint = process.env.BACKUP_S3_ENDPOINT;
     const region = process.env.BACKUP_S3_REGION || 'us-east-1';
-    
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const s3 = new S3Client({
       region,
       endpoint: endpoint ? endpoint : undefined,
       credentials: {
         accessKeyId: process.env.BACKUP_S3_ACCESS_KEY || '',
-        secretAccessKey: process.env.BACKUP_S3_SECRET_KEY || ''
+        secretAccessKey: process.env.BACKUP_S3_SECRET_KEY || '',
       },
-      forcePathStyle: true // Needed for many S3-compatible providers
+      forcePathStyle: true, // Needed for many S3-compatible providers
     });
 
     const fileContent = fs.readFileSync(filePath);
-    await s3.send(new PutObjectCommand({
-      Bucket: process.env.BACKUP_S3_BUCKET || '',
-      Key: fileName,
-      Body: fileContent
-    }));
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+    await s3.send(
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+      new PutObjectCommand({
+        Bucket: process.env.BACKUP_S3_BUCKET || '',
+        Key: fileName,
+        Body: fileContent,
+      }),
+    );
     this.logger.log(`Uploaded backup to S3: ${fileName}`);
     fs.unlinkSync(filePath); // Delete locally after upload
   }
 
   private async uploadToSftp(filePath: string, fileName: string) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const Client = require('ssh2-sftp-client');
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const sftp = new Client();
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     await sftp.connect({
       host: process.env.BACKUP_SFTP_HOST,
       port: parseInt(process.env.BACKUP_SFTP_PORT || '22'),
       username: process.env.BACKUP_SFTP_USER,
-      password: process.env.BACKUP_SFTP_PASS
+      password: process.env.BACKUP_SFTP_PASS,
     });
-    
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     await sftp.put(filePath, `./${fileName}`);
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     await sftp.end();
     this.logger.log(`Uploaded backup to SFTP: ${fileName}`);
     fs.unlinkSync(filePath); // Delete locally after upload
@@ -128,12 +146,16 @@ export class DbBackupService implements OnModuleInit {
     try {
       const provider = process.env.BACKUP_PROVIDER || 'local';
       if (provider !== 'local') return; // Only cleanup local if provider is local
-      
+
       const retention = parseInt(process.env.BACKUP_RETENTION || '7', 10);
-      
-      const files = fs.readdirSync(this.backupDir)
-        .filter(f => f.endsWith('.sql'))
-        .map(f => ({ name: f, time: fs.statSync(path.join(this.backupDir, f)).mtime.getTime() }))
+
+      const files = fs
+        .readdirSync(this.backupDir)
+        .filter((f) => f.endsWith('.sql'))
+        .map((f) => ({
+          name: f,
+          time: fs.statSync(path.join(this.backupDir, f)).mtime.getTime(),
+        }))
         .sort((a, b) => b.time - a.time);
 
       if (files.length > retention) {

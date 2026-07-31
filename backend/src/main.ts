@@ -15,7 +15,9 @@ async function bootstrap() {
   // Set Timezone from settings
   try {
     const prisma = app.get(PrismaService);
-    const tzSetting = await prisma.systemSetting.findUnique({ where: { key: 'timezone' } });
+    const tzSetting = await prisma.systemSetting.findUnique({
+      where: { key: 'timezone' },
+    });
     if (tzSetting?.value) {
       process.env.TZ = tzSetting.value;
     }
@@ -36,7 +38,7 @@ async function bootstrap() {
     }),
   );
   app.use(cookieParser());
-  
+
   // CSRF Protection
   app.use(doubleCsrfProtection);
 
@@ -71,7 +73,10 @@ async function bootstrap() {
     .setDescription('Portdock - Docker Deployment Platform API')
     .setVersion('1.0')
     .addCookieAuth('access_token')
-    .addApiKey({ type: 'apiKey', name: 'x-csrf-token', in: 'header' }, 'CSRF-Token')
+    .addApiKey(
+      { type: 'apiKey', name: 'x-csrf-token', in: 'header' },
+      'CSRF-Token',
+    )
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, cleanupOpenApiDoc(document));
@@ -81,4 +86,5 @@ async function bootstrap() {
   console.log(`Server is running at http://localhost:${port}`);
   console.log(`Swagger docs at http://localhost:${port}/api/docs`);
 }
+// eslint-disable-next-line @typescript-eslint/no-floating-promises
 bootstrap();

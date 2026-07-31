@@ -50,7 +50,9 @@ export class ArchiveService {
         fs.unlinkSync(filePath);
       }
     } catch (err) {
-      this.logger.warn(`Cleanup failed: ${err.message}`);
+      this.logger.warn(
+        `Cleanup failed: ${err instanceof Error ? err.message : String(err)}`,
+      );
     }
   }
 }

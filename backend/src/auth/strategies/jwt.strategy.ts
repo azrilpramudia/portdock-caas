@@ -10,14 +10,23 @@ import { UnauthorizedException } from '@nestjs/common';
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
     configService: ConfigService,
-    private prisma: PrismaService
+    private prisma: PrismaService,
   ) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     super({
       jwtFromRequest: (req: Request) => {
         let token = null;
-        if (req && req.cookies && req.cookies['access_token'] && req.cookies['access_token'] !== 'undefined') {
+        if (
+          req &&
+          req.cookies &&
+          req.cookies['access_token'] &&
+          req.cookies['access_token'] !== 'undefined'
+        ) {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           token = req.cookies['access_token'];
         }
+
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return token || ExtractJwt.fromAuthHeaderAsBearerToken()(req);
       },
       ignoreExpiration: false,
@@ -39,12 +48,14 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       if (!session) {
         throw new UnauthorizedException('Session expired or revoked');
       }
-      
+
       // Update last active
-      await this.prisma.session.update({
-        where: { id: payload.sessionId },
-        data: { lastActive: new Date() },
-      }).catch(() => {}); // Ignore errors if it fails to update (e.g., race condition)
+      await this.prisma.session
+        .update({
+          where: { id: payload.sessionId },
+          data: { lastActive: new Date() },
+        })
+        .catch(() => {}); // Ignore errors if it fails to update (e.g., race condition)
     }
 
     return {

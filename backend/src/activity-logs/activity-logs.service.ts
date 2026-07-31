@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../prisma/prisma.service';
+import { Prisma } from '@prisma/client';
 
 interface CreateLogDto {
   userId: string;
@@ -68,9 +69,10 @@ export class ActivityLogsService {
     actionFilter?: string,
     startDate?: string,
     endDate?: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     status?: string,
   ) {
-    const whereClause: any = { userId };
+    const whereClause: Prisma.ActivityLogWhereInput = { userId };
 
     if (search) {
       whereClause.OR = [
@@ -84,9 +86,9 @@ export class ActivityLogsService {
       whereClause.action = { contains: actionFilter, mode: 'insensitive' };
     }
 
-    if (status && status !== 'All Status') {
-      whereClause.status = status;
-    }
+    // if (status && status !== 'All Status') {
+    //   whereClause.status = status;
+    // }
 
     if (startDate || endDate) {
       whereClause.createdAt = {};
@@ -139,9 +141,10 @@ export class ActivityLogsService {
     actionFilter?: string,
     startDate?: string,
     endDate?: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     status?: string,
   ): Promise<string> {
-    const whereClause: any = { userId };
+    const whereClause: Prisma.ActivityLogWhereInput = { userId };
 
     if (search) {
       whereClause.OR = [
@@ -155,9 +158,9 @@ export class ActivityLogsService {
       whereClause.action = { contains: actionFilter, mode: 'insensitive' };
     }
 
-    if (status && status !== 'All Status') {
-      whereClause.status = status;
-    }
+    // if (status && status !== 'All Status') {
+    //   whereClause.status = status;
+    // }
 
     if (startDate || endDate) {
       whereClause.createdAt = {};

@@ -9,7 +9,18 @@ export class SettingsService {
     const settings = await this.prisma.systemSetting.findMany({
       where: {
         key: {
-          in: ['siteName', 'siteDescription', 'language', 'timezone', 'dateFormat', 'timeFormat', 'notifyMaintenance', 'primaryColor', 'sidebarStyle', 'dbPortalUrl'],
+          in: [
+            'siteName',
+            'siteDescription',
+            'language',
+            'timezone',
+            'dateFormat',
+            'timeFormat',
+            'notifyMaintenance',
+            'primaryColor',
+            'sidebarStyle',
+            'dbPortalUrl',
+          ],
         },
       },
     });

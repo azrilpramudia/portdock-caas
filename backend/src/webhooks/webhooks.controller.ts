@@ -12,7 +12,7 @@ export class WebhooksController {
   @ApiOperation({ summary: 'Handle GitHub push webhooks' })
   async handleGithub(
     @Headers('x-hub-signature-256') signature: string,
-    @Body() payload: any,
+    @Body() payload: Record<string, unknown>,
   ) {
     return this.webhooksService.handleGithubWebhook(signature, payload);
   }

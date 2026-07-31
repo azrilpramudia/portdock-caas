@@ -14,7 +14,10 @@ export class WebhooksService {
     private configService: ConfigService,
   ) {}
 
-  async handleGithubWebhook(signature: string, payload: any) {
+  async handleGithubWebhook(
+    signature: string,
+    payload: Record<string, unknown>,
+  ) {
     // 1. Verify Signature
     const secret = this.configService.get<string>('GITHUB_WEBHOOK_SECRET');
     if (secret) {
@@ -42,16 +45,20 @@ export class WebhooksService {
     }
 
     // 2. Extract Event Info
-    if (!payload.ref || !payload.repository) {
+    if (!('ref' in payload) || !('repository' in payload)) {
       return {
         message: 'Ignored: Not a push event or missing repository info',
       };
     }
 
-    const branch = payload.ref.replace('refs/heads/', '');
+    const githubPayload = payload as {
+      ref: string;
+      repository: { html_url: string; clone_url: string };
+    };
+    const branch = githubPayload.ref.replace('refs/heads/', '');
     const repoUrls = [
-      payload.repository.html_url,
-      payload.repository.clone_url,
+      githubPayload.repository.html_url,
+      githubPayload.repository.clone_url,
     ];
 
     this.logger.log(
@@ -100,7 +107,9 @@ export class WebhooksService {
           )
           .catch((err) => {
             this.logger.error(
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
               `Auto-deploy failed for project ${project.id}: ${err.message}`,
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
               err.stack,
             );
           });

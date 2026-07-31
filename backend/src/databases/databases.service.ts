@@ -28,8 +28,14 @@ export class DatabasesService {
 
   async create(userId: string, dto: CreateDatabaseDto, ip?: string) {
     const dbPassword = crypto.randomBytes(8).toString('hex'); // 16 char password
-    const dbUser = dto.type === DatabaseType.POSTGRESQL || dto.type === DatabaseType.MYSQL ? 'portdock' : null;
-    const dbName = dto.type === DatabaseType.POSTGRESQL || dto.type === DatabaseType.MYSQL ? dto.name.toLowerCase().replace(/[^a-z0-9]/g, '_') : null;
+    const dbUser =
+      dto.type === DatabaseType.POSTGRESQL || dto.type === DatabaseType.MYSQL
+        ? 'portdock'
+        : null;
+    const dbName =
+      dto.type === DatabaseType.POSTGRESQL || dto.type === DatabaseType.MYSQL
+        ? dto.name.toLowerCase().replace(/[^a-z0-9]/g, '_')
+        : null;
 
     // Create DB record first to get ID for volume naming
     const database = await this.prisma.managedDatabase.create({
@@ -41,7 +47,12 @@ export class DatabasesService {
         dbUser,
         dbPassword,
         dbName,
-        internalPort: dto.type === DatabaseType.POSTGRESQL ? 5432 : dto.type === DatabaseType.MYSQL ? 3306 : 6379,
+        internalPort:
+          dto.type === DatabaseType.POSTGRESQL
+            ? 5432
+            : dto.type === DatabaseType.MYSQL
+              ? 3306
+              : 6379,
         hostPort: 0, // placeholder, will update later
         volumeName: '',
       },
@@ -65,7 +76,11 @@ export class DatabasesService {
           `POSTGRES_PASSWORD=${dbPassword}`,
           `POSTGRES_DB=${dbName}`,
         ];
-        cmd = ['postgres', '-c', `max_connections=${database.maxConnections || 100}`];
+        cmd = [
+          'postgres',
+          '-c',
+          `max_connections=${database.maxConnections || 100}`,
+        ];
         mountPath = '/var/lib/postgresql/data';
       } else if (dto.type === DatabaseType.MYSQL) {
         imageName = `mysql:${dto.version === 'latest' ? '8' : dto.version}`;
@@ -88,11 +103,15 @@ export class DatabasesService {
 
       const hasImage = await this.docker.imageExists(imageName);
       if (!hasImage) {
-        this.logger.log(`Pulling Docker image: ${imageName}. This may take a few minutes depending on your internet connection...`);
+        this.logger.log(
+          `Pulling Docker image: ${imageName}. This may take a few minutes depending on your internet connection...`,
+        );
         await this.docker.pullImage(imageName);
         this.logger.log(`Successfully pulled image ${imageName}.`);
       } else {
-        this.logger.log(`Image ${imageName} already exists locally. Skipping pull.`);
+        this.logger.log(
+          `Image ${imageName} already exists locally. Skipping pull.`,
+        );
       }
       this.logger.log(`Provisioning container...`);
 
@@ -124,14 +143,18 @@ export class DatabasesService {
       };
 
       if (cmd.length > 0) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         createOptions.Cmd = cmd;
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       const dockerContainer = await this.docker.createContainer(createOptions);
       const inspect = await dockerContainer.inspect();
       await dockerContainer.start();
 
-      this.logger.log(`Database container ${containerName} started successfully on port ${hostPort}`);
+      this.logger.log(
+        `Database container ${containerName} started successfully on port ${hostPort}`,
+      );
 
       const updatedDb = await this.prisma.managedDatabase.update({
         where: { id: database.id },
@@ -156,8 +179,8 @@ export class DatabasesService {
       return updatedDb;
     } catch (error) {
       this.logger.error(
-        `Failed to provision database: ${error.message}`,
-        error.stack,
+        `Failed to provision database: ${error instanceof Error ? error.message : String(error)}`,
+        error instanceof Error ? error.stack : undefined,
       );
       await this.prisma.managedDatabase.delete({ where: { id: database.id } });
       throw new InternalServerErrorException('Failed to provision database');
@@ -180,10 +203,11 @@ export class DatabasesService {
 
   async start(userId: string, id: string, ip?: string) {
     const db = await this.findOne(userId, id);
-    if (!db.dockerContainerId) throw new InternalServerErrorException('Database container ID not found');
-    
+    if (!db.dockerContainerId)
+      throw new InternalServerErrorException('Database container ID not found');
+
     await this.docker.startContainer(db.dockerContainerId);
-    
+
     await this.prisma.activityLog.create({
       data: {
         userId,
@@ -202,10 +226,11 @@ export class DatabasesService {
 
   async stop(userId: string, id: string, ip?: string) {
     const db = await this.findOne(userId, id);
-    if (!db.dockerContainerId) throw new InternalServerErrorException('Database container ID not found');
-    
+    if (!db.dockerContainerId)
+      throw new InternalServerErrorException('Database container ID not found');
+
     await this.docker.stopContainer(db.dockerContainerId);
-    
+
     await this.prisma.activityLog.create({
       data: {
         userId,
@@ -224,10 +249,11 @@ export class DatabasesService {
 
   async restart(userId: string, id: string, ip?: string) {
     const db = await this.findOne(userId, id);
-    if (!db.dockerContainerId) throw new InternalServerErrorException('Database container ID not found');
-    
+    if (!db.dockerContainerId)
+      throw new InternalServerErrorException('Database container ID not found');
+
     await this.docker.restartContainer(db.dockerContainerId);
-    
+
     await this.prisma.activityLog.create({
       data: {
         userId,
@@ -250,20 +276,26 @@ export class DatabasesService {
     if (db.dockerContainerId) {
       try {
         await this.docker.stopContainer(db.dockerContainerId);
+
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (e) {}
       try {
         await this.docker.removeContainer(db.dockerContainerId, true);
+
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (e) {}
     }
 
     if (db.volumeName) {
       try {
         await this.docker.removeVolume(db.volumeName);
+
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (e) {}
     }
 
     await this.prisma.managedDatabase.delete({ where: { id } });
-    
+
     await this.prisma.activityLog.create({
       data: {
         userId,
@@ -278,19 +310,21 @@ export class DatabasesService {
   }
 
   // Backup & Restore
-  
+
   async listBackups(userId: string, id: string) {
     const db = await this.findOne(userId, id);
     return this.prisma.databaseBackup.findMany({
       where: { managedDatabaseId: db.id },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
     });
   }
 
   async createBackup(userId: string, id: string, ip?: string) {
     const db = await this.findOne(userId, id);
     if (!db.dockerContainerId || db.status !== ContainerStatus.RUNNING) {
-      throw new InternalServerErrorException('Database must be running to create a backup');
+      throw new InternalServerErrorException(
+        'Database must be running to create a backup',
+      );
     }
 
     const filename = `${db.name}-backup-${Date.now()}.sql`;
@@ -305,8 +339,8 @@ export class DatabasesService {
       data: {
         managedDatabaseId: db.id,
         filename,
-        status: 'PENDING'
-      }
+        status: 'PENDING',
+      },
     });
 
     try {
@@ -324,7 +358,7 @@ export class DatabasesService {
       const stats = fs.statSync(filepath);
       await this.prisma.databaseBackup.update({
         where: { id: backup.id },
-        data: { status: 'SUCCESS', sizeBytes: stats.size }
+        data: { status: 'SUCCESS', sizeBytes: stats.size },
       });
 
       await this.prisma.activityLog.create({
@@ -337,12 +371,16 @@ export class DatabasesService {
         },
       });
 
-      return await this.prisma.databaseBackup.findUnique({ where: { id: backup.id } });
+      return await this.prisma.databaseBackup.findUnique({
+        where: { id: backup.id },
+      });
     } catch (error) {
-      this.logger.error(`Failed to create backup: ${error.message}`);
+      this.logger.error(
+        `Failed to create backup: ${error instanceof Error ? error.message : String(error)}`,
+      );
       await this.prisma.databaseBackup.update({
         where: { id: backup.id },
-        data: { status: 'FAILED' }
+        data: { status: 'FAILED' },
       });
       if (fs.existsSync(filepath)) {
         fs.unlinkSync(filepath);
@@ -351,14 +389,21 @@ export class DatabasesService {
     }
   }
 
-  async restoreBackup(userId: string, id: string, backupId: string, ip?: string) {
+  async restoreBackup(
+    userId: string,
+    id: string,
+    backupId: string,
+    ip?: string,
+  ) {
     const db = await this.findOne(userId, id);
     if (!db.dockerContainerId || db.status !== ContainerStatus.RUNNING) {
-      throw new InternalServerErrorException('Database must be running to restore a backup');
+      throw new InternalServerErrorException(
+        'Database must be running to restore a backup',
+      );
     }
 
     const backup = await this.prisma.databaseBackup.findUnique({
-      where: { id: backupId }
+      where: { id: backupId },
     });
 
     if (!backup || backup.managedDatabaseId !== db.id) {
@@ -392,7 +437,9 @@ export class DatabasesService {
 
       return { success: true };
     } catch (error) {
-      this.logger.error(`Failed to restore backup: ${error.message}`);
+      this.logger.error(
+        `Failed to restore backup: ${error instanceof Error ? error.message : String(error)}`,
+      );
       throw new InternalServerErrorException('Failed to restore backup');
     }
   }
@@ -400,7 +447,7 @@ export class DatabasesService {
   async deleteBackup(userId: string, id: string, backupId: string) {
     const db = await this.findOne(userId, id);
     const backup = await this.prisma.databaseBackup.findUnique({
-      where: { id: backupId }
+      where: { id: backupId },
     });
 
     if (!backup || backup.managedDatabaseId !== db.id) {
@@ -413,7 +460,7 @@ export class DatabasesService {
     }
 
     await this.prisma.databaseBackup.delete({
-      where: { id: backupId }
+      where: { id: backupId },
     });
 
     return { success: true };
@@ -424,8 +471,11 @@ export class DatabasesService {
     if (!db.dockerContainerId) return null;
 
     try {
-      const { stdout } = await promisify(exec)(`docker stats --no-stream --format '{"cpu":"{{.CPUPerc}}","ram":"{{.MemUsage}}"}' ${db.dockerContainerId}`);
+      const { stdout } = await promisify(exec)(
+        `docker stats --no-stream --format '{"cpu":"{{.CPUPerc}}","ram":"{{.MemUsage}}"}' ${db.dockerContainerId}`,
+      );
       if (!stdout) return null;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return JSON.parse(stdout.trim());
     } catch (error) {
       this.logger.error(`Failed to get stats for db ${id}:`, error);
@@ -433,17 +483,27 @@ export class DatabasesService {
     }
   }
 
-  async updateConfig(userId: string | null, id: string, dto: { cpuLimit?: number; memoryLimit?: number; maxConnections?: number }, ip?: string, isAdmin: boolean = false) {
+  async updateConfig(
+    userId: string | null,
+    id: string,
+    dto: { cpuLimit?: number; memoryLimit?: number; maxConnections?: number },
+    ip?: string,
+    isAdmin: boolean = false,
+  ) {
     const db = await this.findOne(userId, id, isAdmin);
-    
+
     // Update database record
     const updatedDb = await this.prisma.managedDatabase.update({
       where: { id },
       data: {
         cpuLimit: dto.cpuLimit !== undefined ? dto.cpuLimit : db.cpuLimit,
-        memoryLimit: dto.memoryLimit !== undefined ? dto.memoryLimit : db.memoryLimit,
-        maxConnections: dto.maxConnections !== undefined ? dto.maxConnections : db.maxConnections,
-      }
+        memoryLimit:
+          dto.memoryLimit !== undefined ? dto.memoryLimit : db.memoryLimit,
+        maxConnections:
+          dto.maxConnections !== undefined
+            ? dto.maxConnections
+            : db.maxConnections,
+      },
     });
 
     // If container is running, we need to restart it to apply config
@@ -454,7 +514,7 @@ export class DatabasesService {
       try {
         await this.docker.stopContainer(db.dockerContainerId);
         await this.docker.removeContainer(db.dockerContainerId, true);
-        
+
         let imageName = '';
         let envVars: string[] = [];
         let cmd: string[] = [];
@@ -467,7 +527,11 @@ export class DatabasesService {
             `POSTGRES_PASSWORD=${db.dbPassword}`,
             `POSTGRES_DB=${db.dbName}`,
           ];
-          cmd = ['postgres', '-c', `max_connections=${updatedDb.maxConnections || 100}`];
+          cmd = [
+            'postgres',
+            '-c',
+            `max_connections=${updatedDb.maxConnections || 100}`,
+          ];
           mountPath = '/var/lib/postgresql/data';
         } else if (db.type === DatabaseType.MYSQL) {
           imageName = `mysql:${db.version === 'latest' ? '8' : db.version}`;
@@ -488,7 +552,7 @@ export class DatabasesService {
         }
 
         const containerName = `portdock-db-${db.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${Date.now()}`;
-        
+
         const createOptions: any = {
           name: containerName,
           Image: imageName,
@@ -514,16 +578,18 @@ export class DatabasesService {
           },
         };
 
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         const containerInfo = await this.docker.createContainer(createOptions);
         await this.docker.startContainer(containerInfo.id);
 
         await this.prisma.managedDatabase.update({
           where: { id },
-          data: { dockerContainerId: containerInfo.id }
+          data: { dockerContainerId: containerInfo.id },
         });
-
       } catch (e) {
-        this.logger.error(`Error recreating container for config update: ${e.message}`);
+        this.logger.error(
+          `Error recreating container for config update: ${e instanceof Error ? e.message : String(e)}`,
+        );
       }
     }
 
@@ -532,7 +598,7 @@ export class DatabasesService {
 
   async getBackupRecord(backupId: string) {
     const backup = await this.prisma.databaseBackup.findUnique({
-      where: { id: backupId }
+      where: { id: backupId },
     });
     if (!backup) throw new NotFoundException('Backup not found');
     return backup;
@@ -556,43 +622,64 @@ export class DatabasesService {
 
   async resetPassword(userId: string, id: string, isAdmin: boolean = false) {
     const database = await this.findOne(userId, id, isAdmin);
-    if (!database.dockerContainerId) throw new Error('Database container not initialized');
+    if (!database.dockerContainerId)
+      throw new Error('Database container not initialized');
     if (database.status !== ContainerStatus.RUNNING) {
       throw new Error('Database must be running to reset password');
     }
-    if (database.type !== DatabaseType.POSTGRESQL && database.type !== DatabaseType.MYSQL) {
-      throw new Error('Password reset is only supported for PostgreSQL and MySQL');
+    if (
+      database.type !== DatabaseType.POSTGRESQL &&
+      database.type !== DatabaseType.MYSQL
+    ) {
+      throw new Error(
+        'Password reset is only supported for PostgreSQL and MySQL',
+      );
     }
 
     const newPassword = crypto.randomBytes(8).toString('hex');
     let cmd: string[] = [];
 
     if (database.type === DatabaseType.POSTGRESQL) {
-      cmd = ['sh', '-c', `PGPASSWORD='${database.dbPassword}' psql -U "${database.dbUser}" -d "${database.dbName || 'postgres'}" -c "ALTER USER \\"${database.dbUser}\\" WITH PASSWORD '${newPassword}';"`];
+      cmd = [
+        'sh',
+        '-c',
+        `PGPASSWORD='${database.dbPassword}' psql -U "${database.dbUser}" -d "${database.dbName || 'postgres'}" -c "ALTER USER \\"${database.dbUser}\\" WITH PASSWORD '${newPassword}';"`,
+      ];
     } else if (database.type === DatabaseType.MYSQL) {
-      cmd = ['sh', '-c', `MYSQL_PWD='${database.dbPassword}' mysql -u "${database.dbUser}" -e "ALTER USER '${database.dbUser}'@'%' IDENTIFIED BY '${newPassword}';"`];
+      cmd = [
+        'sh',
+        '-c',
+        `MYSQL_PWD='${database.dbPassword}' mysql -u "${database.dbUser}" -e "ALTER USER '${database.dbUser}'@'%' IDENTIFIED BY '${newPassword}';"`,
+      ];
     }
 
     try {
-      const container = await this.docker.getContainer(database.dockerContainerId);
+      const container = await this.docker.getContainer(
+        database.dockerContainerId,
+      );
       const exec = await container.exec({
         Cmd: cmd,
         AttachStdout: true,
         AttachStderr: true,
       });
       const stream = await exec.start({});
-      
+
       // Wait for execution to finish and consume stream to prevent hanging
       let output = '';
       await new Promise((resolve, reject) => {
-        stream.on('data', (chunk) => { output += chunk.toString(); });
+        stream.on('data', (chunk) => {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+          output += chunk.toString();
+        });
         stream.on('end', resolve);
         stream.on('error', reject);
       });
 
       const inspect = await exec.inspect();
       if (inspect.ExitCode !== 0) {
-        throw new Error(`Command failed with exit code ${inspect.ExitCode}: ${output}`);
+        throw new Error(
+          `Command failed with exit code ${inspect.ExitCode}: ${output}`,
+        );
       }
 
       const updated = await this.prisma.managedDatabase.update({
@@ -611,7 +698,10 @@ export class DatabasesService {
 
       return updated;
     } catch (error) {
-      this.logger.error(`Failed to reset password: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to reset password: ${error instanceof Error ? error.message : String(error)}`,
+        error instanceof Error ? error.stack : undefined,
+      );
       throw new Error('Failed to reset password');
     }
   }

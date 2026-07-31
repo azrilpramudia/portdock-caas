@@ -48,6 +48,13 @@ export interface ServiceStatusDto {
   status: 'Active' | 'Warning' | 'Error' | 'Down';
 }
 
+export interface DockerStorageDto {
+  imagesSize: number;
+  containersSize: number;
+  volumesSize: number;
+  totalSize: number;
+}
+
 export class AdminDashboardResponseDto {
   stats: AdminDashboardStatsDto;
   resources: ResourceUsageDto;
@@ -55,4 +62,5 @@ export class AdminDashboardResponseDto {
   recentDeployments: RecentDeploymentDto[];
   recentActivity: RecentActivityDto[];
   serviceStatus: ServiceStatusDto[];
+  dockerStorage: DockerStorageDto;
 }

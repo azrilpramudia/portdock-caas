@@ -18,6 +18,7 @@ import {
   ApiConsumes,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import type { AuthenticatedRequest } from '../auth/interfaces/auth.interface';
 import { DeploymentsService } from './deployments.service';
 import * as path from 'path';
 
@@ -54,7 +55,7 @@ export class DeploymentsController {
     }),
   )
   deployZip(
-    @Request() req: any,
+    @Request() req: AuthenticatedRequest,
     @Param('projectId') projectId: string,
     @UploadedFile() file: Express.Multer.File,
     @Body('memoryLimit') memoryLimit?: string,
@@ -82,7 +83,7 @@ export class DeploymentsController {
   @Post(':projectId/github')
   @ApiOperation({ summary: 'Deploy from GitHub repository' })
   deployGithub(
-    @Request() req: any,
+    @Request() req: AuthenticatedRequest,
     @Param('projectId') projectId: string,
     @Body()
     body: {
@@ -133,7 +134,7 @@ export class DeploymentsController {
     }),
   )
   deployDockerfile(
-    @Request() req: any,
+    @Request() req: AuthenticatedRequest,
     @Param('projectId') projectId: string,
     @UploadedFile() file: Express.Multer.File,
     @Body('memoryLimit') memoryLimit?: string,

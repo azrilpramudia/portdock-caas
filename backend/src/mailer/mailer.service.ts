@@ -14,7 +14,9 @@ export class MailerService {
 
     const fromEmail = adminEmailSetting?.value || 'admin@portdock.local';
 
-    this.logger.log(`[MOCK EMAIL] From: ${fromEmail} | To: ${to} | Subject: ${subject}`);
+    this.logger.log(
+      `[MOCK EMAIL] From: ${fromEmail} | To: ${to} | Subject: ${subject}`,
+    );
     this.logger.debug(`[MOCK EMAIL CONTENT] ${text}`);
 
     // TODO: Implement actual SMTP sending logic here (e.g. using nodemailer)

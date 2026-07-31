@@ -25,9 +25,11 @@ export class MonitoringService {
       throw new NotFoundException('Docker container not found');
 
     try {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const rawStats = await this.docker.getContainerStats(
         container.dockerContainerId,
       );
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       const parsed = this.docker.parseStats(rawStats);
       return {
         containerId,

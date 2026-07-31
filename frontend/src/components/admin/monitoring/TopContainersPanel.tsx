@@ -14,9 +14,9 @@ interface TopContainersPanelProps {
 
 export function TopContainersPanel({ topContainers }: TopContainersPanelProps) {
   return (
-    <div className="flex flex-col gap-6 md:col-span-2 lg:col-span-2 xl:col-span-2 w-full">
+    <div className="flex flex-col gap-6 md:col-span-2 lg:col-span-2 xl:col-span-2 w-full h-full">
       {/* Top Containers CPU */}
-      <div className="bg-card border border-border rounded-xl p-6 shadow-sm h-full">
+      <div className="bg-card border border-border rounded-xl p-6 shadow-sm flex-1 flex flex-col">
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-base font-bold text-foreground">Top Containers by CPU</h3>
           <span className="text-sm text-blue-600 font-semibold cursor-pointer hover:underline">View all</span>
@@ -58,7 +58,7 @@ export function TopContainersPanel({ topContainers }: TopContainersPanelProps) {
       </div>
 
       {/* Top Containers RAM */}
-      <div className="bg-card border border-border rounded-xl p-6 shadow-sm h-full">
+      <div className="bg-card border border-border rounded-xl p-6 shadow-sm flex-1 flex flex-col">
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-base font-bold text-foreground">Top Containers by RAM</h3>
           <span className="text-sm text-blue-600 font-semibold cursor-pointer hover:underline">View all</span>
