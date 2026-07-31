@@ -55,7 +55,7 @@ export function DatabaseTable({
   dbPortalUrl
 }: DatabaseTableProps) {
   const { settings } = useSettingsStore();
-  const isMaintenanceMode = settings?.maintenanceMode;
+  const isMaintenanceMode = settings?.isMaintenanceMode;
   
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
