@@ -188,16 +188,52 @@ export class DatabasesService {
   }
 
   async findAll(userId: string) {
-    return this.prisma.managedDatabase.findMany({
+    const databases = await this.prisma.managedDatabase.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
     });
+
+    return Promise.all(
+      databases.map(async (db) => {
+        if (db.dockerContainerId && db.status === ContainerStatus.RUNNING) {
+          try {
+            const inspect = await this.docker.inspectContainer(db.dockerContainerId);
+            const net = (inspect.NetworkSettings as any)?.Networks?.['portdock-net'];
+            const containerIp = net?.IPAddress || null;
+            return {
+              ...db,
+              containerIp,
+              containerName: inspect.Name ? inspect.Name.replace(/^\//, '') : null,
+            };
+          } catch {
+            return db;
+          }
+        }
+        return db;
+      }),
+    );
   }
 
   async findOne(userId: string | null, id: string, isAdmin: boolean = false) {
     const db = await this.prisma.managedDatabase.findUnique({ where: { id } });
     if (!db) throw new NotFoundException('Database not found');
     if (!isAdmin && db.userId !== userId) throw new ForbiddenException();
+
+    if (db.dockerContainerId && db.status === ContainerStatus.RUNNING) {
+      try {
+        const inspect = await this.docker.inspectContainer(db.dockerContainerId);
+        const net = (inspect.NetworkSettings as any)?.Networks?.['portdock-net'];
+        const containerIp = net?.IPAddress || null;
+        return {
+          ...db,
+          containerIp,
+          containerName: inspect.Name ? inspect.Name.replace(/^\//, '') : null,
+        };
+      } catch {
+        return db;
+      }
+    }
+
     return db;
   }
 
@@ -551,7 +587,10 @@ export class DatabasesService {
           mountPath = '/var/lib/mysql';
         }
 
-        const containerName = `portdock-db-${db.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${Date.now()}`;
+        const containerName = `portdock-db-${db.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
+        try {
+          await this.docker.removeContainer(containerName).catch(() => {});
+        } catch {}
 
         const createOptions: any = {
           name: containerName,

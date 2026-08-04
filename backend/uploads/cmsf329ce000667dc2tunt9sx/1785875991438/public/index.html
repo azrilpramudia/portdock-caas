@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wisata Nusantara</title>
+  <meta name="description" content="Platform pemesanan tiket destinasi wisata terbaik di Indonesia. Mudah, cepat, dan terpercaya.">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏝️</text></svg>">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="container nav-container">
+      <a href="/" class="brand-logo">
+        <div class="logo-icon"><i data-lucide="palmtree"></i></div>
+        <span>Wisata<span>Nusantara</span></span>
+      </a>
+
+      <ul class="nav-links">
+        <li><a href="/" class="nav-link active">Home</a></li>
+        <li><a href="/about.html" class="nav-link">About</a></li>
+        <li><a href="/destination.html" class="nav-link">Destination</a></li>
+        <li><a href="/booking.html" class="nav-link">Booking</a></li>
+        <li><a href="/contact.html" class="nav-link">Contact</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <a href="/login.html" class="btn btn-outline btn-sm"><i data-lucide="lock"></i> Login Admin</a>
+        <a href="/booking.html" class="btn btn-primary btn-sm"><i data-lucide="ticket"></i> Pesan Tiket</a>
+        <button class="mobile-toggle" aria-label="Toggle Menu"><i data-lucide="menu"></i></button>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <!-- Hero Section -->
+    <section class="hero">
+      <div class="container hero-grid">
+        <div class="hero-content">
+          <span class="section-tag"><i data-lucide="sparkles"></i> Jelajahi Keajaiban Nusantara</span>
+          <h1>Temukan Keindahan <span>Wisata Impian</span> di Seluruh Indonesia</h1>
+          <p class="hero-text">
+            Rasakan pesona alam eksotis dari Raja Ampat hingga kemegahan Candi Borobudur. Pesan tiket wisata resmi secara mudah, instan, dan aman dalam hitungan detik.
+          </p>
+          <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+            <a href="/destination.html" class="btn btn-primary btn-lg"><i data-lucide="compass"></i> Lihat Destinasi</a>
+            <a href="/booking.html" class="btn btn-outline btn-lg"><i data-lucide="ticket"></i> Booking Sekarang</a>
+          </div>
+
+          <div class="hero-stats">
+            <div class="hero-stat-item">
+              <h3>50+</h3>
+              <p>Destinasi Pilihan</p>
+            </div>
+            <div class="hero-stat-item">
+              <h3>100K+</h3>
+              <p>Tiket Terjual</p>
+            </div>
+            <div class="hero-stat-item">
+              <h3>4.9 <i data-lucide="star" style="width: 1rem; height: 1rem; fill: #F59E0B; stroke: #F59E0B;"></i></h3>
+              <p>Kepuasan Wisatawan</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-image-wrapper">
+          <img src="https://images.unsplash.com/photo-1516690561799-46d8f74f9abf?auto=format&fit=crop&w=1000&q=80" alt="Wisata Indonesia Raja Ampat" class="hero-main-img">
+          <div class="hero-floating-card">
+            <div class="floating-icon" style="background: var(--primary-light); color: var(--primary);"><i data-lucide="ticket"></i></div>
+            <div>
+              <h4 style="font-size: 1rem; margin-bottom: 2px;">E-Tiket Instant</h4>
+              <p style="font-size: 0.8rem; color: var(--text-muted);">Konfirmasi langsung & barcode resmi</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Popular Destinations Section -->
+    <section class="section-padding" style="background: #FFFFFF;">
+      <div class="container">
+        <div class="section-title-wrap">
+          <span class="section-tag"><i data-lucide="flame"></i> Paling Diminati</span>
+          <h2>Destinasi Wisata Populer</h2>
+          <p class="section-subtitle">Pilihan tempat liburan favorit wisatawan lokal maupun mancanegara</p>
+        </div>
+
+        <div class="dest-grid" id="popular-dest-container">
+          <!-- Popular destination cards loaded dynamically via JS -->
+          <div style="grid-column: 1/-1; text-align: center; padding: 2rem; color: var(--text-muted);">
+            Memuat destinasi terbaik...
+          </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 3rem;">
+          <a href="/destination.html" class="btn btn-secondary btn-lg">Lihat Semua Destinasi <i data-lucide="arrow-right"></i></a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Why Choose Us Section -->
+    <section class="section-padding">
+      <div class="container">
+        <div class="section-title-wrap">
+          <span class="section-tag"><i data-lucide="gem"></i> Keunggulan Kami</span>
+          <h2>Kenapa Memilih WisataNusantara?</h2>
+          <p class="section-subtitle">Kenyamanan dan kepuasan perjalanan Anda adalah prioritas utama kami</p>
+        </div>
+
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon-wrap" style="color: var(--primary);"><i data-lucide="zap" class="icon-lg"></i></div>
+            <h3>Pemesanan Cepat & Praktis</h3>
+            <p>Pilih destinasi, isi data, dan dapatkan E-Tiket seketika tanpa perlu antre berjam-jam di lokasi.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon-wrap" style="color: var(--success);"><i data-lucide="shield-check" class="icon-lg"></i></div>
+            <h3>Tiket Resmi Terverifikasi</h3>
+            <p>Semua tiket terjamin 100% resmi dan terintegrasi langsung dengan pengelola destinasi wisata.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon-wrap" style="color: var(--accent);"><i data-lucide="banknote" class="icon-lg"></i></div>
+            <h3>Harga Transparan & Terbaik</h3>
+            <p>Tidak ada biaya tersembunyi. Harga yang tertera adalah harga final sesuai ketentuan destinasi.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon-wrap" style="color: #6366F1;"><i data-lucide="headset" class="icon-lg"></i></div>
+            <h3>Dukungan Pelanggan 24/7</h3>
+            <p>Tim support kami siap membantu setiap kendala reservasi dan informasi wisata kapan saja.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="section-padding" style="background: #FFFFFF;">
+      <div class="container">
+        <div class="section-title-wrap">
+          <span class="section-tag"><i data-lucide="message-square"></i> Ulasan Pengunjung</span>
+          <h2>Apa Kata Mereka?</h2>
+          <p class="section-subtitle">Pengalaman nyata dari para penjelajah keindahan Nusantara</p>
+        </div>
+
+        <div class="testimonial-grid">
+          <div class="testimonial-card">
+            <div class="testimonial-stars" style="color: #F59E0B; display: flex; gap: 2px;">
+              <i data-lucide="star" style="fill: #F59E0B;"></i><i data-lucide="star" style="fill: #F59E0B;"></i><i data-lucide="star" style="fill: #F59E0B;"></i><i data-lucide="star" style="fill: #F59E0B;"></i><i data-lucide="star" style="fill: #F59E0B;"></i>
+            </div>
+            <p class="testimonial-text">"Pesan tiket ke Raja Ampat lewat WisataNusantara sangat mulus! E-tiket langsung keluar lengkap dengan barcode dan detail kuota."</p>
+            <div class="testimonial-author">
+              <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" alt="Rina Kusuma" class="author-avatar">
+              <div class="author-info">
+                <h4>Rina Kusuma</h4>
+                <p>Solo Traveler - Jakarta</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="testimonial-card">
+            <div class="testimonial-stars" style="color: #F59E0B; display: flex; gap: 2px;">
+              <i data-lucide="star" style="fill: #F59E0B;"></i><i data-lucide="star" style="fill: #F59E0B;"></i><i data-lucide="star" style="fill: #F59E0B;"></i><i data-lucide="star" style="fill: #F59E0B;"></i><i data-lucide="star" style="fill: #F59E0B;"></i>
+            </div>
+            <p class="testimonial-text">"Liburan keluarga ke Candi Borobudur jadi menyenangkan karena tidak perlu repot antre tiket di loket fisik. Sangat direkomendasikan!"</p>
+            <div class="testimonial-author">
+              <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80" alt="Dimas Anggoro" class="author-avatar">
+              <div class="author-info">
+                <h4>Dimas Anggoro</h4>
+                <p>Traveler Keluarga - Surabaya</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="testimonial-card">
+            <div class="testimonial-stars" style="color: #F59E0B; display: flex; gap: 2px;">
+              <i data-lucide="star" style="fill: #F59E0B;"></i><i data-lucide="star" style="fill: #F59E0B;"></i><i data-lucide="star" style="fill: #F59E0B;"></i><i data-lucide="star" style="fill: #F59E0B;"></i><i data-lucide="star" style="fill: #F59E0B;"></i>
+            </div>
+            <p class="testimonial-text">"Pemandangan Labuan Bajo & Pulau Padar luar biasa indah. Sistem booking di website ini sangat responsif dan modern di HP!"</p>
+            <div class="testimonial-author">
+              <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80" alt="Citra Lestari" class="author-avatar">
+              <div class="author-info">
+                <h4>Citra Lestari</h4>
+                <p>Photographer - Bandung</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Call To Action (CTA) Section -->
+    <section class="section-padding">
+      <div class="container">
+        <div class="cta-banner">
+          <h2>Siap Menjelajahi Surga Wisata Indonesia?</h2>
+          <p>Dapatkan tiket destinasi favoritmu sekarang dan ciptakan kenangan liburan terbaik bersama orang terkasih.</p>
+          <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            <a href="/booking.html" class="btn btn-accent btn-lg btn-cta"><i data-lucide="ticket"></i> Booking Tiket Sekarang</a>
+            <a href="/contact.html" class="btn btn-outline btn-lg" style="color: #fff; border-color: #fff;"><i data-lucide="mail"></i> Hubungi Kami</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Destination Detail Modal -->
+  <div class="modal-backdrop" id="detail-modal">
+    <div class="modal-box modal-lg">
+      <div class="modal-header">
+        <h3 id="modal-dest-title">Detail Destinasi</h3>
+        <button class="modal-close-btn" aria-label="Tutup Modal">&times;</button>
+      </div>
+      <div class="modal-body" id="modal-dest-body">
+        <!-- Injected via JS -->
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline btn-sm" onclick="closeModal('detail-modal')">Tutup</button>
+        <a href="/booking.html" id="modal-book-btn" class="btn btn-primary btn-sm"><i data-lucide="ticket"></i> Pesan Tiket Ini</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a href="/" class="brand-logo">
+            <div class="logo-icon"><i data-lucide="palmtree"></i></div>
+            <span>Wisata<span>Nusantara</span></span>
+          </a>
+          <p>Platform terpadu pemesanan tiket destinasi wisata Indonesia untuk pengalaman liburan yang aman, nyaman, dan tak terlupakan.</p>
+        </div>
+
+        <div class="footer-col">
+          <h4>Navigasi</h4>
+          <ul class="footer-links">
+            <li><a href="/">Home</a></li>
+            <li><a href="/about.html">Tentang Kami</a></li>
+            <li><a href="/destination.html">Destinasi</a></li>
+            <li><a href="/booking.html">Pesan Tiket</a></li>
+            <li><a href="/contact.html">Kontak</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Destinasi Populer</h4>
+          <ul class="footer-links">
+            <li><a href="/destination.html">Raja Ampat</a></li>
+            <li><a href="/destination.html">Candi Borobudur</a></li>
+            <li><a href="/destination.html">Labuan Bajo</a></li>
+            <li><a href="/destination.html">Gunung Bromo</a></li>
+            <li><a href="/destination.html">Nusa Penida</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Hubungi Kami</h4>
+          <ul class="footer-links">
+            <li><i data-lucide="map-pin"></i> Jl. Kebon Sirih No. 45, Jakarta Pusat</li>
+            <li><i data-lucide="mail"></i> info@wisatanusantara.id</li>
+            <li><i data-lucide="phone"></i> +62 812-3456-7890</li>
+            <li><i data-lucide="clock"></i> Buka Setiap Hari: 08.00 - 21.00 WIB</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>&copy; 2026 WisataNusantara. All rights reserved. Sesuai PRD.md</p>
+        <div>
+          <a href="/login.html" style="color: #94A3B8; text-decoration: underline;"><i data-lucide="lock" style="width: 0.9em; height: 0.9em;"></i> Portal Admin</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/js/main.js"></script>
+  <script>
+    // Load top 3 popular destinations on landing page
+    async function loadPopularDestinations() {
+      const container = document.getElementById('popular-dest-container');
+      try {
+        const response = await fetch('/api/destination');
+        const result = await response.json();
+        if (result.success && result.data.length > 0) {
+          const topDestinations = result.data.slice(0, 3);
+          container.innerHTML = topDestinations.map(dest => `
+            <div class="dest-card">
+              <div class="dest-card-img-wrap">
+                <img src="${escapeHTML(dest.image)}" alt="${escapeHTML(dest.name)}" class="dest-card-img" onerror="this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1000&q=80'">
+                <span class="dest-card-badge">${escapeHTML(dest.category || 'Wisata Alam')}</span>
+                <span class="dest-card-rating"><i data-lucide="star" style="width: 0.85em; height: 0.85em; fill: #F59E0B; stroke: #F59E0B;"></i> ${dest.rating ? dest.rating.toFixed(1) : '4.8'}</span>
+              </div>
+              <div class="dest-card-body">
+                <div class="dest-card-location"><i data-lucide="map-pin"></i> ${escapeHTML(dest.location)}</div>
+                <h3 class="dest-card-title">${escapeHTML(dest.name)}</h3>
+                <p class="dest-card-desc">${escapeHTML(dest.description)}</p>
+                <div class="dest-card-footer">
+                  <div class="dest-price-box">
+                    <span class="dest-price-label">Mulai Dari</span>
+                    <span class="dest-price-val">${formatRupiah(dest.price)}</span>
+                  </div>
+                  <div class="dest-card-actions">
+                    <a href="/booking.html?id=${dest.id}" class="btn btn-primary btn-sm"><i data-lucide="ticket"></i> Pesan</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `).join('');
+          refreshIcons();
+        }
+      } catch (err) {
+        console.error('Error loading popular destinations:', err);
+      }
+    }
+    document.addEventListener('DOMContentLoaded', loadPopularDestinations);
+  </script>
+</body>
+</html>

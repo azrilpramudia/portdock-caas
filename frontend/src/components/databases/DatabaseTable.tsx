@@ -292,13 +292,14 @@ export function DatabaseTable({
                                   const isPg = db.type === 'POSTGRESQL';
                                   const validUrl = dbPortalUrl.startsWith('http') ? dbPortalUrl : `https://${dbPortalUrl}`;
                                   const portal = new URL(validUrl);
-                                  const hostIp = '172.17.0.1'; // IP Gateway Docker untuk Host
+                                  const targetServer = `127.0.0.1:${db.hostPort}`;
                                   if (isPg) {
-                                    portal.searchParams.set('pgsql', `${hostIp}:${db.hostPort}`);
+                                    portal.searchParams.set('pgsql', targetServer);
                                   } else {
-                                    portal.searchParams.set('server', `${hostIp}:${db.hostPort}`);
+                                    portal.searchParams.set('server', targetServer);
                                   }
                                   portal.searchParams.set('username', db.dbUser || '');
+                                  portal.searchParams.set('db', db.dbName || '');
                                   window.open(portal.toString(), '_blank');
                                 }}
                               >

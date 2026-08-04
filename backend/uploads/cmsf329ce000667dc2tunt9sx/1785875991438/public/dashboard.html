@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Admin - WisataNusantara</title>
+  <meta name="description" content="Dashboard Pengelolaan Destinasi Wisata dan Pemesanan Tiket WisataNusantara.">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚙️</text></svg>">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body style="background-color: var(--bg-alt);">
+
+  <!-- Admin Dedicated Navigation Bar -->
+  <nav class="navbar admin-navbar">
+    <div class="container nav-container">
+      <a href="/dashboard.html" class="brand-logo">
+        <div class="logo-icon" style="background: rgba(255,255,255,0.15); color: #FFFFFF;"><i data-lucide="shield-check"></i></div>
+        <span>Wisata<span>Admin</span></span>
+      </a>
+
+      <div style="display: flex; align-items: center; gap: 0.85rem;">
+        <span id="admin-user-display" class="admin-user-pill">
+          <i data-lucide="user"></i> Admin
+        </span>
+        <a href="/" target="_blank" class="btn btn-outline btn-sm" style="color: #FFFFFF; border-color: rgba(255,255,255,0.3);" title="Buka website publik di tab baru">
+          <i data-lucide="external-link"></i> Website
+        </a>
+        <button class="btn btn-danger btn-sm" onclick="handleAdminLogout()" title="Keluar dari sesi admin">
+          <i data-lucide="log-out"></i> Logout
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="section-padding" style="padding-top: 2rem; padding-bottom: 4rem;">
+    <div class="container">
+      
+      <!-- Dashboard Top Header Bar -->
+      <div class="admin-header-wrap">
+        <div>
+          <span class="section-tag"><i data-lucide="layout-dashboard"></i> Panel Pengelola</span>
+          <h1 style="font-size: 2.2rem; margin: 0.25rem 0;">Dashboard Administrasi</h1>
+          <p class="section-subtitle" style="margin: 0;">Kelola katalog destinasi wisata, monitoring kuota tiket real-time, dan pantau reservasi</p>
+        </div>
+        <div>
+          <button class="btn btn-primary btn-md" onclick="openCreateDestinationModal()">
+            <i data-lucide="plus-circle"></i> Tambah Destinasi Baru
+          </button>
+        </div>
+      </div>
+
+      <!-- KPI Metrics Stats Cards Grid -->
+      <div class="dashboard-stats">
+        <div class="stat-card">
+          <div class="stat-icon blue"><i data-lucide="palmtree"></i></div>
+          <div class="stat-info">
+            <h4>Total Destinasi</h4>
+            <div class="stat-value" id="stat-total-dest">0</div>
+            <div class="stat-desc">Destinasi aktif terdaftar</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon amber"><i data-lucide="ticket"></i></div>
+          <div class="stat-info">
+            <h4>Total Booking</h4>
+            <div class="stat-value" id="stat-total-bookings">0</div>
+            <div class="stat-desc">Semua transaksi masuk</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon purple"><i data-lucide="users"></i></div>
+          <div class="stat-info">
+            <h4>Tiket Terjual</h4>
+            <div class="stat-value" id="stat-total-tickets">0 Tiket</div>
+            <div class="stat-desc">Total kuantitas tiket</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon green"><i data-lucide="banknote"></i></div>
+          <div class="stat-info">
+            <h4>Total Omset</h4>
+            <div class="stat-value" id="stat-total-revenue">Rp 0</div>
+            <div class="stat-desc">Akumulasi pendapatan</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dashboard Tabs Navigation -->
+      <div class="dashboard-tabs">
+        <button class="tab-btn active" data-tab="destinations" onclick="switchTab('destinations')">
+          <i data-lucide="map"></i> Kelola Destinasi Wisata
+        </button>
+        <button class="tab-btn" data-tab="bookings" onclick="switchTab('bookings')">
+          <i data-lucide="clipboard-list"></i> Riwayat Reservasi Tiket
+        </button>
+      </div>
+
+      <!-- Tab 1: Destination Management -->
+      <div class="tab-content active" id="destinations-tab">
+        <div class="admin-toolbar">
+          <div class="admin-search-wrap">
+            <input type="text" id="admin-dest-search" class="form-control" placeholder="Cari nama destinasi, wilayah, atau kategori...">
+          </div>
+          <div style="display: flex; gap: 0.75rem; align-items: center;">
+            <button class="btn btn-outline btn-sm" onclick="loadDestinationsTable()">
+              <i data-lucide="refresh-cw"></i> Refresh Data
+            </button>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th style="width: 60px; text-align: center;">No</th>
+                <th>Destinasi & Foto</th>
+                <th>Lokasi / Wilayah</th>
+                <th>Kategori</th>
+                <th>Harga Tiket</th>
+                <th>Sisa Kuota</th>
+                <th style="width: 170px; text-align: center;">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="destinations-table-body">
+              <!-- Rendered via admin.js -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab 2: Bookings Management -->
+      <div class="tab-content" id="bookings-tab">
+        <div class="admin-toolbar">
+          <div class="admin-search-wrap">
+            <input type="text" id="admin-booking-search" class="form-control" placeholder="Cari nama pemesan, email, HP, atau destinasi...">
+          </div>
+          <div style="display: flex; gap: 0.75rem; align-items: center;">
+            <button class="btn btn-outline btn-sm" onclick="loadBookingsTable()">
+              <i data-lucide="refresh-cw"></i> Refresh Data
+            </button>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th style="width: 60px; text-align: center;">No</th>
+                <th>Data Pemesan</th>
+                <th>Destinasi</th>
+                <th>Tgl Kunjungan</th>
+                <th>Jumlah</th>
+                <th>Total Bayar</th>
+                <th>Status</th>
+                <th style="width: 110px; text-align: center;">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="bookings-table-body">
+              <!-- Rendered via admin.js -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Destination Add / Edit Modal -->
+  <div class="modal-backdrop" id="destination-crud-modal">
+    <div class="modal-box modal-lg">
+      <div class="modal-header">
+        <h3 id="dest-modal-title"><i data-lucide="map-pin"></i> Tambah Destinasi Wisata</h3>
+        <button class="modal-close-btn" aria-label="Tutup Modal">&times;</button>
+      </div>
+      <form id="destination-form">
+        <div class="modal-body">
+          <input type="hidden" id="dest-id">
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
+            <div class="form-group">
+              <label class="form-label" for="dest-name">Nama Destinasi <span class="req">*</span></label>
+              <input type="text" id="dest-name" class="form-control" placeholder="Contoh: Raja Ampat" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="dest-location">Lokasi / Wilayah <span class="req">*</span></label>
+              <input type="text" id="dest-location" class="form-control" placeholder="Contoh: Papua Barat Daya" required>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.25rem;">
+            <div class="form-group">
+              <label class="form-label" for="dest-price">Harga Tiket (Rp) <span class="req">*</span></label>
+              <input type="number" id="dest-price" class="form-control" placeholder="100000" min="0" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="dest-quota">Kuota Harian <span class="req">*</span></label>
+              <input type="number" id="dest-quota" class="form-control" placeholder="50" min="0" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="dest-category">Kategori Wisata</label>
+              <select id="dest-category" class="form-control">
+                <option value="Bahari & Pulau">Bahari & Pulau</option>
+                <option value="Budaya & Sejarah">Budaya & Sejarah</option>
+                <option value="Gunung & Alam">Gunung & Alam</option>
+                <option value="Danau & Budaya">Danau & Budaya</option>
+                <option value="Bahari & Satwa">Bahari & Satwa</option>
+                <option value="Taman Hiburan">Taman Hiburan</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="dest-image">URL Foto Destinasi</label>
+            <input type="url" id="dest-image" class="form-control" placeholder="https://images.unsplash.com/photo-...">
+            <p class="form-hint">Gunakan URL gambar beresolusi tinggi (Unsplash dsb). Kosongkan untuk gambar default.</p>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="dest-description">Deskripsi Lengkap Destinasi</label>
+            <textarea id="dest-description" class="form-control" placeholder="Tuliskan ringkasan daya tarik, informasi tiket, fasilitas, dan keunikan wisata..." rows="3"></textarea>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline btn-sm" onclick="closeModal('destination-crud-modal')">Batal</button>
+          <button type="submit" id="save-dest-btn" class="btn btn-primary btn-sm"><i data-lucide="save"></i> Simpan Destinasi</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal-backdrop" id="delete-confirm-modal">
+    <div class="modal-box" style="max-width: 480px;">
+      <div class="modal-header">
+        <h3 style="color: var(--danger);"><i data-lucide="alert-triangle"></i> Konfirmasi Penghapusan</h3>
+        <button class="modal-close-btn" aria-label="Tutup Modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p id="delete-modal-msg" style="color: var(--text-main); line-height: 1.6; font-size: 0.95rem;">
+          Apakah Anda yakin ingin menghapus data ini? Tindakan ini bersifat permanen.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline btn-sm" onclick="closeModal('delete-confirm-modal')">Batal</button>
+        <button type="button" id="execute-delete-btn" class="btn btn-danger btn-sm"><i data-lucide="trash-2"></i> Ya, Hapus Sekarang</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin Footer -->
+  <footer class="footer" style="padding: 1.5rem 0; background: var(--secondary);">
+    <div class="container">
+      <div class="footer-bottom" style="border: 0; padding: 0; margin: 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+        <p style="color: #94A3B8; font-size: 0.85rem;">&copy; 2026 WisataNusantara Admin Portal. Dedicated Protected Panel.</p>
+        <a href="/login.html" style="color: #94A3B8; font-size: 0.85rem; text-decoration: underline;" onclick="handleAdminLogout()">Logout Sesi</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/js/main.js"></script>
+  <script src="/js/admin.js"></script>
+</body>
+</html>

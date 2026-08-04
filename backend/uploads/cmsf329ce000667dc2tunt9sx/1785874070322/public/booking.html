@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pemesanan Tiket Wisata - WisataNusantara</title>
+  <meta name="description" content="Formulir pemesanan tiket resmi wisata nusantara dengan konfirmasi instan dan penerbitan E-Tiket otomatis.">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎟️</text></svg>">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="container nav-container">
+      <a href="/" class="brand-logo">
+        <div class="logo-icon"><i data-lucide="palmtree"></i></div>
+        <span>Wisata<span>Nusantara</span></span>
+      </a>
+
+      <ul class="nav-links">
+        <li><a href="/" class="nav-link">Home</a></li>
+        <li><a href="/about.html" class="nav-link">About</a></li>
+        <li><a href="/destination.html" class="nav-link">Destination</a></li>
+        <li><a href="/booking.html" class="nav-link active">Booking</a></li>
+        <li><a href="/contact.html" class="nav-link">Contact</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <a href="/login.html" class="btn btn-outline btn-sm"><i data-lucide="lock"></i> Login Admin</a>
+        <a href="/destination.html" class="btn btn-primary btn-sm"><i data-lucide="compass"></i> Lihat Destinasi</a>
+        <button class="mobile-toggle" aria-label="Toggle Menu"><i data-lucide="menu"></i></button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="section-padding">
+    <div class="container">
+      <div class="section-title-wrap">
+        <span class="section-tag"><i data-lucide="ticket"></i> Reservasi Mudah & Cepat</span>
+        <h1>Formulir Pemesanan Tiket Wisata</h1>
+        <p class="section-subtitle">Isi rincian kunjungan Anda untuk penerbitan E-Tiket resmi dengan barcode digital</p>
+      </div>
+
+      <div class="booking-layout">
+        <!-- Booking Form Card -->
+        <div class="booking-form-card">
+          <form id="booking-form">
+            <h3 style="margin-bottom: 1.5rem; color: var(--secondary); font-size: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">
+              <i data-lucide="user-check" style="color: var(--primary);"></i> 1. Informasi Data Pemesan
+            </h3>
+
+            <div class="form-group">
+              <label class="form-label" for="customer-name">Nama Lengkap Sesuai KTP/Paspor <span class="req">*</span></label>
+              <input type="text" id="customer-name" class="form-control" placeholder="Contoh: Budi Santoso" required>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+              <div class="form-group">
+                <label class="form-label" for="customer-email">Alamat Email Aktif <span class="req">*</span></label>
+                <input type="email" id="customer-email" class="form-control" placeholder="budi@example.com" required>
+                <p class="form-hint">E-Tiket akan dikirimkan ke alamat email ini.</p>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="customer-phone">Nomor WhatsApp / HP <span class="req">*</span></label>
+                <input type="tel" id="customer-phone" class="form-control" placeholder="081234567890" required>
+              </div>
+            </div>
+
+            <h3 style="margin: 2rem 0 1.5rem 0; color: var(--secondary); font-size: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">
+              <i data-lucide="map" style="color: var(--primary);"></i> 2. Rincian Kunjungan Destinasi
+            </h3>
+
+            <div class="form-group">
+              <label class="form-label" for="destination-select">Pilih Destinasi Wisata <span class="req">*</span></label>
+              <select id="destination-select" class="form-control" required>
+                <option value="">Memuat daftar destinasi...</option>
+              </select>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+              <div class="form-group">
+                <label class="form-label" for="booking-date">Tanggal Rencana Kunjungan <span class="req">*</span></label>
+                <input type="date" id="booking-date" class="form-control" required>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="ticket-quantity">Jumlah Tiket / Pengunjung <span class="req">*</span></label>
+                <div class="qty-control">
+                  <button type="button" class="qty-btn" onclick="adjustQuantity(-1)">-</button>
+                  <input type="number" id="ticket-quantity" class="qty-input" value="1" min="1" max="100" required>
+                  <button type="button" class="qty-btn" onclick="adjustQuantity(1)">+</button>
+                </div>
+              </div>
+            </div>
+
+            <div id="quota-warning" style="margin-top: 0.5rem; font-size: 0.875rem;"></div>
+
+            <div style="margin-top: 2rem;">
+              <button type="submit" id="submit-booking-btn" class="btn btn-primary btn-block btn-lg">
+                <i data-lucide="check"></i> Konfirmasi & Pesan Tiket Sekarang
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Order Summary Card -->
+        <div>
+          <div class="order-summary-card">
+            <h3><i data-lucide="receipt"></i> Ringkasan Pemesanan</h3>
+
+            <div class="summary-dest-preview" id="dest-preview-box">
+              <p style="color: var(--text-muted); font-size: 0.9rem;">Pilih destinasi di formulir untuk melihat rincian biaya.</p>
+            </div>
+
+            <div class="summary-row">
+              <span class="label">Harga Satuan Tiket</span>
+              <span class="val" id="summary-unit-price">Rp 0</span>
+            </div>
+
+            <div class="summary-row">
+              <span class="label">Jumlah Pengunjung</span>
+              <span class="val" id="summary-quantity">1 Tiket</span>
+            </div>
+
+            <div class="summary-row">
+              <span class="label">Subtotal</span>
+              <span class="val" id="summary-subtotal">Rp 0</span>
+            </div>
+
+            <div class="summary-row">
+              <span class="label">Biaya Administrasi & Asuransi</span>
+              <span class="val" style="color: var(--success); font-weight: 600;">GRATIS</span>
+            </div>
+
+            <div class="summary-total-row">
+              <span class="total-label">Total Pembayaran</span>
+              <span class="total-price" id="summary-total">Rp 0</span>
+            </div>
+
+            <div style="margin-top: 1.5rem; padding: 0.85rem; background: #F8FAFC; border-radius: var(--radius-md); font-size: 0.8rem; color: var(--text-muted); display: flex; gap: 0.5rem; align-items: flex-start;">
+              <i data-lucide="shield-check" style="color: var(--success); flex-shrink: 0; margin-top: 2px;"></i>
+              <span>Garansi 100% tiket resmi dengan barcode terverifikasi langsung ke sistem destinasi.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Official E-Ticket Modal -->
+  <div class="modal-backdrop" id="ticket-modal">
+    <div class="modal-box modal-lg">
+      <div class="modal-header">
+        <h3 style="color: var(--success); display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="check-circle-2"></i> Pemesanan Berhasil Diterbitkan!</h3>
+        <button class="modal-close-btn" aria-label="Tutup Modal">&times;</button>
+      </div>
+      <div class="modal-body" id="ticket-modal-body">
+        <!-- Rendered via JS -->
+      </div>
+      <div class="modal-footer" style="justify-content: space-between;">
+        <button class="btn btn-outline btn-sm" onclick="closeModal('ticket-modal')">Tutup</button>
+        <button class="btn btn-primary btn-sm" onclick="printTicket()"><i data-lucide="printer"></i> Cetak / Simpan E-Tiket</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a href="/" class="brand-logo">
+            <div class="logo-icon"><i data-lucide="palmtree"></i></div>
+            <span>Wisata<span>Nusantara</span></span>
+          </a>
+          <p>Platform terpadu pemesanan tiket destinasi wisata Indonesia untuk pengalaman liburan yang aman, nyaman, dan tak terlupakan.</p>
+        </div>
+
+        <div class="footer-col">
+          <h4>Navigasi</h4>
+          <ul class="footer-links">
+            <li><a href="/">Home</a></li>
+            <li><a href="/about.html">Tentang Kami</a></li>
+            <li><a href="/destination.html">Destinasi</a></li>
+            <li><a href="/booking.html">Pesan Tiket</a></li>
+            <li><a href="/contact.html">Kontak</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Bantuan Booking</h4>
+          <ul class="footer-links">
+            <li><a href="/contact.html">Panduan Pemesanan</a></li>
+            <li><a href="/contact.html">Kebijakan Pembatalan</a></li>
+            <li><a href="/contact.html">Klaim E-Tiket</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Hubungi Kami</h4>
+          <ul class="footer-links">
+            <li><i data-lucide="map-pin"></i> Jl. Kebon Sirih No. 45, Jakarta Pusat</li>
+            <li><i data-lucide="mail"></i> info@wisatanusantara.id</li>
+            <li><i data-lucide="phone"></i> +62 812-3456-7890</li>
+            <li><i data-lucide="clock"></i> Buka Setiap Hari: 08.00 - 21.00 WIB</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>&copy; 2026 WisataNusantara. All rights reserved. Sesuai PRD.md</p>
+        <div>
+          <a href="/login.html" style="color: #94A3B8; text-decoration: underline;"><i data-lucide="lock" style="width: 0.9em; height: 0.9em;"></i> Portal Admin</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/js/main.js"></script>
+  <script src="/js/booking.js"></script>
+</body>
+</html>

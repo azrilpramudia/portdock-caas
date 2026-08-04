@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kontak Kami - WisataNusantara</title>
+  <meta name="description" content="Hubungi layanan pelanggan WisataNusantara untuk pertanyaan, bantuan reservasi tiket, dan informasi destinasi.">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏝️</text></svg>">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="container nav-container">
+      <a href="/" class="brand-logo">
+        <div class="logo-icon"><i data-lucide="palmtree"></i></div>
+        <span>Wisata<span>Nusantara</span></span>
+      </a>
+
+      <ul class="nav-links">
+        <li><a href="/" class="nav-link">Home</a></li>
+        <li><a href="/about.html" class="nav-link">About</a></li>
+        <li><a href="/destination.html" class="nav-link">Destination</a></li>
+        <li><a href="/booking.html" class="nav-link">Booking</a></li>
+        <li><a href="/contact.html" class="nav-link active">Contact</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <a href="/login.html" class="btn btn-outline btn-sm"><i data-lucide="lock"></i> Login Admin</a>
+        <a href="/booking.html" class="btn btn-primary btn-sm"><i data-lucide="ticket"></i> Pesan Tiket</a>
+        <button class="mobile-toggle" aria-label="Toggle Menu"><i data-lucide="menu"></i></button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="section-padding">
+    <div class="container">
+      <!-- Contact Header -->
+      <div class="section-title-wrap">
+        <span class="section-tag"><i data-lucide="mail"></i> Bantuan & Layanan</span>
+        <h1>Hubungi Kami</h1>
+        <p class="section-subtitle">Ada pertanyaan seputar pemesanan tiket atau rekomendasi destinasi wisata? Tim kami siap membantu!</p>
+      </div>
+
+      <!-- Contact Info Cards -->
+      <div class="contact-grid">
+        <div class="contact-card">
+          <div class="contact-icon"><i data-lucide="map-pin"></i></div>
+          <h3>Alamat Kantor</h3>
+          <p>Gedung Wisata Nusantara Lt. 5<br>Jl. Kebon Sirih No. 45, Gambir, Jakarta Pusat 10110</p>
+        </div>
+
+        <div class="contact-card">
+          <div class="contact-icon"><i data-lucide="mail"></i></div>
+          <h3>Email Resmi</h3>
+          <p>Layanan Umum: <a href="mailto:info@wisatanusantara.id" style="color: var(--primary);">info@wisatanusantara.id</a><br>Bantuan Tiket: <a href="mailto:support@wisatanusantara.id" style="color: var(--primary);">support@wisatanusantara.id</a></p>
+        </div>
+
+        <div class="contact-card">
+          <div class="contact-icon"><i data-lucide="phone-call"></i></div>
+          <h3>Hotline & WhatsApp</h3>
+          <p>Telepon: (021) 555-0199<br>WhatsApp CS: <a href="https://wa.me/6281234567890" target="_blank" style="color: var(--primary); font-weight: 600;">+62 812-3456-7890</a></p>
+        </div>
+      </div>
+
+      <!-- Contact Form & Map Section -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 2.5rem; margin-top: 3.5rem; align-items: start;">
+        <!-- Contact Form -->
+        <div style="background: #FFFFFF; padding: 2.5rem; border-radius: var(--radius-xl); box-shadow: var(--shadow-sm); border: 1px solid #E2E8F0;">
+          <h3 style="font-size: 1.35rem; color: var(--secondary); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="send" style="color: var(--primary);"></i> Kirim Pesan Langsung</h3>
+          <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Isi formulir berikut dan staf kami akan membalas dalam waktu maksimal 1x24 jam.</p>
+
+          <form id="contact-form" onsubmit="handleContactSubmit(event)">
+            <div class="form-group">
+              <label class="form-label" for="contact-name">Nama Anda <span class="req">*</span></label>
+              <input type="text" id="contact-name" class="form-control" placeholder="Nama Lengkap" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="contact-email">Alamat Email <span class="req">*</span></label>
+              <input type="email" id="contact-email" class="form-control" placeholder="alamat@email.com" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="contact-subject">Subjek Pesan <span class="req">*</span></label>
+              <input type="text" id="contact-subject" class="form-control" placeholder="Contoh: Pertanyaan kuota Candi Borobudur" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="contact-message">Pesan Anda <span class="req">*</span></label>
+              <textarea id="contact-message" class="form-control" rows="4" placeholder="Tuliskan pesan atau pertanyaan Anda secara rinci..." required></textarea>
+            </div>
+
+            <button type="submit" id="contact-submit-btn" class="btn btn-primary btn-block btn-lg"><i data-lucide="send"></i> Kirim Pesan Sekarang</button>
+          </form>
+        </div>
+
+        <!-- FAQ and Office Info -->
+        <div>
+          <div style="background: #FFFFFF; padding: 2.5rem; border-radius: var(--radius-xl); box-shadow: var(--shadow-sm); border: 1px solid #E2E8F0; margin-bottom: 2rem;">
+            <h3 style="font-size: 1.35rem; color: var(--secondary); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="help-circle" style="color: var(--primary);"></i> Pertanyaan Sering Diajukan (FAQ)</h3>
+
+            <div style="margin-bottom: 1.25rem;">
+              <h4 style="font-size: 1rem; color: var(--secondary); margin-bottom: 0.25rem;">Bagaimana cara mencetak E-Tiket saya?</h4>
+              <p style="color: var(--text-muted); font-size: 0.875rem; line-height: 1.6;">Setelah Anda mengisi formulir di halaman booking, E-Tiket resmi dengan barcode akan langsung muncul di layar dan Anda dapat menekan tombol <strong>Cetak E-Tiket</strong>.</p>
+            </div>
+
+            <div style="margin-bottom: 1.25rem;">
+              <h4 style="font-size: 1rem; color: var(--secondary); margin-bottom: 0.25rem;">Apakah kuota tiket selalu update?</h4>
+              <p style="color: var(--text-muted); font-size: 0.875rem; line-height: 1.6;">Ya, sistem terhubung secara real-time ke database. Setiap ada pemesanan terkonfirmasi, sisa kuota tiket destinasi terkait akan otomatis berkurang.</p>
+            </div>
+
+            <div>
+              <h4 style="font-size: 1rem; color: var(--secondary); margin-bottom: 0.25rem;">Apakah bisa melakukan pembatalan tiket?</h4>
+              <p style="color: var(--text-muted); font-size: 0.875rem; line-height: 1.6;">Pembatalan tiket dapat diajukan dengan menghubungi tim support kami melalui WhatsApp atau email resmi paling lambat H-1 kunjungan.</p>
+            </div>
+          </div>
+
+          <div style="background: var(--secondary); color: #FFFFFF; padding: 2rem; border-radius: var(--radius-xl); text-align: center;">
+            <h4 style="font-size: 1.2rem; margin-bottom: 0.5rem; color: #FFFFFF; display: flex; align-items: center; justify-content: center; gap: 0.5rem;"><i data-lucide="clock" style="color: var(--primary-light);"></i> Jam Operasional Layanan</h4>
+            <p style="color: #94A3B8; font-size: 0.9rem; margin-bottom: 1rem;">Customer Service kami beroperasi setiap hari untuk melayani Anda.</p>
+            <span class="badge" style="background: rgba(37, 99, 235, 0.3); color: #93C5FD; font-size: 0.9rem; padding: 0.5rem 1rem;">Senin - Minggu: 08:00 - 21:00 WIB</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a href="/" class="brand-logo">
+            <div class="logo-icon"><i data-lucide="palmtree"></i></div>
+            <span>Wisata<span>Nusantara</span></span>
+          </a>
+          <p>Platform terpadu pemesanan tiket destinasi wisata Indonesia untuk pengalaman liburan yang aman, nyaman, dan tak terlupakan.</p>
+        </div>
+
+        <div class="footer-col">
+          <h4>Navigasi</h4>
+          <ul class="footer-links">
+            <li><a href="/">Home</a></li>
+            <li><a href="/about.html">Tentang Kami</a></li>
+            <li><a href="/destination.html">Destinasi</a></li>
+            <li><a href="/booking.html">Pesan Tiket</a></li>
+            <li><a href="/contact.html">Kontak</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Destinasi</h4>
+          <ul class="footer-links">
+            <li><a href="/destination.html">Raja Ampat</a></li>
+            <li><a href="/destination.html">Candi Borobudur</a></li>
+            <li><a href="/destination.html">Labuan Bajo</a></li>
+            <li><a href="/destination.html">Gunung Bromo</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Hubungi Kami</h4>
+          <ul class="footer-links">
+            <li><i data-lucide="map-pin"></i> Jl. Kebon Sirih No. 45, Jakarta Pusat</li>
+            <li><i data-lucide="mail"></i> info@wisatanusantara.id</li>
+            <li><i data-lucide="phone"></i> +62 812-3456-7890</li>
+            <li><i data-lucide="clock"></i> Buka Setiap Hari: 08.00 - 21.00 WIB</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>&copy; 2026 WisataNusantara. All rights reserved. Sesuai PRD.md</p>
+        <div>
+          <a href="/login.html" style="color: #94A3B8; text-decoration: underline;"><i data-lucide="lock" style="width: 0.9em; height: 0.9em;"></i> Portal Admin</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/js/main.js"></script>
+  <script>
+    function handleContactSubmit(e) {
+      e.preventDefault();
+      const name = document.getElementById('contact-name').value;
+      const btn = document.getElementById('contact-submit-btn');
+
+      btn.disabled = true;
+      btn.innerHTML = '<i data-lucide="loader-2" style="animation: spin 1s linear infinite;"></i> Mengirim Pesan...';
+      refreshIcons();
+
+      setTimeout(() => {
+        showToast(`Terima kasih, pesan dari ${name} berhasil terkirim!`, 'success');
+        document.getElementById('contact-form').reset();
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="send"></i> Kirim Pesan Sekarang';
+        refreshIcons();
+      }, 700);
+    }
+  </script>
+</body>
+</html>

@@ -33,6 +33,23 @@ export class DockerService implements OnModuleInit {
       } else {
         this.logger.log('portdock-net network already exists.');
       }
+
+      // Auto-connect adminer to portdock-net if it is running
+      try {
+        const containers = await this.docker.listContainers({ all: true });
+        const adminer = containers.find((c) =>
+          c.Names.some((name) => name.includes('portdock_adminer') || name.includes('adminer')),
+        );
+        if (adminer) {
+          const network = this.docker.getNetwork('portdock-net');
+          await network.connect({ Container: adminer.Id }).catch(() => {
+            // Already connected or error ignored
+          });
+          this.logger.log('Ensured portdock_adminer is connected to portdock-net.');
+        }
+      } catch (err) {
+        this.logger.warn(`Could not auto-connect adminer to portdock-net: ${err instanceof Error ? err.message : String(err)}`);
+      }
     } catch (error) {
       this.logger.error(
         `Failed to ensure network: ${error instanceof Error ? error.message : String(error)}`,

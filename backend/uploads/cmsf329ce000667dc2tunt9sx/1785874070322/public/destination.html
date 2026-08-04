@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Katalog Destinasi Wisata - WisataNusantara</title>
+  <meta name="description" content="Temukan seluruh destinasi wisata unggulan di Indonesia. Informasi lengkap harga tiket, lokasi, dan kuota.">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏝️</text></svg>">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="container nav-container">
+      <a href="/" class="brand-logo">
+        <div class="logo-icon"><i data-lucide="palmtree"></i></div>
+        <span>Wisata<span>Nusantara</span></span>
+      </a>
+
+      <ul class="nav-links">
+        <li><a href="/" class="nav-link">Home</a></li>
+        <li><a href="/about.html" class="nav-link">About</a></li>
+        <li><a href="/destination.html" class="nav-link active">Destination</a></li>
+        <li><a href="/booking.html" class="nav-link">Booking</a></li>
+        <li><a href="/contact.html" class="nav-link">Contact</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <a href="/login.html" class="btn btn-outline btn-sm"><i data-lucide="lock"></i> Login Admin</a>
+        <a href="/booking.html" class="btn btn-primary btn-sm"><i data-lucide="ticket"></i> Pesan Tiket</a>
+        <button class="mobile-toggle" aria-label="Toggle Menu"><i data-lucide="menu"></i></button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="section-padding">
+    <div class="container">
+      <!-- Header Banner -->
+      <div class="section-title-wrap">
+        <span class="section-tag"><i data-lucide="map-pin"></i> Jelajahi Destinasi</span>
+        <h1>Katalog Destinasi Wisata Indonesia</h1>
+        <p class="section-subtitle">Temukan surga tersembunyi dan destinasi populer nusantara dengan informasi kuota & harga resmi</p>
+      </div>
+
+      <!-- Filter, Search, and Sort Bar -->
+      <div class="search-filter-bar">
+        <div class="search-box">
+          <input type="text" id="search-input" class="form-control" placeholder="Cari nama destinasi, pulau, atau wilayah...">
+        </div>
+
+        <div class="filter-categories">
+          <button class="filter-btn active" data-category="Semua">Semua</button>
+          <button class="filter-btn" data-category="Bahari & Pulau">Bahari & Pulau</button>
+          <button class="filter-btn" data-category="Budaya & Sejarah">Budaya & Sejarah</button>
+          <button class="filter-btn" data-category="Gunung & Alam">Gunung & Alam</button>
+          <button class="filter-btn" data-category="Danau & Budaya">Danau & Budaya</button>
+        </div>
+
+        <div class="sort-box">
+          <select id="sort-select" class="form-control" style="width: auto;">
+            <option value="newest">Terbaru</option>
+            <option value="price_asc">Harga: Termurah</option>
+            <option value="price_desc">Harga: Tertinggi</option>
+            <option value="name_asc">Nama: A - Z</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Result Counter -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <span id="destination-count" class="badge badge-primary">Memuat destinasi...</span>
+      </div>
+
+      <!-- Destinations Grid -->
+      <div class="dest-grid" id="destinations-container">
+        <!-- Rendered dynamically by destination.js -->
+      </div>
+    </div>
+  </main>
+
+  <!-- Destination Detail Modal -->
+  <div class="modal-backdrop" id="destination-detail-modal">
+    <div class="modal-box modal-lg">
+      <div class="modal-header">
+        <h3>Detail Lengkap Destinasi</h3>
+        <button class="modal-close-btn" aria-label="Tutup Modal">&times;</button>
+      </div>
+      <div class="modal-body" id="detail-modal-body">
+        <!-- Rendered via JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a href="/" class="brand-logo">
+            <div class="logo-icon"><i data-lucide="palmtree"></i></div>
+            <span>Wisata<span>Nusantara</span></span>
+          </a>
+          <p>Platform terpadu pemesanan tiket destinasi wisata Indonesia untuk pengalaman liburan yang aman, nyaman, dan tak terlupakan.</p>
+        </div>
+
+        <div class="footer-col">
+          <h4>Navigasi</h4>
+          <ul class="footer-links">
+            <li><a href="/">Home</a></li>
+            <li><a href="/about.html">Tentang Kami</a></li>
+            <li><a href="/destination.html">Destinasi</a></li>
+            <li><a href="/booking.html">Pesan Tiket</a></li>
+            <li><a href="/contact.html">Kontak</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Kategori</h4>
+          <ul class="footer-links">
+            <li><a href="/destination.html">Wisata Bahari</a></li>
+            <li><a href="/destination.html">Wisata Budaya</a></li>
+            <li><a href="/destination.html">Pegunungan & Vulkanik</a></li>
+            <li><a href="/destination.html">Danau Tropis</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Hubungi Kami</h4>
+          <ul class="footer-links">
+            <li><i data-lucide="map-pin"></i> Jl. Kebon Sirih No. 45, Jakarta Pusat</li>
+            <li><i data-lucide="mail"></i> info@wisatanusantara.id</li>
+            <li><i data-lucide="phone"></i> +62 812-3456-7890</li>
+            <li><i data-lucide="clock"></i> Buka Setiap Hari: 08.00 - 21.00 WIB</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>&copy; 2026 WisataNusantara. All rights reserved. Sesuai PRD.md</p>
+        <div>
+          <a href="/login.html" style="color: #94A3B8; text-decoration: underline;"><i data-lucide="lock" style="width: 0.9em; height: 0.9em;"></i> Portal Admin</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/js/main.js"></script>
+  <script src="/js/destination.js"></script>
+</body>
+</html>

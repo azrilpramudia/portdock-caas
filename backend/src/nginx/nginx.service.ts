@@ -17,11 +17,28 @@ export class NginxService {
     private dockerService: DockerService,
     private configService: ConfigService,
   ) {
-    this.confDir = '/etc/nginx/portdock-apps';
-    this.pathsDir = path.resolve(this.confDir, 'paths');
-    if (!fs.existsSync(this.confDir)) {
-      fs.mkdirSync(this.confDir, { recursive: true });
+    const customConfDir = this.configService.get<string>('NGINX_CONF_DIR');
+    let targetConfDir = customConfDir || '/etc/nginx/portdock-apps';
+
+    try {
+      if (!fs.existsSync(targetConfDir)) {
+        fs.mkdirSync(targetConfDir, { recursive: true });
+      }
+      const testFile = path.join(targetConfDir, '.test_write');
+      fs.writeFileSync(testFile, 'test');
+      fs.unlinkSync(testFile);
+    } catch (err: any) {
+      targetConfDir = path.resolve(process.cwd(), 'nginx-conf');
+      if (!fs.existsSync(targetConfDir)) {
+        fs.mkdirSync(targetConfDir, { recursive: true });
+      }
+      this.logger.warn(
+        `Cannot write to /etc/nginx/portdock-apps, falling back to local directory: ${targetConfDir}`,
+      );
     }
+
+    this.confDir = targetConfDir;
+    this.pathsDir = path.resolve(this.confDir, 'paths');
     if (!fs.existsSync(this.pathsDir)) {
       fs.mkdirSync(this.pathsDir, { recursive: true });
     }
@@ -38,13 +55,7 @@ export class NginxService {
     const baseDomain = this.configService.get<string>('BASE_DOMAIN');
     if (baseDomain) {
       const baseConfPath = path.join(this.confDir, '00-base-domain.conf');
-      const certbotConfDir = path.resolve(process.cwd(), 'certbot-conf');
-      const baseCertPath = path.join(
-        certbotConfDir,
-        'live',
-        baseDomain,
-        'fullchain.pem',
-      );
+      const certPaths = this.getCertPaths(baseDomain);
 
       let baseConfContent = `
 server {
@@ -56,7 +67,7 @@ server {
     }
 `;
 
-      if (fs.existsSync(baseCertPath)) {
+      if (certPaths) {
         baseConfContent += `
     location / {
         return 301 https://$host$request_uri;
@@ -67,8 +78,8 @@ server {
     listen 443 ssl;
     server_name ${baseDomain};
 
-    ssl_certificate /etc/letsencrypt/live/${baseDomain}/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/${baseDomain}/privkey.pem;
+    ssl_certificate ${certPaths.certPath};
+    ssl_certificate_key ${certPaths.keyPath};
 
     include /etc/nginx/portdock-apps/paths/*.conf;
 }
@@ -81,7 +92,102 @@ server {
       }
 
       fs.writeFileSync(baseConfPath, baseConfContent);
+
+      // Create db.{baseDomain} → Adminer config
+      const dbDomain = `db.${baseDomain}`;
+      const dbConfPath = path.join(this.confDir, '01-db-adminer.conf');
+      const dbCertPaths = this.getCertPaths(dbDomain) || this.getCertPaths(baseDomain);
+
+      let dbConfContent = `
+server {
+    listen 80;
+    server_name ${dbDomain};
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
     }
+`;
+
+      if (dbCertPaths) {
+        dbConfContent += `
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+server {
+    listen 443 ssl;
+    server_name ${dbDomain};
+
+    ssl_certificate ${dbCertPaths.certPath};
+    ssl_certificate_key ${dbCertPaths.keyPath};
+
+    location / {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 120s;
+    }
+}
+`;
+      } else {
+        dbConfContent += `
+    location / {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 120s;
+    }
+}
+`;
+      }
+
+      fs.writeFileSync(dbConfPath, dbConfContent);
+      this.logger.log(`Adminer Nginx config created for ${dbDomain} -> localhost:8080`);
+
+      // Add db.{baseDomain} to /etc/hosts if local
+      void this.addToHostsFile(dbDomain);
+    }
+  }
+
+  private getCertPaths(domain: string): { certPath: string; keyPath: string } | null {
+    const certbotConfDir = path.resolve(process.cwd(), 'certbot-conf');
+    const localCert = path.join(certbotConfDir, 'live', domain, 'fullchain.pem');
+    const localKey = path.join(certbotConfDir, 'live', domain, 'privkey.pem');
+    const systemCert = `/etc/letsencrypt/live/${domain}/fullchain.pem`;
+    const systemKey = `/etc/letsencrypt/live/${domain}/privkey.pem`;
+
+    if (fs.existsSync(systemCert) && fs.existsSync(systemKey)) {
+      return { certPath: systemCert, keyPath: systemKey };
+    }
+    if (fs.existsSync(localCert) && fs.existsSync(localKey)) {
+      return { certPath: localCert, keyPath: localKey };
+    }
+
+    const baseDomain = this.configService.get<string>('BASE_DOMAIN');
+    if (baseDomain && domain.endsWith(`.${baseDomain}`)) {
+      const sysWild1 = `/etc/letsencrypt/live/${baseDomain}/fullchain.pem`;
+      const sysWildKey1 = `/etc/letsencrypt/live/${baseDomain}/privkey.pem`;
+      if (fs.existsSync(sysWild1) && fs.existsSync(sysWildKey1)) {
+        return { certPath: sysWild1, keyPath: sysWildKey1 };
+      }
+      const sysWild2 = `/etc/letsencrypt/live/${baseDomain}-0001/fullchain.pem`;
+      const sysWildKey2 = `/etc/letsencrypt/live/${baseDomain}-0001/privkey.pem`;
+      if (fs.existsSync(sysWild2) && fs.existsSync(sysWildKey2)) {
+        return { certPath: sysWild2, keyPath: sysWildKey2 };
+      }
+      const locWild = path.join(certbotConfDir, 'live', baseDomain, 'fullchain.pem');
+      const locWildKey = path.join(certbotConfDir, 'live', baseDomain, 'privkey.pem');
+      if (fs.existsSync(locWild) && fs.existsSync(locWildKey)) {
+        return { certPath: locWild, keyPath: locWildKey };
+      }
+    }
+
+    return null;
   }
 
   private async addToHostsFile(domain: string): Promise<void> {
@@ -99,12 +205,12 @@ server {
       } catch (e) {}
 
       const scriptPath = path.resolve(process.cwd(), 'scripts', 'add-host.sh');
-      const command = `sudo ${scriptPath} ${domain}`;
+      const command = `sudo -n ${scriptPath} ${domain}`;
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       exec(command, (error, stdout, stderr) => {
         if (error) {
-          this.logger.error(`Failed to add ${domain} to /etc/hosts`, error);
+          this.logger.warn(`Could not automatically add ${domain} to /etc/hosts (requires passwordless sudo): ${error.message}`);
         } else {
           this.logger.log(`Added ${domain} to /etc/hosts successfully`);
         }
@@ -325,23 +431,15 @@ location /${projectName}/ {
     hostPort: number,
     projectName?: string,
   ): Promise<void> {
-    const baseDomain = this.configService.get<string>('BASE_DOMAIN');
-    let certPath = `/etc/letsencrypt/live/${domain}/fullchain.pem`;
-    let keyPath = `/etc/letsencrypt/live/${domain}/privkey.pem`;
-
-    if (baseDomain && domain.endsWith(`.${baseDomain}`)) {
-      const wildcardPath1 = `/etc/letsencrypt/live/${baseDomain}/fullchain.pem`;
-      const wildcardPath2 = `/etc/letsencrypt/live/${baseDomain}-0001/fullchain.pem`;
-      
-      if (fs.existsSync(wildcardPath1)) {
-        certPath = `/etc/letsencrypt/live/${baseDomain}/fullchain.pem`;
-        keyPath = `/etc/letsencrypt/live/${baseDomain}/privkey.pem`;
-      } else if (fs.existsSync(wildcardPath2)) {
-        certPath = `/etc/letsencrypt/live/${baseDomain}-0001/fullchain.pem`;
-        keyPath = `/etc/letsencrypt/live/${baseDomain}-0001/privkey.pem`;
-      }
+    const certPaths = this.getCertPaths(domain);
+    if (!certPaths) {
+      this.logger.warn(
+        `No valid SSL certificates found for ${domain}. HTTPS config skipped.`,
+      );
+      return;
     }
 
+    const { certPath, keyPath } = certPaths;
     const templatePath = path.join(this.confDir, 'template-https.conf');
     let confContent = '';
 
@@ -407,16 +505,10 @@ server {
     );
 
     // Also update base domain to support HTTPS if it has a wildcard or base cert
+    const baseDomain = this.configService.get<string>('BASE_DOMAIN');
     if (baseDomain) {
-      const certbotConfDir = path.resolve(process.cwd(), 'certbot-conf');
-      const baseCertPath = path.join(
-        certbotConfDir,
-        'live',
-        baseDomain,
-        'fullchain.pem',
-      );
-
-      if (fs.existsSync(baseCertPath)) {
+      const baseCertPaths = this.getCertPaths(baseDomain);
+      if (baseCertPaths) {
         const baseConfPath = path.join(this.confDir, '00-base-domain.conf');
         const baseConfContent = `
 server {
@@ -436,8 +528,8 @@ server {
     listen 443 ssl;
     server_name ${baseDomain};
 
-    ssl_certificate /etc/letsencrypt/live/${baseDomain}/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/${baseDomain}/privkey.pem;
+    ssl_certificate ${baseCertPaths.certPath};
+    ssl_certificate_key ${baseCertPaths.keyPath};
 
     include /etc/nginx/portdock-apps/paths/*.conf;
 }
@@ -482,13 +574,13 @@ server {
         'scripts',
         'remove-host.sh',
       );
-      const command = `sudo ${scriptPath} ${domain}`;
+      const command = `sudo -n ${scriptPath} ${domain}`;
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       exec(command, (error, stdout, stderr) => {
         if (error) {
-          this.logger.error(
-            `Failed to remove ${domain} from /etc/hosts: ${error.message}`,
+          this.logger.warn(
+            `Could not automatically remove ${domain} from /etc/hosts (requires passwordless sudo): ${error.message}`,
           );
         } else {
           this.logger.log(`Successfully removed ${domain} from /etc/hosts`);
@@ -500,15 +592,35 @@ server {
   }
 
   /**
-   * Me-reload container portdock-nginx secara graceful
+   * Me-reload Nginx secara graceful
    */
   async reloadNginx(): Promise<void> {
     try {
       const { execSync } = require('child_process');
-      execSync('sudo systemctl reload nginx');
-      this.logger.log('Host Nginx reloaded successfully');
-    } catch (err) {
-      this.logger.error('Failed to reload Host Nginx', err);
+      const isRoot = typeof process.getuid === 'function' && process.getuid() === 0;
+      const reloadCmd = isRoot ? 'systemctl reload nginx' : 'sudo -n systemctl reload nginx';
+      const startCmd = isRoot ? 'systemctl start nginx' : 'sudo -n systemctl start nginx';
+
+      try {
+        execSync(reloadCmd, { stdio: 'pipe' });
+        this.logger.log('Host Nginx reloaded successfully');
+      } catch (reloadErr: any) {
+        // If inactive or failed, attempt to start
+        try {
+          execSync(startCmd, { stdio: 'pipe' });
+          this.logger.log('Host Nginx was not active, started successfully');
+        } catch (startErr: any) {
+          // Fallback to docker container if present
+          try {
+            execSync('docker exec portdock-nginx nginx -s reload', { stdio: 'pipe' });
+            this.logger.log('Docker portdock-nginx reloaded successfully');
+          } catch {
+            throw reloadErr;
+          }
+        }
+      }
+    } catch (err: any) {
+      this.logger.warn(`Host Nginx reload skipped or failed (dev mode): ${err.message}`);
     }
   }
 

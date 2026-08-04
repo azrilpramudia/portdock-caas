@@ -1,0 +1,26 @@
+{
+  "name": "web-wisata",
+  "version": "1.0.0",
+  "description": "Website Pemesanan Tiket Wisata Indonesia - Full Stack Node.js & SQLite",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "keywords": [
+    "wisata",
+    "tiket",
+    "tourism",
+    "booking",
+    "express",
+    "sqlite"
+  ],
+  "author": "Web Wisata Team",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "better-sqlite3": "^11.8.1"
+  }
+}

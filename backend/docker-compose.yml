@@ -23,12 +23,14 @@ services:
     image: adminer:latest
     container_name: portdock_adminer
     restart: unless-stopped
-    ports:
-      - "8080:8080"
+    network_mode: "host"
     environment:
       - ADMINER_DESIGN=pepa-linha
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+
+networks:
+  default:
+    external: true
+    name: portdock-net
 
 volumes:
   portdock_db_data:

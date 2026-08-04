@@ -108,6 +108,8 @@ export interface ManagedDatabase {
   hostPort?: number;
   status: "RUNNING" | "STOPPED" | "ERROR";
   dockerContainerId?: string;
+  containerIp?: string;
+  containerName?: string;
   volumeName?: string;
   memoryLimit?: number;
   cpuLimit?: number;
