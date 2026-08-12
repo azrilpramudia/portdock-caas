@@ -138,7 +138,7 @@ export class DeploymentsService {
 
       // Add default NIXPACKS_NODE_VERSION to 20 if not present
       if (!parsedEnvRecord['NIXPACKS_NODE_VERSION']) {
-        parsedEnvRecord['NIXPACKS_NODE_VERSION'] = '20';
+        parsedEnvRecord['NIXPACKS_NODE_VERSION'] = '22';
       }
 
       if (fs.existsSync(dockerfilePath)) {
@@ -398,9 +398,9 @@ export class DeploymentsService {
         );
       }
 
-      // Add default NIXPACKS_NODE_VERSION to 20 if not present
+      // Add default NIXPACKS_NODE_VERSION to 22 if not present
       if (!parsedEnvRecord['NIXPACKS_NODE_VERSION']) {
-        parsedEnvRecord['NIXPACKS_NODE_VERSION'] = '20';
+        parsedEnvRecord['NIXPACKS_NODE_VERSION'] = '22';
       }
 
       if (fs.existsSync(dockerfilePath)) {
