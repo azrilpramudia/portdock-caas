@@ -1,4 +1,4 @@
-# 🐳 Portdock CaaS — Container as a Service
+# Portdock CaaS — Container as a Service
 
 > An automated cloud hosting orchestration platform designed to streamline Docker container management and deployment through a clean and intuitive web interface.
 
@@ -47,68 +47,71 @@ It delivers a deployment experience similar to Heroku or Railway, but runs entir
 
 ## ✨ Key Features
 
-| Feature | Description |
-|---|---|
-| 🚀 **Automated Deployment** | Deploy apps from GitHub repositories, ZIP files, or Dockerfiles |
-| 🐳 **Container Management** | Start, stop, restart, and remove containers effortlessly |
-| 📊 **Real-time Monitoring** | Live CPU, RAM, disk, and network usage metrics |
-| 🗄️ **Managed Databases** | Instant provisioning of PostgreSQL, MySQL, Redis, and MongoDB |
-| 💾 **Automated Backups** | Scheduled and on-demand database backups |
-| 🔌 **Web Terminal** | Access container terminals directly in the browser via WebSocket |
-| 🌐 **Auto Nginx Config** | Automatic reverse proxy \& subdomain configuration per project |
-| 🔗 **GitHub Webhooks** | Auto-deploy on push to GitHub repository |
-| 📋 **Activity Logs** | Complete audit trail for all user actions |
-| 🔐 **Two-Factor Auth** | TOTP-based login security (Google Authenticator compatible) |
-| 👥 **Multi-user \& Roles** | User management system with USER and ADMIN roles |
-| 📧 **Email Notifications** | Email notifications via Nodemailer |
-| ⚙️ **System Settings** | Centralized platform configuration, including timezone |
+| Feature                     | Description                                                      |
+| --------------------------- | ---------------------------------------------------------------- |
+| 🚀 **Automated Deployment** | Deploy apps from GitHub repositories, ZIP files, or Dockerfiles  |
+| 🐳 **Container Management** | Start, stop, restart, and remove containers effortlessly         |
+| 📊 **Real-time Monitoring** | Live CPU, RAM, disk, and network usage metrics                   |
+| 🗄️ **Managed Databases**    | Instant provisioning of PostgreSQL, MySQL, Redis, and MongoDB    |
+| 💾 **Automated Backups**    | Scheduled and on-demand database backups                         |
+| 🔌 **Web Terminal**         | Access container terminals directly in the browser via WebSocket |
+| 🌐 **Auto Nginx Config**    | Automatic reverse proxy \& subdomain configuration per project   |
+| 🔗 **GitHub Webhooks**      | Auto-deploy on push to GitHub repository                         |
+| 📋 **Activity Logs**        | Complete audit trail for all user actions                        |
+| 🔐 **Two-Factor Auth**      | TOTP-based login security (Google Authenticator compatible)      |
+| 👥 **Multi-user \& Roles**  | User management system with USER and ADMIN roles                 |
+| 📧 **Email Notifications**  | Email notifications via Nodemailer                               |
+| ⚙️ **System Settings**      | Centralized platform configuration, including timezone           |
 
 ---
 
 ## 🛠 Tech Stack \& Infrastructure
 
 ### Backend
-| Technology | Version | Purpose |
-|---|---|---|
-| **NestJS** | 11.x | Primary REST API framework |
-| **Node.js** | ≥ 20.x | JavaScript runtime |
-| **Prisma ORM** | 7.x | Database ORM \& migrations |
-| **PostgreSQL** | 15 | Primary database |
-| **Dockerode** | 5.x | Docker Engine API client |
-| **Socket.IO** | 4.x | WebSocket (terminal \& real-time monitoring) |
-| **Passport.js + JWT** | — | Authentication \& authorization |
-| **Speakeasy** | 2.x | TOTP for Two-Factor Authentication |
-| **Nodemailer** | 9.x | Email delivery |
-| **Zod** | 4.x | Request schema validation |
-| **Swagger** | 11.x | Automatic API documentation |
-| **Helmet** | 8.x | HTTP security headers |
-| **CSRF-CSRF** | 4.x | CSRF protection |
+
+| Technology            | Version | Purpose                                      |
+| --------------------- | ------- | -------------------------------------------- |
+| **NestJS**            | 11.x    | Primary REST API framework                   |
+| **Node.js**           | ≥ 20.x  | JavaScript runtime                           |
+| **Prisma ORM**        | 7.x     | Database ORM \& migrations                   |
+| **PostgreSQL**        | 15      | Primary database                             |
+| **Dockerode**         | 5.x     | Docker Engine API client                     |
+| **Socket.IO**         | 4.x     | WebSocket (terminal \& real-time monitoring) |
+| **Passport.js + JWT** | —       | Authentication \& authorization              |
+| **Speakeasy**         | 2.x     | TOTP for Two-Factor Authentication           |
+| **Nodemailer**        | 9.x     | Email delivery                               |
+| **Zod**               | 4.x     | Request schema validation                    |
+| **Swagger**           | 11.x    | Automatic API documentation                  |
+| **Helmet**            | 8.x     | HTTP security headers                        |
+| **CSRF-CSRF**         | 4.x     | CSRF protection                              |
 
 ### Frontend
-| Technology | Version | Purpose |
-|---|---|---|
-| **Next.js** | 16.x | React framework (App Router) |
-| **React** | 19.x | UI library |
-| **TypeScript** | 5.x | Static typing |
-| **Tailwind CSS** | 4.x | Utility-first CSS framework |
-| **shadcn/ui** | — | UI components built on Radix UI |
-| **TanStack Query** | 5.x | Server state management \& caching |
-| **Zustand** | 5.x | Client-side state management |
-| **Recharts** | 3.x | Charting library for monitoring dashboards |
-| **xterm.js** | 5.x | Browser-based terminal emulator |
-| **Socket.IO Client** | 4.x | WebSocket client |
-| **React Hook Form + Zod** | — | Form handling \& validation |
-| **Axios** | 1.x | HTTP client |
-| **Sonner** | 2.x | Toast notifications |
+
+| Technology                | Version | Purpose                                    |
+| ------------------------- | ------- | ------------------------------------------ |
+| **Next.js**               | 16.x    | React framework (App Router)               |
+| **React**                 | 19.x    | UI library                                 |
+| **TypeScript**            | 5.x     | Static typing                              |
+| **Tailwind CSS**          | 4.x     | Utility-first CSS framework                |
+| **shadcn/ui**             | —       | UI components built on Radix UI            |
+| **TanStack Query**        | 5.x     | Server state management \& caching         |
+| **Zustand**               | 5.x     | Client-side state management               |
+| **Recharts**              | 3.x     | Charting library for monitoring dashboards |
+| **xterm.js**              | 5.x     | Browser-based terminal emulator            |
+| **Socket.IO Client**      | 4.x     | WebSocket client                           |
+| **React Hook Form + Zod** | —       | Form handling \& validation                |
+| **Axios**                 | 1.x     | HTTP client                                |
+| **Sonner**                | 2.x     | Toast notifications                        |
 
 ### Infrastructure
-| Component | Technology |
-|---|---|
-| **Reverse Proxy** | Nginx |
-| **SSL/TLS** | Let'''s Encrypt (Certbot) |
-| **Package Manager** | Bun |
-| **Target OS** | Linux Ubuntu Server (VPS) |
-| **Containerization** | Docker Engine |
+
+| Component            | Technology                |
+| -------------------- | ------------------------- |
+| **Reverse Proxy**    | Nginx                     |
+| **SSL/TLS**          | Let'''s Encrypt (Certbot) |
+| **Package Manager**  | Bun                       |
+| **Target OS**        | Linux Ubuntu Server (VPS) |
+| **Containerization** | Docker Engine             |
 
 ---
 
@@ -141,6 +144,7 @@ It delivers a deployment experience similar to Heroku or Railway, but runs entir
 ```
 
 ### Request Flow
+
 1. User visits `https://portdock.my.id` → Nginx forwards to the Next.js frontend (`:3001`)
 2. Frontend calls `https://api.portdock.my.id/api/*` → Nginx forwards to the NestJS backend (`:3001`)
 3. Backend communicates with PostgreSQL for persistent data storage
@@ -231,31 +235,31 @@ portdock-caas/
 
 The platform uses **PostgreSQL** as its primary database with Prisma ORM. The following are the core entities:
 
-| Model | Description |
-|---|---|
-| `User` | User data (email, hashed password, 2FA secret, SSH keys, GitHub token) |
-| `Project` | Deployment project (repo URL, branch, template, domain, env vars) |
-| `Container` | Docker container linked to a project (image, ports, resource limits) |
-| `Deployment` | Deployment history (status, progress, commit hash, duration) |
-| `ManagedDatabase` | Platform-provisioned databases (PG, MySQL, Redis, MongoDB) |
-| `DatabaseBackup` | Managed database backup history |
-| `Session` | Active user login sessions |
-| `ActivityLog` | Audit trail for all user actions |
-| `TerminalLog` | Terminal command history |
-| `SystemMetric` | System metric snapshots (CPU, RAM, disk, network) |
-| `SystemSetting` | Platform configuration (key-value store) |
+| Model             | Description                                                            |
+| ----------------- | ---------------------------------------------------------------------- |
+| `User`            | User data (email, hashed password, 2FA secret, SSH keys, GitHub token) |
+| `Project`         | Deployment project (repo URL, branch, template, domain, env vars)      |
+| `Container`       | Docker container linked to a project (image, ports, resource limits)   |
+| `Deployment`      | Deployment history (status, progress, commit hash, duration)           |
+| `ManagedDatabase` | Platform-provisioned databases (PG, MySQL, Redis, MongoDB)             |
+| `DatabaseBackup`  | Managed database backup history                                        |
+| `Session`         | Active user login sessions                                             |
+| `ActivityLog`     | Audit trail for all user actions                                       |
+| `TerminalLog`     | Terminal command history                                               |
+| `SystemMetric`    | System metric snapshots (CPU, RAM, disk, network)                      |
+| `SystemSetting`   | Platform configuration (key-value store)                               |
 
 ### Enums
 
-| Enum | Values |
-|---|---|
-| `Role` | `USER`, `ADMIN` |
-| `UserStatus` | `ACTIVE`, `SUSPENDED` |
-| `ProjectStatus` | `ACTIVE`, `INACTIVE`, `BUILDING`, `FAILED` |
-| `ContainerStatus` | `RUNNING`, `STOPPED`, `BUILDING`, `ERROR`, `REMOVING` |
-| `DeploymentType` | `ZIP`, `GITHUB`, `DOCKERFILE` |
-| `AppTemplate` | `NIXPACKS`, `STATIC_NGINX`, `STATIC_APACHE`, `PHP_APACHE` |
-| `DatabaseType` | `POSTGRESQL`, `MYSQL`, `REDIS`, `MONGODB` |
+| Enum              | Values                                                    |
+| ----------------- | --------------------------------------------------------- |
+| `Role`            | `USER`, `ADMIN`                                           |
+| `UserStatus`      | `ACTIVE`, `SUSPENDED`                                     |
+| `ProjectStatus`   | `ACTIVE`, `INACTIVE`, `BUILDING`, `FAILED`                |
+| `ContainerStatus` | `RUNNING`, `STOPPED`, `BUILDING`, `ERROR`, `REMOVING`     |
+| `DeploymentType`  | `ZIP`, `GITHUB`, `DOCKERFILE`                             |
+| `AppTemplate`     | `NIXPACKS`, `STATIC_NGINX`, `STATIC_APACHE`, `PHP_APACHE` |
+| `DatabaseType`    | `POSTGRESQL`, `MYSQL`, `REDIS`, `MONGODB`                 |
 
 ---
 
@@ -311,12 +315,14 @@ docker compose up -d
 ### 3. Install Dependencies
 
 **Backend:**
+
 ```bash
 cd backend
 bun install
 ```
 
 **Frontend:**
+
 ```bash
 cd frontend
 bun install
@@ -372,11 +378,13 @@ Frontend available at: `http://localhost:3000`
 Open two separate terminals:
 
 **Terminal 1 (Backend):**
+
 ```bash
 cd backend \&\& bun run start:dev
 ```
 
 **Terminal 2 (Frontend):**
+
 ```bash
 cd frontend \&\& bun run dev
 ```
@@ -415,20 +423,20 @@ Create a `.env` file from the provided template:
 cp backend/.env.example backend/.env
 ```
 
-| Variable | Example Value | Description |
-|---|---|---|
-| `DB_USER` | `portdock_user` | PostgreSQL username |
-| `DB_PASSWORD` | `strong_password` | PostgreSQL password |
-| `DB_NAME` | `portdock` | Database name |
-| `DATABASE_URL` | `postgresql://user:pass@localhost:5433/portdock` | Prisma connection string |
-| `JWT_SECRET` | `random-secret-min-32-chars` | JWT signing secret (must be strong) |
-| `JWT_EXPIRES_IN` | `7d` | JWT token expiry duration |
-| `PORT` | `3001` | Backend server port |
-| `NODE_ENV` | `development` | Environment (`development` / `production`) |
-| `UPLOAD_DIR` | `./uploads` | File upload storage directory |
-| `GITHUB_WEBHOOK_SECRET` | `webhook_secret` | Secret for GitHub Webhook validation |
-| `SWAGGER_USERNAME` | `admin` | Basic Auth username for Swagger UI (production) |
-| `SWAGGER_PASSWORD` | `portdock-secret-2024` | Basic Auth password for Swagger UI (production) |
+| Variable                | Example Value                                    | Description                                     |
+| ----------------------- | ------------------------------------------------ | ----------------------------------------------- |
+| `DB_USER`               | `portdock_user`                                  | PostgreSQL username                             |
+| `DB_PASSWORD`           | `strong_password`                                | PostgreSQL password                             |
+| `DB_NAME`               | `portdock`                                       | Database name                                   |
+| `DATABASE_URL`          | `postgresql://user:pass@localhost:5433/portdock` | Prisma connection string                        |
+| `JWT_SECRET`            | `random-secret-min-32-chars`                     | JWT signing secret (must be strong)             |
+| `JWT_EXPIRES_IN`        | `7d`                                             | JWT token expiry duration                       |
+| `PORT`                  | `3001`                                           | Backend server port                             |
+| `NODE_ENV`              | `development`                                    | Environment (`development` / `production`)      |
+| `UPLOAD_DIR`            | `./uploads`                                      | File upload storage directory                   |
+| `GITHUB_WEBHOOK_SECRET` | `webhook_secret`                                 | Secret for GitHub Webhook validation            |
+| `SWAGGER_USERNAME`      | `admin`                                          | Basic Auth username for Swagger UI (production) |
+| `SWAGGER_PASSWORD`      | `portdock-secret-2024`                           | Basic Auth password for Swagger UI (production) |
 
 ```env
 # ===== Database =====
@@ -464,8 +472,8 @@ Create a `.env.local` file from the provided template:
 cp frontend/.env.example frontend/.env.local
 ```
 
-| Variable | Example Value | Description |
-|---|---|---|
+| Variable              | Example Value               | Description                                 |
+| --------------------- | --------------------------- | ------------------------------------------- |
 | `NEXT_PUBLIC_API_URL` | `http://localhost:3001/api` | Backend API URL accessible from the browser |
 
 ```env
@@ -545,78 +553,79 @@ pm2 startup
 Swagger UI is automatically available once the backend is running:
 
 - **Development:** `http://localhost:3001/api/docs`
-- **Production:** `https://api.portdock.my.id/api/docs` *(protected by Basic Auth)*
+- **Production:** `https://api.portdock.my.id/api/docs` _(protected by Basic Auth)_
 
 > **🔐 Security:** In production, Swagger UI is protected by HTTP Basic Authentication. Configure `SWAGGER_USERNAME` and `SWAGGER_PASSWORD` in your `.env` file.
 
 ### API Authentication
 
 The API uses a combination of:
+
 1. **JWT Cookie** — The token is stored in an `access_token` cookie (HttpOnly, safe from XSS)
 2. **CSRF Token** — All mutating requests (POST/PUT/PATCH/DELETE) require the `x-csrf-token` header
 
 All endpoints use the `/api` prefix. Example endpoints:
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `POST` | `/api/auth/login` | User login |
-| `POST` | `/api/auth/register` | Register a new user |
-| `POST` | `/api/auth/logout` | Logout \& invalidate session |
-| `GET` | `/api/projects` | List all projects |
-| `POST` | `/api/projects` | Create a new project |
-| `GET` | `/api/containers` | List all containers |
-| `POST` | `/api/containers/:id/start` | Start a container |
-| `POST` | `/api/containers/:id/stop` | Stop a container |
-| `GET` | `/api/monitoring/metrics` | Get real-time system metrics |
-| `GET` | `/api/databases` | List managed databases |
-| `POST` | `/api/databases` | Provision a new database |
-| `GET` | `/api/activity-logs` | Get activity log history |
+| Method | Endpoint                    | Description                  |
+| ------ | --------------------------- | ---------------------------- |
+| `POST` | `/api/auth/login`           | User login                   |
+| `POST` | `/api/auth/register`        | Register a new user          |
+| `POST` | `/api/auth/logout`          | Logout \& invalidate session |
+| `GET`  | `/api/projects`             | List all projects            |
+| `POST` | `/api/projects`             | Create a new project         |
+| `GET`  | `/api/containers`           | List all containers          |
+| `POST` | `/api/containers/:id/start` | Start a container            |
+| `POST` | `/api/containers/:id/stop`  | Stop a container             |
+| `GET`  | `/api/monitoring/metrics`   | Get real-time system metrics |
+| `GET`  | `/api/databases`            | List managed databases       |
+| `POST` | `/api/databases`            | Provision a new database     |
+| `GET`  | `/api/activity-logs`        | Get activity log history     |
 
 ---
 
 ## 🧩 Backend Modules
 
-| Module | Endpoint | Description |
-|---|---|---|
-| `AuthModule` | `/api/auth/*` | Login, register, logout, token refresh, 2FA, sessions |
-| `ProjectsModule` | `/api/projects/*` | CRUD for deployment projects |
-| `ContainersModule` | `/api/containers/*` | Docker container lifecycle management + WebSocket logs |
-| `DeploymentsModule` | `/api/deployments/*` | Deployment orchestration (ZIP, GitHub, Dockerfile) |
-| `DatabasesModule` | `/api/databases/*` | Managed database provisioning \& management |
-| `MonitoringModule` | `/api/monitoring/*` | System metrics (CPU, RAM, disk, network) |
-| `ActivityLogsModule` | `/api/activity-logs/*` | User action audit trail |
-| `TerminalModule` | `ws://…/terminal` | Web terminal via WebSocket |
-| `BackupModule` | `/api/backup/*` | Database backup \& restore |
-| `WebhooksModule` | `/api/webhooks/*` | GitHub webhook endpoint (auto-deploy) |
-| `NginxModule` | `/api/nginx/*` | Automatic Nginx configuration management |
-| `AdminModule` | `/api/admin/*` | Administration panel (ADMIN role only) |
-| `SettingsModule` | `/api/settings/*` | System settings (timezone, etc.) |
-| `NotificationsModule` | `/api/notifications/*` | User notification management |
-| `MailerModule` | *(internal)* | Email delivery service via Nodemailer |
-| `GitModule` | *(internal)* | Git integration for cloning \& pulling repositories |
-| `ArchiveModule` | *(internal)* | ZIP file extraction for deployments |
-| `DockerModule` | *(internal)* | Dockerode wrapper for the Docker Engine API |
+| Module                | Endpoint               | Description                                            |
+| --------------------- | ---------------------- | ------------------------------------------------------ |
+| `AuthModule`          | `/api/auth/*`          | Login, register, logout, token refresh, 2FA, sessions  |
+| `ProjectsModule`      | `/api/projects/*`      | CRUD for deployment projects                           |
+| `ContainersModule`    | `/api/containers/*`    | Docker container lifecycle management + WebSocket logs |
+| `DeploymentsModule`   | `/api/deployments/*`   | Deployment orchestration (ZIP, GitHub, Dockerfile)     |
+| `DatabasesModule`     | `/api/databases/*`     | Managed database provisioning \& management            |
+| `MonitoringModule`    | `/api/monitoring/*`    | System metrics (CPU, RAM, disk, network)               |
+| `ActivityLogsModule`  | `/api/activity-logs/*` | User action audit trail                                |
+| `TerminalModule`      | `ws://…/terminal`      | Web terminal via WebSocket                             |
+| `BackupModule`        | `/api/backup/*`        | Database backup \& restore                             |
+| `WebhooksModule`      | `/api/webhooks/*`      | GitHub webhook endpoint (auto-deploy)                  |
+| `NginxModule`         | `/api/nginx/*`         | Automatic Nginx configuration management               |
+| `AdminModule`         | `/api/admin/*`         | Administration panel (ADMIN role only)                 |
+| `SettingsModule`      | `/api/settings/*`      | System settings (timezone, etc.)                       |
+| `NotificationsModule` | `/api/notifications/*` | User notification management                           |
+| `MailerModule`        | _(internal)_           | Email delivery service via Nodemailer                  |
+| `GitModule`           | _(internal)_           | Git integration for cloning \& pulling repositories    |
+| `ArchiveModule`       | _(internal)_           | ZIP file extraction for deployments                    |
+| `DockerModule`        | _(internal)_           | Dockerode wrapper for the Docker Engine API            |
 
 ---
 
 ## 🖥 Frontend Pages
 
-| Route | Description |
-|---|---|
-| `/` | Landing page |
-| `/about` | About the platform |
-| `/features` | Platform features overview |
-| `/pricing` | Pricing page |
-| `/login` | User login |
-| `/register` | User registration |
-| `/dashboard` | Statistics overview \& platform summary |
-| `/projects` | List \& manage deployment projects |
-| `/containers` | List \& manage Docker containers |
-| `/databases` | List \& manage provisioned databases |
-| `/monitoring` | Real-time system monitoring dashboard |
-| `/terminal` | Browser-based web terminal (xterm.js) |
-| `/activity-logs` | User activity history |
-| `/settings` | Account, profile \& security settings |
+| Route            | Description                             |
+| ---------------- | --------------------------------------- |
+| `/`              | Landing page                            |
+| `/about`         | About the platform                      |
+| `/features`      | Platform features overview              |
+| `/pricing`       | Pricing page                            |
+| `/login`         | User login                              |
+| `/register`      | User registration                       |
+| `/dashboard`     | Statistics overview \& platform summary |
+| `/projects`      | List \& manage deployment projects      |
+| `/containers`    | List \& manage Docker containers        |
+| `/databases`     | List \& manage provisioned databases    |
+| `/monitoring`    | Real-time system monitoring dashboard   |
+| `/terminal`      | Browser-based web terminal (xterm.js)   |
+| `/activity-logs` | User activity history                   |
+| `/settings`      | Account, profile \& security settings   |
 
 ---
 
@@ -624,20 +633,20 @@ All endpoints use the `/api` prefix. Example endpoints:
 
 The platform implements multiple layers of security:
 
-| Mechanism | Implementation |
-|---|---|
-| **HTTP Security Headers** | Helmet.js (XSS, HSTS, Clickjacking protection) |
-| **CSRF Protection** | Double-Submit Cookie Pattern (`csrf-csrf`) |
-| **Rate Limiting** | ThrottlerModule — 100 requests per 60 seconds per IP |
-| **Input Validation** | Zod schema validation on all endpoints |
-| **Password Hashing** | bcrypt with salt rounds |
-| **JWT Authentication** | HttpOnly cookie (inaccessible to JavaScript) |
-| **Two-Factor Auth** | TOTP via speakeasy (Google Authenticator compatible) |
-| **CORS** | Strict domain whitelist in production |
-| **Brute-force Protection** | Account lockout after repeated failed login attempts |
-| **Session Management** | Active session tracking with per-device revocation |
-| **Swagger Auth** | Basic Auth protecting API docs in production |
-| **Trust Proxy** | X-Forwarded-For configuration for real client IP behind Nginx/Cloudflare |
+| Mechanism                  | Implementation                                                           |
+| -------------------------- | ------------------------------------------------------------------------ |
+| **HTTP Security Headers**  | Helmet.js (XSS, HSTS, Clickjacking protection)                           |
+| **CSRF Protection**        | Double-Submit Cookie Pattern (`csrf-csrf`)                               |
+| **Rate Limiting**          | ThrottlerModule — 100 requests per 60 seconds per IP                     |
+| **Input Validation**       | Zod schema validation on all endpoints                                   |
+| **Password Hashing**       | bcrypt with salt rounds                                                  |
+| **JWT Authentication**     | HttpOnly cookie (inaccessible to JavaScript)                             |
+| **Two-Factor Auth**        | TOTP via speakeasy (Google Authenticator compatible)                     |
+| **CORS**                   | Strict domain whitelist in production                                    |
+| **Brute-force Protection** | Account lockout after repeated failed login attempts                     |
+| **Session Management**     | Active session tracking with per-device revocation                       |
+| **Swagger Auth**           | Basic Auth protecting API docs in production                             |
+| **Trust Proxy**            | X-Forwarded-For configuration for real client IP behind Nginx/Cloudflare |
 
 ---
 
@@ -655,15 +664,15 @@ Contributions are welcome! Please follow these steps:
 
 This project follows [Conventional Commits](https://www.conventionalcommits.org/):
 
-| Prefix | Used for |
-|---|---|
-| `feat:` | A new feature |
-| `fix:` | A bug fix |
-| `docs:` | Documentation changes |
-| `chore:` | Maintenance tasks |
-| `refactor:` | Code refactoring |
-| `perf:` | Performance improvements |
-| `test:` | Adding or fixing tests |
+| Prefix      | Used for                 |
+| ----------- | ------------------------ |
+| `feat:`     | A new feature            |
+| `fix:`      | A bug fix                |
+| `docs:`     | Documentation changes    |
+| `chore:`    | Maintenance tasks        |
+| `refactor:` | Code refactoring         |
+| `perf:`     | Performance improvements |
+| `test:`     | Adding or fixing tests   |
 
 ---
 
@@ -671,10 +680,4 @@ This project follows [Conventional Commits](https://www.conventionalcommits.org/
 
 This project is licensed under the **MIT License** — see the [LICENSE](./LICENSE) file for details.
 
-Copyright © 2026 Azril Pramudia
-
----
-
-<div align="center">
-  <sub>Built with ❤️ using NestJS, Next.js \& Docker</sub>
-</div>
+Copyright © 2026 Meow
